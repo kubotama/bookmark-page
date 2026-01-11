@@ -5,7 +5,12 @@ import { cors } from 'hono/cors'
 const app = new Hono()
 
 // フロントエンド(Vite:5173)からのアクセスを許可
-app.use('/*', cors())
+app.use(
+  '/*',
+  cors({
+    origin: 'http://localhost:5173', // フロントエンドのURLに合わせて調整
+  })
+)
 
 // APIルートの定義
 const api = app.basePath('/api')
