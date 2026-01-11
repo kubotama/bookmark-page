@@ -8,7 +8,7 @@ const app = new Hono()
 app.use(
   '/*',
   cors({
-    origin: 'http://localhost:5173', // フロントエンドのURLに合わせて調整
+    origin: process.env.BOOKMARK_PAGE_FRONTEND_URL || 'http://localhost:5173',
   })
 )
 
