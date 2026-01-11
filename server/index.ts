@@ -9,7 +9,7 @@ app.use(
   '/*',
   cors({
     origin: process.env.BOOKMARK_PAGE_FRONTEND_URL || 'http://localhost:5173',
-  })
+  }),
 )
 
 // APIルートの定義
