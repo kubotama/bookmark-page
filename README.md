@@ -1,73 +1,50 @@
-# React + TypeScript + Vite
+# Bookmark Page
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## 概要 (Overview)
+`kubotama/linkpage` (Next.js) の機能を Vite (React) + Hono に移植・刷新するプロジェクトです。
+個人的なブックマーク（リンク集）を管理・表示するためのアプリケーションです。
 
-Currently, two official plugins are available:
+## 技術スタック (Tech Stack)
+- **Frontend:** Vite, React, TypeScript, Tailwind CSS
+- **Backend:** Hono (@hono/node-server)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 機能 (Features)
+- リンクの表示・管理
+- その他、旧 `linkpage` からの機能移行（順次実装予定）
 
-## React Compiler
+## 環境構築 (Getting Started)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 前提条件 (Prerequisites)
+- Node.js (v20以上推奨)
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### インストール (Installation)
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### 環境変数 (Environment Variables)
+`.env.example` をコピーして `.env` ファイルを作成してください。
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+```bash
+cp .env.example .env
+```
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+| 変数名 | 説明 | デフォルト値 |
+| --- | --- | --- |
+| `BOOKMARK_PAGE_FRONTEND_URL` | CORS許可オリジン設定用 | `http://localhost:5173` |
+
+### 開発サーバー起動 (Development)
+Frontend (Vite) と Backend (Hono) を同時に起動します。
+
+```bash
+npm run dev
+```
+
+起動後、以下のURLでアクセスできます：
+- Frontend: `http://localhost:5173`
+- Backend API: `http://localhost:3030`
+
+### ビルド (Build)
+```bash
+npm run build
 ```
