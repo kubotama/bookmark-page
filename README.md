@@ -19,7 +19,7 @@
 
 ### 前提条件 (Prerequisites)
 
-- Node.js (v20以上推奨)
+- Node.js (v20以上必須)
 
 ### インストール (Installation)
 
