@@ -39,6 +39,8 @@ cp .env.example .env
 | ---------------------------- | ---------------------- | ----------------------- |
 | `BOOKMARK_PAGE_FRONTEND_URL` | CORS許可オリジン設定用 | `http://localhost:5173` |
 
+補足: この環境変数が設定されていない場合、バックエンドはデフォルト値を使用します。
+
 ### 開発サーバー起動 (Development)
 
 Frontend (Vite) と Backend (Hono) を同時に起動します。
