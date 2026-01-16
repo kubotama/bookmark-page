@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { db } from '../db'
-import { bookmarkSchema, bookmarksResponseSchema } from '../schemas/bookmark'
+import { bookmarksResponseSchema } from '../schemas/bookmark'
 
 interface BookmarkRow {
   id: number
