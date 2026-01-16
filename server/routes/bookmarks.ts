@@ -2,9 +2,15 @@ import { Hono } from 'hono'
 import { db } from '../db'
 import { bookmarkSchema, bookmarksResponseSchema } from '../schemas/bookmark'
 
+interface BookmarkRow {
+  id: number
+  title: string
+  url: string
+}
+
 const bookmarksRoute = new Hono().get('/', (c) => {
   const stmt = db.prepare('SELECT bookmark_id as id, title, url FROM bookmarks')
-  const rows = stmt.all() as any[]
+  const rows = stmt.all() as BookmarkRow[]
 
   // DB のデータを API レスポンスの形式に整形
   const bookmarks = rows.map((row) => ({
