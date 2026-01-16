@@ -8,18 +8,20 @@
 ## 技術スタック (Tech Stack)
 
 - **Frontend:** Vite, React, TypeScript, Tailwind CSS
-- **Backend:** Hono (@hono/node-server)
+- **Backend:** Hono (@hono/node-server), better-sqlite3, Zod
+- **Database:** SQLite
 
 ## 機能 (Features)
 
-- リンクの表示・管理
-- その他、旧 `linkpage` からの機能移行（順次実装予定。進捗は後日作成されるIssueで追跡予定）
+- **ブックマーク一覧取得 API**: データベースから全件取得 (スケーラビリティを考慮したレスポンス構造)
+- リンクの表示・管理 (実装予定)
 
 ## 環境構築 (Getting Started)
 
 ### 前提条件 (Prerequisites)
 
 - Node.js (v20以上必須)
+- `bookmarks.sqlite` (プロジェクトルートに配置)
 
 ### インストール (Installation)
 
@@ -53,6 +55,26 @@ npm run dev
 
 - Frontend: `http://localhost:5173`
 - Backend API: `http://localhost:3030`
+
+## API 仕様 (API Specifications)
+
+### GET /api/bookmarks
+
+ブックマークの一覧を取得します。
+
+**レスポンス例:**
+
+```json
+{
+  "bookmarks": [
+    {
+      "id": "1",
+      "title": "Example",
+      "url": "https://example.com"
+    }
+  ]
+}
+```
 
 ### ビルド (Build)
 
