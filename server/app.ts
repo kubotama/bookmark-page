@@ -13,12 +13,9 @@ app.use(
 )
 
 // APIルートの定義
-export const api = app.basePath('/api')
-  .route('/bookmarks', bookmarksRoute)
 
-api.get('/hello', (c) => {
-  return c.json({ message: 'Hello from Hono!' })
-})
+export const api = app.basePath('/api').route('/bookmarks', bookmarksRoute)
 
 export type AppType = typeof api
+
 export default app
