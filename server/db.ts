@@ -8,8 +8,15 @@ export const db = new Database(dbPath)
 db.pragma('journal_mode = WAL')
 
 // アプリケーション終了時にデータベース接続を閉じる
-process.on('SIGINT', () => process.exit(0))
-process.on('SIGTERM', () => process.exit(0))
+const shutdown = () => {
+  if (db.open) {
+    db.close()
+  }
+  process.exit(0)
+}
+
+process.once('SIGINT', shutdown)
+process.once('SIGTERM', shutdown)
 process.on('exit', () => {
   if (db.open) {
     db.close()
