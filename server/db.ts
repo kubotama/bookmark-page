@@ -17,8 +17,8 @@ const SCHEMA = `
   );
   CREATE TABLE IF NOT EXISTS bookmark_keywords (
     bookmark_keyword_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    bookmark_id INTEGER,
-    keyword_id INTEGER,
+    bookmark_id INTEGER NOT NULL,
+    keyword_id INTEGER NOT NULL,
     FOREIGN KEY (bookmark_id) REFERENCES bookmarks(bookmark_id) ON DELETE CASCADE,
     FOREIGN KEY (keyword_id) REFERENCES keywords(keyword_id) ON DELETE CASCADE,
     UNIQUE (bookmark_id, keyword_id)
