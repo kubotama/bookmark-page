@@ -35,7 +35,7 @@ const initializeDatabase = () => {
   db.pragma('journal_mode = WAL')
 
   // 3. テーブル・インデックスの作成
-  db.exec(SCHEMA)
+  db.transaction(() => db.exec(SCHEMA))()
 }
 
 // 初期化実行（PRAGMA設定とスキーマ作成を一括で行う）
