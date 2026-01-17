@@ -28,14 +28,21 @@ const SCHEMA = `
 
 // データベースの初期化と設定
 const initializeDatabase = () => {
-  // 1. 接続ごとの設定（外部キー有効化）
-  db.pragma('foreign_keys = ON')
+  try {
+    // 1. 接続ごとの設定（外部キー有効化）
+    db.pragma('foreign_keys = ON')
 
-  // 2. DBファイル全体の設定（WALモード: パフォーマンス向上）
-  db.pragma('journal_mode = WAL')
+    // 2. DBファイル全体の設定（WALモード: パフォーマンス向上）
+    db.pragma('journal_mode = WAL')
 
-  // 3. テーブル・インデックスの作成
-  db.transaction(() => db.exec(SCHEMA))()
+    // 3. テーブル・インデックスの作成
+    db.transaction(() => {
+      db.exec(SCHEMA)
+    })()
+  } catch (error) {
+    console.error('Failed to initialize database:', error)
+    process.exit(1)
+  }
 }
 
 // 初期化実行（PRAGMA設定とスキーマ作成を一括で行う）
