@@ -10,7 +10,9 @@ interface BookmarkRow {
 
 const bookmarksRoute = new Hono().get('/', (c) => {
   try {
-    const stmt = db.prepare('SELECT bookmark_id as id, title, url FROM bookmarks')
+    const stmt = db.prepare(
+      'SELECT bookmark_id as id, title, url FROM bookmarks',
+    )
     const rows = stmt.all() as BookmarkRow[]
 
     // DB のデータを API レスポンスの形式に整形
@@ -29,7 +31,6 @@ const bookmarksRoute = new Hono().get('/', (c) => {
     return c.json(
       {
         message: 'Internal Server Error',
-        error: error instanceof Error ? error.message : 'Unknown error',
       },
       500,
     )
