@@ -26,16 +26,19 @@ const SCHEMA = `
   CREATE INDEX IF NOT EXISTS idx_bookmark_keywords_keyword_id ON bookmark_keywords(keyword_id);
 `
 
-// データベースの初期化
+// データベースの初期化と設定
 const initializeDatabase = () => {
+  // 1. 接続ごとの設定（外部キー有効化）
   db.pragma('foreign_keys = ON')
+
+  // 2. DBファイル全体の設定（WALモード: パフォーマンス向上）
+  db.pragma('journal_mode = WAL')
+
+  // 3. テーブル・インデックスの作成
   db.exec(SCHEMA)
 }
 
-// 開発中のデバッグ用に WAL モードなどを設定
-db.pragma('journal_mode = WAL')
-
-// 初期化実行
+// 初期化実行（PRAGMA設定とスキーマ作成を一括で行う）
 initializeDatabase()
 
 // アプリケーション終了時にデータベース接続を閉じる
