@@ -1,11 +1,15 @@
 import Database from 'better-sqlite3'
 import path from 'path'
 
-const dbPath = path.resolve(process.cwd(), 'bookmarks.sqlite')
+const isTest = process.env.NODE_ENV === 'test'
+const dbPath = isTest
+  ? ':memory:'
+  : path.resolve(process.cwd(), 'bookmarks.sqlite')
+
 export const db = new Database(dbPath)
 
 // スキーマ定義
-const SCHEMA = `
+export const SCHEMA = `
   CREATE TABLE IF NOT EXISTS bookmarks (
     bookmark_id INTEGER PRIMARY KEY AUTOINCREMENT,
     url TEXT NOT NULL UNIQUE,
@@ -27,13 +31,15 @@ const SCHEMA = `
 `
 
 // データベースの初期化と設定
-const initializeDatabase = () => {
+export const initializeDatabase = () => {
   try {
     // 1. 接続ごとの設定（外部キー有効化）
     db.pragma('foreign_keys = ON')
 
     // 2. DBファイル全体の設定（WALモード: パフォーマンス向上）
-    db.pragma('journal_mode = WAL')
+    if (!isTest) {
+      db.pragma('journal_mode = WAL')
+    }
 
     // 3. テーブル・インデックスの作成
     db.transaction(() => {
@@ -45,7 +51,23 @@ const initializeDatabase = () => {
   }
 }
 
-// 初期化実行（PRAGMA設定とスキーマ作成を一括で行う）
+// データベースを空にする（テスト用）
+export const resetDatabase = () => {
+  if (process.env.NODE_ENV !== 'test') {
+    throw new Error('resetDatabase can only be called in test environment')
+  }
+  db.transaction(() => {
+    db.prepare('DELETE FROM bookmark_keywords').run()
+    db.prepare('DELETE FROM keywords').run()
+    db.prepare('DELETE FROM bookmarks').run()
+    // IDをリセット
+    db.prepare(
+      "DELETE FROM sqlite_sequence WHERE name IN ('bookmarks', 'keywords', 'bookmark_keywords')",
+    ).run()
+  })()
+}
+
+// 初期化実行
 initializeDatabase()
 
 // アプリケーション終了時にデータベース接続を閉じる
