@@ -56,14 +56,27 @@ export const resetDatabase = () => {
   if (process.env.NODE_ENV !== 'test') {
     throw new Error('resetDatabase can only be called in test environment')
   }
+
+  // ユーザ定義テーブルの一覧を取得（sqlite_sequence などのシステムテーブルを除外）
+  const tables = db
+    .prepare(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'",
+    )
+    .all() as { name: string }[]
+
   db.transaction(() => {
-    db.prepare('DELETE FROM bookmark_keywords').run()
-    db.prepare('DELETE FROM keywords').run()
-    db.prepare('DELETE FROM bookmarks').run()
-    // IDをリセット
-    db.prepare(
-      "DELETE FROM sqlite_sequence WHERE name IN ('bookmarks', 'keywords', 'bookmark_keywords')",
-    ).run()
+    // 外部キー制約を一時的に無効化（削除順序を気にせず全削除するため）
+    db.pragma('foreign_keys = OFF')
+
+    for (const { name } of tables) {
+      db.prepare(`DELETE FROM ${name}`).run()
+      // IDリセット（sqlite_sequence テーブルが存在する場合のみ有効）
+      db.prepare(
+        "INSERT OR REPLACE INTO sqlite_sequence (name, seq) VALUES (?, 0)",
+      ).run(name)
+    }
+
+    db.pragma('foreign_keys = ON')
   })()
 }
 
