@@ -64,20 +64,24 @@ export const resetDatabase = () => {
     )
     .all() as { name: string }[]
 
-  db.transaction(() => {
-    // 外部キー制約を一時的に無効化（削除順序を気にせず全削除するため）
-    db.pragma('foreign_keys = OFF')
+  // 外部キー制約を一時的に無効化（トランザクションの外で実行する必要がある）
+  db.pragma('foreign_keys = OFF')
 
-    for (const { name } of tables) {
-      db.prepare(`DELETE FROM ${name}`).run()
-      // IDリセット（sqlite_sequence テーブルが存在する場合のみ有効）
-      db.prepare(
-        "INSERT OR REPLACE INTO sqlite_sequence (name, seq) VALUES (?, 0)",
-      ).run(name)
-    }
-
+  try {
+    db.transaction(() => {
+      for (const { name } of tables) {
+        // テーブル名はダブルクォーテーションでクオートして保護
+        db.prepare(`DELETE FROM "${name}"`).run()
+        // IDリセット（sqlite_sequence テーブルが存在する場合のみ有効）
+        db.prepare(
+          'INSERT OR REPLACE INTO sqlite_sequence (name, seq) VALUES (?, 0)',
+        ).run(name)
+      }
+    })()
+  } finally {
+    // 確実に外部キー制約を元に戻す
     db.pragma('foreign_keys = ON')
-  })()
+  }
 }
 
 // 初期化実行
