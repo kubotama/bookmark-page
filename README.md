@@ -21,7 +21,10 @@
 ### 前提条件 (Prerequisites)
 
 - Node.js (v20以上必須)
-- `bookmarks.sqlite` (プロジェクトルートに配置)
+
+### データベース (Database)
+
+アプリケーション起動時にプロジェクトルートに `bookmarks.sqlite` が自動的に作成され、必要なテーブル（bookmarks, keywords, bookmark_keywords）も初期化されます。手動でデータベースファイルを作成する必要はありません。
 
 ### インストール (Installation)
 
@@ -56,6 +59,20 @@ npm run dev
 - Frontend: `http://localhost:5173`
 - Backend API: `http://localhost:3030`
 
+### ビルド (Build)
+
+```bash
+npm run build
+```
+
+### テスト (Testing)
+
+```bash
+npm run test
+```
+
+テスト実行時は、開発用データベースに影響を与えないよう SQLite のインメモリモード (`:memory:`) が自動的に使用されます。
+
 ## API 仕様 (API Specifications)
 
 ### GET /api/bookmarks
@@ -74,16 +91,4 @@ npm run dev
     }
   ]
 }
-```
-
-### ビルド (Build)
-
-```bash
-npm run build
-```
-
-### テスト (Testing)
-
-```bash
-npm run test
 ```
