@@ -59,6 +59,20 @@ npm run dev
 - Frontend: `http://localhost:5173`
 - Backend API: `http://localhost:3030`
 
+### ビルド (Build)
+
+```bash
+npm run build
+```
+
+### テスト (Testing)
+
+```bash
+npm run test
+```
+
+テスト実行時は、開発用データベースに影響を与えないよう SQLite のインメモリモード (`:memory:`) が自動的に使用されます。
+
 ## API 仕様 (API Specifications)
 
 ### GET /api/bookmarks
@@ -78,17 +92,3 @@ npm run dev
   ]
 }
 ```
-
-### ビルド (Build)
-
-```bash
-npm run build
-```
-
-### テスト (Testing)
-
-```bash
-npm run test
-```
-
-テスト実行時は、開発用データベースに影響を与えないよう SQLite のインメモリモード (`:memory:`) が自動的に使用されます。
