@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { db } from '../db'
-import { bookmarksResponseSchema } from '../schemas/bookmark'
+import { bookmarksResponseSchema } from '@shared/schemas/bookmark'
+import { ERROR_MESSAGES } from '@shared/constants'
 
 interface BookmarkRow {
   id: number
@@ -30,7 +31,7 @@ const bookmarksRoute = new Hono().get('/', (c) => {
     console.error('Failed to fetch bookmarks:', error)
     return c.json(
       {
-        message: 'Internal Server Error',
+        message: ERROR_MESSAGES.INTERNAL_SERVER_ERROR,
       },
       500,
     )
