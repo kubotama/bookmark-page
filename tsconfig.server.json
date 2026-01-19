@@ -6,11 +6,7 @@
     "moduleResolution": "node",
     "types": ["node"],
     "strict": true,
-    "skipLibCheck": true,
-    "baseUrl": ".",
-    "paths": {
-      "@shared/*": ["./shared/*"]
-    }
+    "skipLibCheck": true
   },
   "include": ["server", "shared"]
 }
