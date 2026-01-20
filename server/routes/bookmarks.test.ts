@@ -1,6 +1,7 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import app from '../app'
 import { db, resetDatabase } from '../db'
+import { ERROR_MESSAGES } from '@shared/constants'
 
 describe('GET /api/bookmarks', () => {
   beforeEach(() => {
@@ -42,5 +43,29 @@ describe('GET /api/bookmarks', () => {
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.bookmarks).toEqual([])
+  })
+
+  it('データベースエラー時に 500 ステータスと安全なメッセージを返すこと', async () => {
+    // db.prepare が呼ばれた時にエラーを投げるようにモックする
+    const spy = vi.spyOn(db, 'prepare').mockImplementation(() => {
+      throw new Error('Database connection failed')
+    })
+
+    const res = await app.request('/api/bookmarks')
+
+    // 1. ステータスコードが 500 であること
+    expect(res.status).toBe(500)
+
+    const body = await res.json()
+
+    // 2. メッセージが "Internal Server Error" であること
+    expect(body).toHaveProperty('message', ERROR_MESSAGES.INTERNAL_SERVER_ERROR)
+
+    // 3. 詳細なエラー情報やスタックトレースが含まれていないこと
+    expect(body).not.toHaveProperty('error')
+    expect(body).not.toHaveProperty('stack')
+
+    // スパイを解除して他のテストに影響を与えないようにする
+    spy.mockRestore()
   })
 })
