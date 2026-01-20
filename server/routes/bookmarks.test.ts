@@ -47,9 +47,12 @@ describe('GET /api/bookmarks', () => {
 
   it('データベースエラー時に 500 ステータスと安全なメッセージを返すこと', async () => {
     // db.prepare が呼ばれた時にエラーを投げるようにモックする
-    const spy = vi.spyOn(db, 'prepare').mockImplementation(() => {
+    const dbSpy = vi.spyOn(db, 'prepare').mockImplementation(() => {
       throw new Error('Database connection failed')
     })
+
+    // console.error をスパイして出力を抑制する
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
     try {
       const res = await app.request('/api/bookmarks')
@@ -68,9 +71,19 @@ describe('GET /api/bookmarks', () => {
       // 3. 詳細なエラー情報やスタックトレースが含まれていないこと
       expect(body).not.toHaveProperty('error')
       expect(body).not.toHaveProperty('stack')
+
+      // 4. console.error が適切なメッセージとともに呼び出されたことを確認
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Failed to fetch bookmarks:',
+        expect.any(Error),
+      )
+      expect(consoleSpy.mock.calls[0][1].message).toBe(
+        'Database connection failed',
+      )
     } finally {
       // スパイを解除して他のテストに影響を与えないようにする
-      spy.mockRestore()
+      dbSpy.mockRestore()
+      consoleSpy.mockRestore()
     }
   })
 })
