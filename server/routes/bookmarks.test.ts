@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import app from '../app'
 import { db, resetDatabase } from '../db'
 import { ERROR_MESSAGES } from '@shared/constants'
@@ -6,6 +6,10 @@ import { ERROR_MESSAGES } from '@shared/constants'
 describe('GET /api/bookmarks', () => {
   beforeEach(() => {
     resetDatabase()
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
   })
 
   it('適切なレスポンス構造でブックマーク一覧を返すこと', async () => {
