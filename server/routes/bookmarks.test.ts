@@ -51,21 +51,26 @@ describe('GET /api/bookmarks', () => {
       throw new Error('Database connection failed')
     })
 
-    const res = await app.request('/api/bookmarks')
+    try {
+      const res = await app.request('/api/bookmarks')
 
-    // 1. ステータスコードが 500 であること
-    expect(res.status).toBe(500)
+      // 1. ステータスコードが 500 であること
+      expect(res.status).toBe(500)
 
-    const body = await res.json()
+      const body = await res.json()
 
-    // 2. メッセージが "Internal Server Error" であること
-    expect(body).toHaveProperty('message', ERROR_MESSAGES.INTERNAL_SERVER_ERROR)
+      // 2. メッセージが "Internal Server Error" であること
+      expect(body).toHaveProperty(
+        'message',
+        ERROR_MESSAGES.INTERNAL_SERVER_ERROR,
+      )
 
-    // 3. 詳細なエラー情報やスタックトレースが含まれていないこと
-    expect(body).not.toHaveProperty('error')
-    expect(body).not.toHaveProperty('stack')
-
-    // スパイを解除して他のテストに影響を与えないようにする
-    spy.mockRestore()
+      // 3. 詳細なエラー情報やスタックトレースが含まれていないこと
+      expect(body).not.toHaveProperty('error')
+      expect(body).not.toHaveProperty('stack')
+    } finally {
+      // スパイを解除して他のテストに影響を与えないようにする
+      spy.mockRestore()
+    }
   })
 })
