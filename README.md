@@ -15,7 +15,7 @@
 ## ディレクトリ構成 (Project Structure)
 
 - `src/`: フロントエンド (React) コード
-- `server/`: バックエンド (Hono) コード
+- `server/`: バックエンド (Hono) コード。`index.ts` をエントリーポイントとし、起動時にデータベースの初期化を行います。
 - `shared/`: フロントエンドとバックエンドで共有される型定義、スキーマ、共通定数（エラーメッセージ等）
 - `coverage/`: テストカバレッジレポート (自動生成)
 
@@ -33,6 +33,8 @@
 ### データベース (Database)
 
 アプリケーション起動時にプロジェクトルートに `bookmarks.sqlite` が自動的に作成され、必要なテーブル（bookmarks, keywords, bookmark_keywords）も初期化されます。手動でデータベースファイルを作成する必要はありません。
+
+初期化処理は `server/db.ts` の `initializeDatabase()` 関数に定義されており、サーバー起動時に明示的に呼び出されます。
 
 ### インストール (Installation)
 
