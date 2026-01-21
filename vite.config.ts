@@ -26,6 +26,8 @@ export default defineConfig({
     setupFiles: './src/test/setup.ts',
     coverage: {
       provider: 'v8',
+      clean: true,
+      all: true,
       reporter: ['text', 'json', 'html'],
       include: ['server/**/*.ts', 'shared/**/*.ts'],
       exclude: ['**/*.test.ts', 'src/test/**', 'vite.config.ts'],
