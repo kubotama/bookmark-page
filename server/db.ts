@@ -1,9 +1,10 @@
 import Database from 'better-sqlite3'
 import path from 'path'
 
+const isTestEnvironment = () => process.env.NODE_ENV === 'test'
+
 const getDbPath = () => {
-  const isTest = process.env.NODE_ENV === 'test'
-  return isTest
+  return isTestEnvironment()
     ? ':memory:'
     /* v8 ignore next 2 */
     // テスト実行時は常に :memory: を使用するため、物理パスの生成は計測から除外する
@@ -36,7 +37,7 @@ export const SCHEMA = `
 
 // データベースの初期化と設定
 export const initializeDatabase = () => {
-  const isTest = process.env.NODE_ENV === 'test'
+  const isTest = isTestEnvironment()
   try {
     // 1. 接続ごとの設定（外部キー有効化）
     db.pragma('foreign_keys = ON')
