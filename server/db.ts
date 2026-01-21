@@ -1,12 +1,17 @@
 import Database from 'better-sqlite3'
 import path from 'path'
 
-const isTest = process.env.NODE_ENV === 'test'
-const dbPath = isTest
-  ? ':memory:'
-  : path.resolve(process.cwd(), 'bookmarks.sqlite')
+const isTestEnvironment = () => process.env.NODE_ENV === 'test'
 
-export const db = new Database(dbPath)
+const getDbPath = () => {
+  return isTestEnvironment()
+    ? ':memory:'
+    /* v8 ignore next 2 */
+    // テスト実行時は常に :memory: を使用するため、物理パスの生成は計測から除外する
+    : path.resolve(process.cwd(), 'bookmarks.sqlite')
+}
+
+export const db = new Database(getDbPath())
 
 // スキーマ定義
 export const SCHEMA = `
@@ -32,6 +37,7 @@ export const SCHEMA = `
 
 // データベースの初期化と設定
 export const initializeDatabase = () => {
+  const isTest = isTestEnvironment()
   try {
     // 1. 接続ごとの設定（外部キー有効化）
     db.pragma('foreign_keys = ON')
@@ -73,9 +79,7 @@ export const resetDatabase = () => {
         // テーブル名はダブルクォーテーションでクオートして保護
         db.prepare(`DELETE FROM "${name}"`).run()
         // IDリセット（sqlite_sequence テーブルが存在する場合のみ有効）
-        db.prepare(
-          'INSERT OR REPLACE INTO sqlite_sequence (name, seq) VALUES (?, 0)',
-        ).run(name)
+        db.prepare('DELETE FROM sqlite_sequence WHERE name = ?').run(name)
       }
     })()
   } finally {
@@ -84,10 +88,9 @@ export const resetDatabase = () => {
   }
 }
 
-// 初期化実行
-initializeDatabase()
-
-// アプリケーション終了時にデータベース接続を閉じる
+/* v8 ignore start */
+// アプリケーション終了時にデータベース接続を閉じる。
+// これらの終了処理は通常のテスト実行プロセス中には実行されないため、カバレッジ計測から除外する。
 const shutdown = () => {
   if (db.open) {
     db.close()
@@ -102,3 +105,4 @@ process.on('exit', () => {
     db.close()
   }
 })
+/* v8 ignore stop */
