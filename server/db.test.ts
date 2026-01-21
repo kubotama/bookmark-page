@@ -26,6 +26,7 @@ describe('db.ts', () => {
       })
 
       expect(() => initializeDatabase()).toThrow('DDL Error')
+      expect(dbSpy).toHaveBeenCalled()
       expect(consoleSpy).toHaveBeenCalledWith(
         'Failed to initialize database:',
         expect.any(Error),
