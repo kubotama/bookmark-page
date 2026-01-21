@@ -24,5 +24,24 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: './src/test/setup.ts',
+    coverage: {
+      provider: 'v8',
+      clean: true,
+      all: true,
+      reporter: ['text', 'json', 'html'],
+      include: ['server/**/*.ts', 'shared/**/*.ts'],
+      exclude: [
+        '**/*.test.ts',
+        'src/test/**',
+        'vite.config.ts',
+        'server/index.ts',
+      ],
+      thresholds: {
+        lines: 70,
+        branches: 40,
+        functions: 70,
+        statements: 70,
+      },
+    },
   },
 })
