@@ -8,8 +8,16 @@
 ## 技術スタック (Tech Stack)
 
 - **Frontend:** Vite, React, TypeScript, Tailwind CSS
-- **Backend:** Hono (@hono/node-server), better-sqlite3, Zod
+- **Backend:** Hono (@hono/node-server), better-sqlite3
+- **Shared:** TypeScript (Zod schemas, constants)
 - **Database:** SQLite
+
+## ディレクトリ構成 (Project Structure)
+
+- `src/`: フロントエンド (React) コード
+- `server/`: バックエンド (Hono) コード
+- `shared/`: フロントエンドとバックエンドで共有される型定義、スキーマ、定数
+- `coverage/`: テストカバレッジレポート (自動生成)
 
 ## 機能 (Features)
 
@@ -31,6 +39,10 @@
 ```bash
 npm install
 ```
+
+### エディタ設定 (Editor Setup)
+
+VSCode を使用する場合、プロジェクトルートの `tsconfig.json` に基づき `@shared/*` パスエイリアスが自動的に認識されます。
 
 ### 環境変数 (Environment Variables)
 
@@ -67,11 +79,20 @@ npm run build
 
 ### テスト (Testing)
 
+単体テストを実行します：
+
 ```bash
 npm run test
 ```
 
-テスト実行時は、開発用データベースに影響を与えないよう SQLite のインメモリモード (`:memory:`) が自動的に使用されます。
+テストカバレッジを測定します：
+
+```bash
+npm run test:coverage
+```
+
+- テスト実行時は、開発用データベースに影響を与えないよう SQLite のインメモリモード (`:memory:`) が自動的に使用されます。
+- プロジェクトの品質維持のため、カバレッジ閾値（Statements: 70%, Branches: 40%等）が設定されています。
 
 ## API 仕様 (API Specifications)
 
