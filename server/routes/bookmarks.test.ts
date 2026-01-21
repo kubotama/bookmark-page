@@ -1,10 +1,11 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import app from '../app'
-import { db, resetDatabase } from '../db'
+import { db, initializeDatabase, resetDatabase } from '../db'
 import { ERROR_MESSAGES } from '@shared/constants'
 
 describe('GET /api/bookmarks', () => {
   beforeEach(() => {
+    initializeDatabase()
     resetDatabase()
   })
 
