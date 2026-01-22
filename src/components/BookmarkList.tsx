@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { client } from '../lib/api'
 import { UI_MESSAGES } from '@shared/constants'
+import { isHttpUrl } from '@shared/utils/url'
 
 export const BookmarkList = () => {
   const { data, isLoading, error } = useQuery({
@@ -49,7 +50,7 @@ export const BookmarkList = () => {
           className="p-4 bg-white shadow rounded-lg border border-gray-100 hover:shadow-md transition-shadow"
         >
           <a
-            href={bookmark.url}
+            href={isHttpUrl(bookmark.url) ? bookmark.url : '#'}
             target="_blank"
             rel="noopener noreferrer"
             className="block group"

@@ -85,4 +85,23 @@ describe('BookmarkList', () => {
       expect(screen.getByText(new RegExp(UI_MESSAGES.ERROR_PREFIX))).toBeInTheDocument()
     })
   })
+
+  it('不正な URL（javascript:等）が含まれる場合、href が # になること', async () => {
+    const mockBookmarks = [
+      { id: '1', title: 'Evil Bookmark', url: 'javascript:alert(1)' },
+    ]
+
+    server.use(
+      http.get(API_PATHS.BOOKMARKS, () => {
+        return HttpResponse.json({ bookmarks: mockBookmarks })
+      })
+    )
+
+    render(<BookmarkList />, { wrapper })
+
+    await waitFor(() => {
+      const link = screen.getByRole('link', { name: /Evil Bookmark/i })
+      expect(link).toHaveAttribute('href', '#')
+    })
+  })
 })
