@@ -36,7 +36,6 @@ export default defineConfig({
         'vite.config.ts',
         'server/index.ts',
         'src/main.tsx',
-        'src/App.tsx',
       ],
       thresholds: {
         lines: 70,

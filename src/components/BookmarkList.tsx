@@ -1,23 +1,14 @@
-import { useQuery } from '@tanstack/react-query'
-import { client } from '../lib/api'
 import { UI_MESSAGES } from '@shared/constants'
 import { isHttpUrl } from '@shared/utils/url'
-import { bookmarkKeys } from '../lib/queryKeys'
+import { Bookmark } from '@shared/schemas/bookmark'
 
-const fetchBookmarks = async () => {
-  const res = await client.api.bookmarks.$get()
-  if (!res.ok) {
-    throw new Error(UI_MESSAGES.FETCH_FAILED)
-  }
-  return await res.json()
+type Props = {
+  bookmarks: Bookmark[]
+  isLoading: boolean
+  error: unknown
 }
 
-export const BookmarkList = () => {
-  const { data, isLoading, error } = useQuery({
-    queryKey: bookmarkKeys.lists(),
-    queryFn: fetchBookmarks,
-  })
-
+export const BookmarkList = ({ bookmarks, isLoading, error }: Props) => {
   if (isLoading) {
     return (
       <div
@@ -41,8 +32,6 @@ export const BookmarkList = () => {
       </div>
     )
   }
-
-  const bookmarks = data?.bookmarks ?? []
 
   if (bookmarks.length === 0) {
     return (
