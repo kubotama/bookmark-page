@@ -31,7 +31,10 @@ export const BookmarkList = () => {
 
   if (error) {
     return (
-      <div className="p-4 bg-red-50 text-red-600 rounded-lg border border-red-200">
+      <div
+        className="p-4 bg-red-50 text-red-600 rounded-lg border border-red-200"
+        role="alert"
+      >
         {UI_MESSAGES.ERROR_PREFIX}:{' '}
         {error instanceof Error ? error.message : UI_MESSAGES.UNEXPECTED_ERROR}
       </div>
