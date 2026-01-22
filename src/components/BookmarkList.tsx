@@ -3,16 +3,18 @@ import { client } from '../lib/api'
 import { UI_MESSAGES } from '@shared/constants'
 import { isHttpUrl } from '@shared/utils/url'
 
+const fetchBookmarks = async () => {
+  const res = await client.api.bookmarks.$get()
+  if (!res.ok) {
+    throw new Error(UI_MESSAGES.FETCH_FAILED)
+  }
+  return await res.json()
+}
+
 export const BookmarkList = () => {
   const { data, isLoading, error } = useQuery({
     queryKey: ['bookmarks'],
-    queryFn: async () => {
-      const res = await client.api.bookmarks.$get()
-      if (!res.ok) {
-        throw new Error('Failed to fetch bookmarks')
-      }
-      return await res.json()
-    },
+    queryFn: fetchBookmarks,
   })
 
   if (isLoading) {

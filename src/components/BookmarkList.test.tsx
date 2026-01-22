@@ -82,7 +82,10 @@ describe('BookmarkList', () => {
     render(<BookmarkList />, { wrapper })
 
     await waitFor(() => {
-      expect(screen.getByText(new RegExp(UI_MESSAGES.ERROR_PREFIX))).toBeInTheDocument()
+      expect(
+        screen.getByText(new RegExp(UI_MESSAGES.ERROR_PREFIX)),
+      ).toBeInTheDocument()
+      expect(screen.getByText(new RegExp(UI_MESSAGES.FETCH_FAILED))).toBeInTheDocument()
     })
   })
 
