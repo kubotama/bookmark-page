@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { describe, it, expect } from 'vitest'
 import { http, HttpResponse } from 'msw'
@@ -49,11 +49,8 @@ describe('BookmarkList', () => {
 
     render(<BookmarkList />, { wrapper })
 
-    await waitFor(() => {
-      expect(screen.getByText('Test Bookmark 1')).toBeInTheDocument()
-      expect(screen.getByText('Test Bookmark 2')).toBeInTheDocument()
-    })
-
+    expect(await screen.findByText('Test Bookmark 1')).toBeInTheDocument()
+    expect(screen.getByText('Test Bookmark 2')).toBeInTheDocument()
     expect(screen.getByText('https://example.com/1')).toBeInTheDocument()
     expect(screen.getByText('https://example.com/2')).toBeInTheDocument()
   })
@@ -67,9 +64,7 @@ describe('BookmarkList', () => {
 
     render(<BookmarkList />, { wrapper })
 
-    await waitFor(() => {
-      expect(screen.getByText(UI_MESSAGES.NO_BOOKMARKS)).toBeInTheDocument()
-    })
+    expect(await screen.findByText(UI_MESSAGES.NO_BOOKMARKS)).toBeInTheDocument()
   })
 
   it('エラー発生時にエラーメッセージが表示されること', async () => {
@@ -81,11 +76,9 @@ describe('BookmarkList', () => {
 
     render(<BookmarkList />, { wrapper })
 
-    await waitFor(() => {
-      const alert = screen.getByRole('alert')
-      expect(alert).toHaveTextContent(UI_MESSAGES.ERROR_PREFIX)
-      expect(alert).toHaveTextContent(UI_MESSAGES.FETCH_FAILED)
-    })
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent(UI_MESSAGES.ERROR_PREFIX)
+    expect(alert).toHaveTextContent(UI_MESSAGES.FETCH_FAILED)
   })
 
   it('不正な URL（javascript:等）が含まれる場合、href が # になること', async () => {
@@ -101,9 +94,7 @@ describe('BookmarkList', () => {
 
     render(<BookmarkList />, { wrapper })
 
-    await waitFor(() => {
-      const link = screen.getByRole('link', { name: /Evil Bookmark/i })
-      expect(link).toHaveAttribute('href', '#')
-    })
+    const link = await screen.findByRole('link', { name: /Evil Bookmark/i })
+    expect(link).toHaveAttribute('href', '#')
   })
 })
