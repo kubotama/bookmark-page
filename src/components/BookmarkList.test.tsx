@@ -4,6 +4,7 @@ import { describe, it, expect } from 'vitest'
 import { http, HttpResponse } from 'msw'
 import { server } from '../test/setup'
 import { BookmarkList } from './BookmarkList'
+import { UI_MESSAGES } from '@shared/constants'
 
 const createTestQueryClient = () =>
   new QueryClient({
@@ -67,7 +68,7 @@ describe('BookmarkList', () => {
     render(<BookmarkList />, { wrapper })
 
     await waitFor(() => {
-      expect(screen.getByText('ブックマークがありません。')).toBeInTheDocument()
+      expect(screen.getByText(UI_MESSAGES.NO_BOOKMARKS)).toBeInTheDocument()
     })
   })
 
@@ -81,7 +82,7 @@ describe('BookmarkList', () => {
     render(<BookmarkList />, { wrapper })
 
     await waitFor(() => {
-      expect(screen.getByText(/エラーが発生しました/)).toBeInTheDocument()
+      expect(screen.getByText(new RegExp(UI_MESSAGES.ERROR_PREFIX))).toBeInTheDocument()
     })
   })
 })

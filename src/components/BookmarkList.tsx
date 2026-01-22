@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { client } from '../lib/api'
+import { UI_MESSAGES } from '@shared/constants'
 
 export const BookmarkList = () => {
   const { data, isLoading, error } = useQuery({
@@ -24,7 +25,8 @@ export const BookmarkList = () => {
   if (error) {
     return (
       <div className="p-4 bg-red-50 text-red-600 rounded-lg border border-red-200">
-        エラーが発生しました: {error.message}
+        {UI_MESSAGES.ERROR_PREFIX}:{' '}
+        {error instanceof Error ? error.message : UI_MESSAGES.UNEXPECTED_ERROR}
       </div>
     )
   }
@@ -34,7 +36,7 @@ export const BookmarkList = () => {
   if (bookmarks.length === 0) {
     return (
       <div className="text-center p-8 text-gray-500">
-        ブックマークがありません。
+        {UI_MESSAGES.NO_BOOKMARKS}
       </div>
     )
   }
