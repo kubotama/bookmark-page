@@ -31,8 +31,8 @@ describe('BookmarkList', () => {
     )
 
     render(<BookmarkList />, { wrapper })
-    const spinner = document.querySelector('.animate-spin')
-    expect(spinner).toBeInTheDocument()
+    expect(screen.getByRole('status')).toBeInTheDocument()
+    expect(screen.getByLabelText(UI_MESSAGES.LOADING_LABEL)).toBeInTheDocument()
   })
 
   it('ブックマーク一覧が正常に表示されること', async () => {
