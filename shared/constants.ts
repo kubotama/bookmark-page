@@ -7,3 +7,7 @@ export const UI_MESSAGES = {
   UNEXPECTED_ERROR: '予期せぬエラーが発生しました',
   NO_BOOKMARKS: 'ブックマークがありません。',
 } as const
+
+export const API_PATHS = {
+  BOOKMARKS: '/api/bookmarks',
+} as const

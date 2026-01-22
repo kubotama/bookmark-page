@@ -4,7 +4,7 @@ import { describe, it, expect } from 'vitest'
 import { http, HttpResponse } from 'msw'
 import { server } from '../test/setup'
 import { BookmarkList } from './BookmarkList'
-import { UI_MESSAGES } from '@shared/constants'
+import { UI_MESSAGES, API_PATHS } from '@shared/constants'
 
 const createTestQueryClient = () =>
   new QueryClient({
@@ -24,7 +24,7 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
 describe('BookmarkList', () => {
   it('ローディング中にスピナーが表示されること', () => {
     server.use(
-      http.get('/api/bookmarks', () => {
+      http.get(API_PATHS.BOOKMARKS, () => {
         // 意図的な遅延
         return new Promise((resolve) => setTimeout(() => resolve(HttpResponse.json({ bookmarks: [] })), 100))
       })
@@ -42,7 +42,7 @@ describe('BookmarkList', () => {
     ]
 
     server.use(
-      http.get('/api/bookmarks', () => {
+      http.get(API_PATHS.BOOKMARKS, () => {
         return HttpResponse.json({ bookmarks: mockBookmarks })
       })
     )
@@ -60,7 +60,7 @@ describe('BookmarkList', () => {
 
   it('データが空の場合に適切なメッセージが表示されること', async () => {
     server.use(
-      http.get('/api/bookmarks', () => {
+      http.get(API_PATHS.BOOKMARKS, () => {
         return HttpResponse.json({ bookmarks: [] })
       })
     )
@@ -74,7 +74,7 @@ describe('BookmarkList', () => {
 
   it('エラー発生時にエラーメッセージが表示されること', async () => {
     server.use(
-      http.get('/api/bookmarks', () => {
+      http.get(API_PATHS.BOOKMARKS, () => {
         return new HttpResponse(null, { status: 500 })
       })
     )
