@@ -1,6 +1,6 @@
 import { UI_MESSAGES } from '@shared/constants'
 import { isHttpUrl } from '@shared/utils/url'
-import { Bookmark } from '@shared/schemas/bookmark'
+import type { Bookmark } from '@shared/schemas/bookmark'
 
 type Props = {
   bookmarks: Bookmark[]
