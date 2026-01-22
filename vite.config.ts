@@ -29,12 +29,13 @@ export default defineConfig({
       clean: true,
       all: true,
       reporter: ['text', 'json', 'html'],
-      include: ['server/**/*.ts', 'shared/**/*.ts'],
+      include: ['server/**/*.ts', 'shared/**/*.ts', 'src/**/*.ts', 'src/**/*.tsx'],
       exclude: [
         '**/*.test.ts',
         'src/test/**',
         'vite.config.ts',
         'server/index.ts',
+        'src/main.tsx',
       ],
       thresholds: {
         lines: 70,

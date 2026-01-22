@@ -7,7 +7,7 @@
 
 ## 技術スタック (Tech Stack)
 
-- **Frontend:** Vite, React, TypeScript, Tailwind CSS
+- **Frontend:** Vite, React, TypeScript, Tailwind CSS, TanStack Query
 - **Backend:** Hono (@hono/node-server), better-sqlite3
 - **Shared:** TypeScript (Zod schemas, constants)
 - **Database:** SQLite
@@ -94,6 +94,7 @@ npm run test:coverage
 ```
 
 - テスト実行時は、開発用データベースに影響を与えないよう SQLite のインメモリモード (`:memory:`) が自動的に使用されます。
+- フロントエンドのテストには **React Testing Library** と **MSW (Mock Service Worker)** を使用しており、API リクエストをモックしてコンポーネントの挙動を検証しています。
 - プロジェクトの品質維持のため、カバレッジ閾値が設定されています（詳細は `vite.config.ts` を参照）。
 
 ## API 仕様 (API Specifications)

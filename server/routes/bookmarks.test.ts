@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import app from '../app'
 import { db, initializeDatabase, resetDatabase } from '../db'
-import { ERROR_MESSAGES } from '@shared/constants'
+import { ERROR_MESSAGES, API_PATHS } from '@shared/constants'
 
 describe('GET /api/bookmarks', () => {
   beforeEach(() => {
@@ -24,7 +24,7 @@ describe('GET /api/bookmarks', () => {
       'https://google.com',
     )
 
-    const res = await app.request('/api/bookmarks')
+    const res = await app.request(API_PATHS.BOOKMARKS)
     expect(res.status).toBe(200)
 
     const body = await res.json()
@@ -44,7 +44,7 @@ describe('GET /api/bookmarks', () => {
   })
 
   it('データが空の場合、空の配列を返すこと', async () => {
-    const res = await app.request('/api/bookmarks')
+    const res = await app.request(API_PATHS.BOOKMARKS)
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.bookmarks).toEqual([])
@@ -60,7 +60,7 @@ describe('GET /api/bookmarks', () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
     try {
-      const res = await app.request('/api/bookmarks')
+      const res = await app.request(API_PATHS.BOOKMARKS)
 
       // 1. ステータスコードが 500 であること
       expect(res.status).toBe(500)
