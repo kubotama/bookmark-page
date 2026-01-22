@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { client } from '../lib/api'
 import { UI_MESSAGES } from '@shared/constants'
 import { isHttpUrl } from '@shared/utils/url'
+import { bookmarkKeys } from '../lib/queryKeys'
 
 const fetchBookmarks = async () => {
   const res = await client.api.bookmarks.$get()
@@ -13,7 +14,7 @@ const fetchBookmarks = async () => {
 
 export const BookmarkList = () => {
   const { data, isLoading, error } = useQuery({
-    queryKey: ['bookmarks'],
+    queryKey: bookmarkKeys.lists(),
     queryFn: fetchBookmarks,
   })
 
