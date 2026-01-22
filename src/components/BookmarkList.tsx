@@ -42,25 +42,31 @@ export const BookmarkList = ({ bookmarks, isLoading, error }: Props) => {
   }
 
   return (
-    <ul className="space-y-3 w-full max-w-2xl mx-auto">
-      {bookmarks.map((bookmark) => (
-        <li
-          key={bookmark.id}
-          className="p-4 bg-white shadow rounded-lg border border-gray-100 hover:shadow-md transition-shadow"
-        >
-          <a
-            href={isHttpUrl(bookmark.url) ? bookmark.url : '#'}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block group"
-          >
-            <h3 className="font-semibold text-lg text-blue-600 group-hover:underline">
-              {bookmark.title}
-            </h3>
-            <p className="text-sm text-gray-500 truncate">{bookmark.url}</p>
-          </a>
-        </li>
-      ))}
-    </ul>
+    <div className="w-full max-w-2xl mx-auto overflow-hidden bg-white shadow rounded-lg border border-gray-200">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            <th
+              scope="col"
+              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              タイトル
+            </th>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {bookmarks.map((bookmark) => (
+            <tr
+              key={bookmark.id}
+              className="hover:bg-gray-50 transition-colors cursor-pointer"
+            >
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 font-semibold">
+                {bookmark.title}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   )
 }

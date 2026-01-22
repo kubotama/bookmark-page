@@ -26,10 +26,16 @@ describe('BookmarkList', () => {
       />
     )
 
+    // タイトルが表示されていることを確認
     expect(screen.getByText('Test Bookmark 1')).toBeInTheDocument()
     expect(screen.getByText('Test Bookmark 2')).toBeInTheDocument()
-    expect(screen.getByText('https://example.com/1')).toBeInTheDocument()
-    expect(screen.getByText('https://example.com/2')).toBeInTheDocument()
+
+    // URL が表示されていないことを確認 (仕様変更)
+    expect(screen.queryByText('https://example.com/1')).not.toBeInTheDocument()
+
+    // テーブル構造であることを確認
+    expect(screen.getByRole('table')).toBeInTheDocument()
+    expect(screen.getAllByRole('row')).toHaveLength(3) // header + 2 items
   })
 
   it('データが空の場合に適切なメッセージが表示されること', () => {
@@ -62,22 +68,5 @@ describe('BookmarkList', () => {
     const alert = screen.getByRole('alert')
     expect(alert).toHaveTextContent(UI_MESSAGES.ERROR_PREFIX)
     expect(alert).toHaveTextContent(UI_MESSAGES.UNEXPECTED_ERROR)
-  })
-
-  it('不正な URL（javascript:等）が含まれる場合、href が # になること', () => {
-    const mockBookmarks = [
-      { id: '1', title: 'Evil Bookmark', url: 'javascript:alert(1)' },
-    ]
-
-    render(
-      <BookmarkList
-        bookmarks={mockBookmarks}
-        isLoading={false}
-        error={null}
-      />
-    )
-
-    const link = screen.getByRole('link', { name: /Evil Bookmark/i })
-    expect(link).toHaveAttribute('href', '#')
   })
 })
