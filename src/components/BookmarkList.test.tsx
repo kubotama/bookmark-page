@@ -50,6 +50,20 @@ describe('BookmarkList', () => {
     expect(alert).toHaveTextContent('Test Error')
   })
 
+  it('Errorインスタンス以外のエラー発生時に、予期せぬエラーメッセージが表示されること', () => {
+    render(
+      <BookmarkList
+        bookmarks={[]}
+        isLoading={false}
+        error="Unexpected string error"
+      />
+    )
+
+    const alert = screen.getByRole('alert')
+    expect(alert).toHaveTextContent(UI_MESSAGES.ERROR_PREFIX)
+    expect(alert).toHaveTextContent(UI_MESSAGES.UNEXPECTED_ERROR)
+  })
+
   it('不正な URL（javascript:等）が含まれる場合、href が # になること', () => {
     const mockBookmarks = [
       { id: '1', title: 'Evil Bookmark', url: 'javascript:alert(1)' },
