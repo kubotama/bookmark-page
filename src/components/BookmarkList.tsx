@@ -1,5 +1,6 @@
 import { UI_MESSAGES } from '@shared/constants'
 import type { Bookmark } from '@shared/schemas/bookmark'
+import { isHttpUrl } from '@shared/utils/url'
 
 type Props = {
   bookmarks: Bookmark[]
@@ -8,6 +9,12 @@ type Props = {
 }
 
 export const BookmarkList = ({ bookmarks, isLoading, error }: Props) => {
+  const handleDoubleClick = (url: string) => {
+    if (isHttpUrl(url)) {
+      window.open(url, '_blank', 'noopener,noreferrer')
+    }
+  }
+
   if (isLoading) {
     return (
       <div
@@ -49,6 +56,7 @@ export const BookmarkList = ({ bookmarks, isLoading, error }: Props) => {
             <tr
               key={bookmark.id}
               className="hover:bg-gray-50 transition-colors cursor-pointer"
+              onDoubleClick={() => handleDoubleClick(bookmark.url)}
             >
               <td className="px-2 py-1 whitespace-nowrap text-sm font-medium text-gray-900 text-left bg-blue-100 border-b border-blue-700">
                 {bookmark.title}
