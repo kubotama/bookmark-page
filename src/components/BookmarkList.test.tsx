@@ -10,7 +10,17 @@ describe('BookmarkList', () => {
     { id: '2', title: 'Test Bookmark 2', url: 'https://example.com/2' },
   ]
 
-  const testCases = [
+  type TestCase = {
+    name: string
+    props: {
+      bookmarks: Bookmark[]
+      isLoading: boolean
+      error: Error | string | null
+    }
+    assert: () => void
+  }
+
+  const testCases: TestCase[] = [
     {
       name: 'ローディング中にスピナーが表示されること',
       props: { bookmarks: [], isLoading: true, error: null },
