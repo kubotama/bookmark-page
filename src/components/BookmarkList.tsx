@@ -59,7 +59,7 @@ export const BookmarkList = ({ bookmarks, isLoading, error }: Props) => {
               key={bookmark.id}
               className="hover:bg-gray-50 transition-colors cursor-pointer"
             >
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 font-semibold">
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 font-semibold text-left">
                 {bookmark.title}
               </td>
             </tr>
