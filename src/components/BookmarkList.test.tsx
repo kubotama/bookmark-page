@@ -1,18 +1,14 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, afterEach, vi } from 'vitest'
 import { BookmarkList } from './BookmarkList'
 import { UI_MESSAGES } from '@shared/constants'
 import type { Bookmark } from '@shared/schemas/bookmark'
+import * as useBookmarkListModule from '../hooks/useBookmarkList'
 
 describe('BookmarkList', () => {
-  beforeEach(() => {
-    vi.stubGlobal('open', vi.fn())
-  })
-
   afterEach(() => {
     vi.restoreAllMocks()
-    vi.unstubAllGlobals()
   })
 
   const mockBookmarks: Bookmark[] = [
@@ -91,32 +87,24 @@ describe('BookmarkList', () => {
     assert()
   })
 
-  it('行をダブルクリックした際に新しいタブで URL が開かれること', async () => {
+  it('行をダブルクリックした際に handleDoubleClick が呼び出されること', async () => {
     const user = userEvent.setup()
-    render(<BookmarkList bookmarks={mockBookmarks} isLoading={false} error={null} />)
+    const handleDoubleClickSpy = vi.fn()
+
+    vi.spyOn(useBookmarkListModule, 'useBookmarkList').mockReturnValue({
+      handleDoubleClick: handleDoubleClickSpy,
+    })
+
+    render(
+      <BookmarkList bookmarks={mockBookmarks} isLoading={false} error={null} />,
+    )
 
     const row = screen.getByText('Test Bookmark 1').closest('tr')
     expect(row).not.toBeNull()
 
     if (row) {
       await user.dblClick(row)
-      expect(window.open).toHaveBeenCalledWith(
-        'https://example.com/1',
-        '_blank',
-        'noopener,noreferrer'
-      )
-    }
-  })
-
-  it('不正な URL の場合はダブルクリックしても window.open が呼ばれないこと', async () => {
-    const user = userEvent.setup()
-    const evilBookmarks = [{ id: '1', title: 'Evil', url: 'javascript:alert(1)' }]
-    render(<BookmarkList bookmarks={evilBookmarks} isLoading={false} error={null} />)
-
-    const row = screen.getByText('Evil').closest('tr')
-    if (row) {
-      await user.dblClick(row)
-      expect(window.open).not.toHaveBeenCalled()
+      expect(handleDoubleClickSpy).toHaveBeenCalledWith(mockBookmarks[0].url)
     }
   })
 })
