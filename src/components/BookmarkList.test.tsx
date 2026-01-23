@@ -35,7 +35,7 @@ describe('BookmarkList', () => {
 
     // テーブル構造であることを確認
     expect(screen.getByRole('table')).toBeInTheDocument()
-    expect(screen.getAllByRole('row')).toHaveLength(3) // header + 2 items
+    expect(screen.getAllByRole('row')).toHaveLength(2) // 2 items (header is empty and has no row)
   })
 
   it('データが空の場合に適切なメッセージが表示されること', () => {
