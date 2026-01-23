@@ -1,6 +1,6 @@
 import { UI_MESSAGES } from '@shared/constants'
 import type { Bookmark } from '@shared/schemas/bookmark'
-import { isHttpUrl } from '@shared/utils/url'
+import { useBookmarkList } from '../hooks/useBookmarkList'
 
 type Props = {
   bookmarks: Bookmark[]
@@ -9,11 +9,7 @@ type Props = {
 }
 
 export const BookmarkList = ({ bookmarks, isLoading, error }: Props) => {
-  const handleDoubleClick = (url: string) => {
-    if (isHttpUrl(url)) {
-      window.open(url, '_blank', 'noopener,noreferrer')
-    }
-  }
+  const { handleDoubleClick } = useBookmarkList()
 
   if (isLoading) {
     return (
