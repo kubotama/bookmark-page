@@ -1,5 +1,4 @@
 import { UI_MESSAGES } from '@shared/constants'
-import { isHttpUrl } from '@shared/utils/url'
 import type { Bookmark } from '@shared/schemas/bookmark'
 
 type Props = {
@@ -42,25 +41,22 @@ export const BookmarkList = ({ bookmarks, isLoading, error }: Props) => {
   }
 
   return (
-    <ul className="space-y-3 w-full max-w-2xl mx-auto">
-      {bookmarks.map((bookmark) => (
-        <li
-          key={bookmark.id}
-          className="p-4 bg-white shadow rounded-lg border border-gray-100 hover:shadow-md transition-shadow"
-        >
-          <a
-            href={isHttpUrl(bookmark.url) ? bookmark.url : '#'}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block group"
-          >
-            <h3 className="font-semibold text-lg text-blue-600 group-hover:underline">
-              {bookmark.title}
-            </h3>
-            <p className="text-sm text-gray-500 truncate">{bookmark.url}</p>
-          </a>
-        </li>
-      ))}
-    </ul>
+    <div className="w-full max-w-2xl mx-auto overflow-hidden bg-white shadow border border-blue-700">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50"></thead>
+        <tbody className="bg-white">
+          {bookmarks.map((bookmark) => (
+            <tr
+              key={bookmark.id}
+              className="hover:bg-gray-50 transition-colors cursor-pointer"
+            >
+              <td className="px-2 py-1 whitespace-nowrap text-sm font-medium text-gray-900 text-left bg-blue-100 border-b border-blue-700">
+                {bookmark.title}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   )
 }

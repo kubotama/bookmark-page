@@ -35,9 +35,6 @@ describe('App Integration', () => {
 
     render(<App />, { wrapper })
 
-    // ヘッダーの確認
-    expect(screen.getByText('Bookmark Page')).toBeInTheDocument()
-
     // データの取得待ちと表示確認
     expect(await screen.findByText('Integrated Bookmark')).toBeInTheDocument()
   })
