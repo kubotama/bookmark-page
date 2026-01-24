@@ -51,18 +51,15 @@ export const BookmarkList = ({
   }
 
   return (
-    <div className="w-full max-w-2xl mx-auto overflow-hidden bg-white shadow border border-blue-700">
+    <div className="w-full max-w-2xl mx-auto overflow-hidden bg-white shadow border-t border-l border-r border-blue-700">
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50"></thead>
         <tbody className="bg-white">
           {bookmarks.map((bookmark) => {
             const isSelected = selectedId === bookmark.id
-            const trClassName = `transition-colors cursor-pointer ${
-              isSelected ? 'bg-blue-100' : 'hover:bg-gray-50'
-            }`
-            const tdClassName = `px-2 py-1 whitespace-nowrap text-sm text-left border-b border-blue-700 text-gray-900 bg-blue-100 ${
-              isSelected ? 'font-bold' : 'font-normal'
-            }`
+            const trClassName = `transition-colors cursor-pointer hover:bg-blue-200 bg-blue-100
+            text-sm text-left border-blue-700 text-gray-900`
+            const tdClassName = `px-2 py-1 whitespace-nowrap border-b ${isSelected ? 'font-bold' : 'font-normal'}`
 
             return (
               <tr
