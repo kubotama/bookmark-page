@@ -115,4 +115,36 @@ describe('BookmarkList', () => {
     await user.dblClick(screen.getByText('Test Bookmark 1'))
     expect(onDoubleClick).toHaveBeenCalledWith('1', 'https://example.com/1')
   })
+
+  it('行にフォーカスして Enter キーを押した際に onDoubleClick が呼び出されること', async () => {
+    const user = userEvent.setup()
+    const onDoubleClick = vi.fn()
+    render(<BookmarkList {...defaultProps} onDoubleClick={onDoubleClick} />)
+
+    const row = screen.getByText('Test Bookmark 1').closest('tr')
+    expect(row).toHaveAttribute('tabIndex', '0')
+
+    await user.type(row!, '{enter}')
+    expect(onDoubleClick).toHaveBeenCalledWith('1', 'https://example.com/1')
+  })
+
+  it('行にフォーカスして スペース キーを押した際に onRowClick が呼び出されること', async () => {
+    const user = userEvent.setup()
+    const onRowClick = vi.fn()
+    render(<BookmarkList {...defaultProps} onRowClick={onRowClick} />)
+
+    const row = screen.getByText('Test Bookmark 1').closest('tr')
+    await user.type(row!, ' ')
+    expect(onRowClick).toHaveBeenCalledWith('1')
+  })
+
+  it('選択状態の行に aria-selected="true" が付与されること', () => {
+    render(<BookmarkList {...defaultProps} selectedId="1" />)
+
+    const row = screen.getByText('Test Bookmark 1').closest('tr')
+    expect(row).toHaveAttribute('aria-selected', 'true')
+
+    const otherRow = screen.getByText('Test Bookmark 2').closest('tr')
+    expect(otherRow).toHaveAttribute('aria-selected', 'false')
+  })
 })
