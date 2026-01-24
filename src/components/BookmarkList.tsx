@@ -60,8 +60,8 @@ export const BookmarkList = ({
             const trClassName = `transition-colors cursor-pointer ${
               isSelected ? 'bg-blue-100' : 'hover:bg-gray-50'
             }`
-            const tdClassName = `px-2 py-1 whitespace-nowrap text-sm font-medium text-left border-b border-blue-700 text-gray-900 bg-blue-100 ${
-              isSelected ? 'font-bold' : ''
+            const tdClassName = `px-2 py-1 whitespace-nowrap text-sm text-left border-b border-blue-700 text-gray-900 bg-blue-100 ${
+              isSelected ? 'font-bold' : 'font-normal'
             }`
 
             return (
