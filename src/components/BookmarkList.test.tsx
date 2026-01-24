@@ -89,15 +89,13 @@ describe('BookmarkList', () => {
     assert()
   })
 
-  it('選択された行のスタイルが反転すること', () => {
+  it('選択された行のスタイルが太字になること', () => {
     render(<BookmarkList {...defaultProps} selectedId="1" />)
 
-    const row = screen.getByText('Test Bookmark 1').closest('tr')
     const cell = screen.getByText('Test Bookmark 1')
 
-    // 選択時のクラスを確認
-    expect(row).toHaveClass('bg-blue-700')
-    expect(cell).toHaveClass('text-white')
+    // 選択時のクラスを確認 (太字化)
+    expect(cell).toHaveClass('font-bold')
   })
 
   it('行をクリックした際に onRowClick が呼び出されること', async () => {

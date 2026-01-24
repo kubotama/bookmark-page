@@ -58,10 +58,10 @@ export const BookmarkList = ({
           {bookmarks.map((bookmark) => {
             const isSelected = selectedId === bookmark.id
             const trClassName = `transition-colors cursor-pointer ${
-              isSelected ? 'bg-blue-700 hover:bg-blue-800' : 'hover:bg-gray-50'
+              isSelected ? 'bg-blue-100' : 'hover:bg-gray-50'
             }`
-            const tdClassName = `px-2 py-1 whitespace-nowrap text-sm font-medium text-left border-b border-blue-700 ${
-              isSelected ? 'text-white' : 'text-gray-900 bg-blue-100'
+            const tdClassName = `px-2 py-1 whitespace-nowrap text-sm font-medium text-left border-b border-blue-700 text-gray-900 bg-blue-100 ${
+              isSelected ? 'font-bold' : ''
             }`
 
             return (
