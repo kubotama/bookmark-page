@@ -17,11 +17,15 @@ export const useBookmarkList = () => {
   /**
    * ブックマークをダブルクリックした際のハンドラ
    */
-  const handleDoubleClick = useCallback((url: string) => {
-    if (isHttpUrl(url)) {
-      window.open(url, '_blank', 'noopener,noreferrer')
-    }
-  }, [])
+  const handleDoubleClick = useCallback(
+    (id: string, url: string) => {
+      setSelectedId(id)
+      if (isHttpUrl(url)) {
+        window.open(url, '_blank', 'noopener,noreferrer')
+      }
+    },
+    [setSelectedId],
+  )
 
   return {
     selectedId,

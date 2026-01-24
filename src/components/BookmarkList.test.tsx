@@ -107,12 +107,22 @@ describe('BookmarkList', () => {
     expect(onRowClick).toHaveBeenCalledWith('1')
   })
 
-  it('行をダブルクリックした際に onDoubleClick が呼び出されること', async () => {
-    const user = userEvent.setup()
-    const onDoubleClick = vi.fn()
-    render(<BookmarkList {...defaultProps} onDoubleClick={onDoubleClick} />)
+    it('行をダブルクリックした際に onDoubleClick が呼び出されること', async () => {
 
-    await user.dblClick(screen.getByText('Test Bookmark 1'))
-    expect(onDoubleClick).toHaveBeenCalledWith('https://example.com/1')
+      const user = userEvent.setup()
+
+      const onDoubleClick = vi.fn()
+
+      render(<BookmarkList {...defaultProps} onDoubleClick={onDoubleClick} />)
+
+  
+
+      await user.dblClick(screen.getByText('Test Bookmark 1'))
+
+      expect(onDoubleClick).toHaveBeenCalledWith('1', 'https://example.com/1')
+
+    })
+
   })
-})
+
+  

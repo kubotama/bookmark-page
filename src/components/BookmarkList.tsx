@@ -7,7 +7,7 @@ type Props = {
   error: unknown
   selectedId: string | null
   onRowClick: (id: string) => void
-  onDoubleClick: (url: string) => void
+  onDoubleClick: (id: string, url: string) => void
 }
 
 export const BookmarkList = ({
@@ -58,15 +58,17 @@ export const BookmarkList = ({
           {bookmarks.map((bookmark) => {
             const isSelected = selectedId === bookmark.id
             const trClassName = `transition-colors cursor-pointer hover:bg-blue-200 bg-blue-100
-            text-sm text-left border-blue-700 text-gray-900`
-            const tdClassName = `px-2 py-1 whitespace-nowrap border-b ${isSelected ? 'font-bold' : 'font-normal'}`
+            text-sm text-left text-gray-900 select-none`
+            const tdClassName = `px-2 py-1 whitespace-nowrap border-b border-blue-700 ${
+              isSelected ? 'font-bold' : 'font-normal'
+            }`
 
             return (
               <tr
                 key={bookmark.id}
                 className={trClassName}
                 onClick={() => onRowClick(bookmark.id)}
-                onDoubleClick={() => onDoubleClick(bookmark.url)}
+                onDoubleClick={() => onDoubleClick(bookmark.id, bookmark.url)}
               >
                 <td className={tdClassName}>{bookmark.title}</td>
               </tr>

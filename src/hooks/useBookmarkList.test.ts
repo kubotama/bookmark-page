@@ -48,16 +48,21 @@ describe('useBookmarkList', () => {
 
   it.each(testCases)('$name', ({ url, expectedCalled }) => {
     const { result } = renderHook(() => useBookmarkList())
+    const id = 'test-id'
 
-    result.current.handleDoubleClick(url)
+    act(() => {
+      result.current.handleDoubleClick(id, url)
+    })
 
     if (expectedCalled) {
+      expect(result.current.selectedId).toBe(id)
       expect(window.open).toHaveBeenCalledWith(
         url,
         '_blank',
         'noopener,noreferrer',
       )
     } else {
+      expect(result.current.selectedId).toBe(id) // 無効なURLでも選択は行われる仕様とする
       expect(window.open).not.toHaveBeenCalled()
     }
   })
