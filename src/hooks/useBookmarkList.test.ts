@@ -54,15 +54,15 @@ describe('useBookmarkList', () => {
       result.current.handleDoubleClick(id, url)
     })
 
+    expect(result.current.selectedId).toBe(id) // 無効なURLでも選択は行われる仕様とする
+
     if (expectedCalled) {
-      expect(result.current.selectedId).toBe(id)
       expect(window.open).toHaveBeenCalledWith(
         url,
         '_blank',
         'noopener,noreferrer',
       )
     } else {
-      expect(result.current.selectedId).toBe(id) // 無効なURLでも選択は行われる仕様とする
       expect(window.open).not.toHaveBeenCalled()
     }
   })
