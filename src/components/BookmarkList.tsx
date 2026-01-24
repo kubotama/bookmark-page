@@ -66,8 +66,20 @@ export const BookmarkList = ({
               <tr
                 key={bookmark.id}
                 className={trClassName}
+                tabIndex={0}
+                aria-selected={selectedId === bookmark.id}
                 onClick={() => onRowClick(bookmark.id)}
                 onDoubleClick={() => onDoubleClick(bookmark.id, bookmark.url)}
+                onKeyDown={(e) => {
+                  // EnterキーでURLを開く (ダブルクリック相当)
+                  if (e.key === 'Enter') {
+                    onDoubleClick(bookmark.id, bookmark.url)
+                  } else if (e.key === ' ') {
+                    // スペースキーで選択/解除 (クリック相当)
+                    e.preventDefault() // ページのスクロールを防止
+                    onRowClick(bookmark.id)
+                  }
+                }}
               >
                 <td className={tdClassName}>{bookmark.title}</td>
               </tr>
