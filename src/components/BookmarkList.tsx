@@ -57,24 +57,21 @@ export const BookmarkList = ({
         <tbody className="bg-white">
           {bookmarks.map((bookmark) => {
             const isSelected = selectedId === bookmark.id
+            const trClassName = `transition-colors cursor-pointer ${
+              isSelected ? 'bg-blue-700 hover:bg-blue-800' : 'hover:bg-gray-50'
+            }`
+            const tdClassName = `px-2 py-1 whitespace-nowrap text-sm font-medium text-left border-b border-blue-700 ${
+              isSelected ? 'text-white' : 'text-gray-900 bg-blue-100'
+            }`
+
             return (
               <tr
                 key={bookmark.id}
-                className={`transition-colors cursor-pointer ${
-                  isSelected
-                    ? 'bg-blue-700 hover:bg-blue-800'
-                    : 'hover:bg-gray-50'
-                }`}
+                className={trClassName}
                 onClick={() => onRowClick(bookmark.id)}
                 onDoubleClick={() => onDoubleClick(bookmark.url)}
               >
-                <td
-                  className={`px-2 py-1 whitespace-nowrap text-sm font-medium text-left border-b border-blue-700 ${
-                    isSelected ? 'text-white' : 'text-gray-900 bg-blue-100'
-                  }`}
-                >
-                  {bookmark.title}
-                </td>
+                <td className={tdClassName}>{bookmark.title}</td>
               </tr>
             )
           })}
