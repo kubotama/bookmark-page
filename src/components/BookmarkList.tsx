@@ -1,10 +1,10 @@
 import { UI_MESSAGES } from '@shared/constants'
 import type { Bookmark } from '@shared/schemas/bookmark'
 
-type Props = {
+export type BookmarkProps = {
   bookmarks: Bookmark[]
   isLoading: boolean
-  error: unknown
+  error: null | string | Error
   selectedId: string | null
   onRowClick: (id: string) => void
   onDoubleClick: (id: string, url: string) => void
@@ -17,7 +17,7 @@ export const BookmarkList = ({
   selectedId,
   onRowClick,
   onDoubleClick,
-}: Props) => {
+}: BookmarkProps) => {
   if (isLoading) {
     return (
       <div
@@ -57,8 +57,7 @@ export const BookmarkList = ({
         <tbody className="bg-white">
           {bookmarks.map((bookmark) => {
             const isSelected = selectedId === bookmark.id
-            const trClassName = `transition-colors cursor-pointer hover:bg-blue-200 bg-blue-100
-            text-sm text-left text-gray-900 select-none`
+            const trClassName = `transition-colors cursor-pointer hover:bg-blue-200 bg-blue-100 text-sm text-left text-gray-900 select-none`
             const tdClassName = `px-2 py-1 whitespace-nowrap border-b border-blue-700 ${
               isSelected ? 'font-bold' : 'font-normal'
             }`

@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, afterEach, vi } from 'vitest'
-import { BookmarkList } from './BookmarkList'
+import { BookmarkList, type BookmarkProps } from './BookmarkList'
 import { UI_MESSAGES } from '@shared/constants'
 import type { Bookmark } from '@shared/schemas/bookmark'
 
@@ -15,7 +15,7 @@ describe('BookmarkList', () => {
     { id: '2', title: 'Test Bookmark 2', url: 'https://example.com/2' },
   ]
 
-  const defaultProps = {
+  const defaultProps: BookmarkProps = {
     bookmarks: mockBookmarks,
     isLoading: false,
     error: null,
@@ -107,22 +107,12 @@ describe('BookmarkList', () => {
     expect(onRowClick).toHaveBeenCalledWith('1')
   })
 
-    it('行をダブルクリックした際に onDoubleClick が呼び出されること', async () => {
+  it('行をダブルクリックした際に onDoubleClick が呼び出されること', async () => {
+    const user = userEvent.setup()
+    const onDoubleClick = vi.fn()
+    render(<BookmarkList {...defaultProps} onDoubleClick={onDoubleClick} />)
 
-      const user = userEvent.setup()
-
-      const onDoubleClick = vi.fn()
-
-      render(<BookmarkList {...defaultProps} onDoubleClick={onDoubleClick} />)
-
-  
-
-      await user.dblClick(screen.getByText('Test Bookmark 1'))
-
-      expect(onDoubleClick).toHaveBeenCalledWith('1', 'https://example.com/1')
-
-    })
-
+    await user.dblClick(screen.getByText('Test Bookmark 1'))
+    expect(onDoubleClick).toHaveBeenCalledWith('1', 'https://example.com/1')
   })
-
-  
+})
