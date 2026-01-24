@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react'
+import { renderHook, act } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { useBookmarkList } from './useBookmarkList'
 
@@ -57,8 +57,90 @@ describe('useBookmarkList', () => {
         '_blank',
         'noopener,noreferrer',
       )
-    } else {
-      expect(window.open).not.toHaveBeenCalled()
-    }
-  })
-})
+        } else {
+          expect(window.open).not.toHaveBeenCalled()
+        }
+      })
+    
+      describe('selectedId / handleRowClick', () => {
+        it('初期状態では何も選択されていないこと', () => {
+          const { result } = renderHook(() => useBookmarkList())
+          expect(result.current.selectedId).toBeNull()
+        })
+    
+            it('handleRowClick を呼ぶと ID が選択されること', () => {
+    
+              const { result } = renderHook(() => useBookmarkList())
+    
+              const id = '1'
+    
+        
+    
+              act(() => {
+    
+                result.current.handleRowClick(id)
+    
+              })
+    
+              expect(result.current.selectedId).toBe(id)
+    
+            })
+    
+        
+    
+            it('同じ ID で再度 handleRowClick を呼ぶと選択が解除されること', () => {
+    
+              const { result } = renderHook(() => useBookmarkList())
+    
+              const id = '1'
+    
+        
+    
+              act(() => {
+    
+                result.current.handleRowClick(id) // 選択
+    
+              })
+    
+              expect(result.current.selectedId).toBe(id)
+    
+        
+    
+              act(() => {
+    
+                result.current.handleRowClick(id) // 解除
+    
+              })
+    
+              expect(result.current.selectedId).toBeNull()
+    
+            })
+    
+        
+    
+            it('別の ID で handleRowClick を呼ぶと選択が切り替わること', () => {
+    
+              const { result } = renderHook(() => useBookmarkList())
+    
+        
+    
+              act(() => {
+    
+                result.current.handleRowClick('1')
+    
+              })
+    
+              act(() => {
+    
+                result.current.handleRowClick('2')
+    
+              })
+    
+              expect(result.current.selectedId).toBe('2')
+    
+            })
+    
+        
+      })
+    })
+    

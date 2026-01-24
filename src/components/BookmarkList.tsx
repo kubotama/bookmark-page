@@ -1,16 +1,23 @@
 import { UI_MESSAGES } from '@shared/constants'
 import type { Bookmark } from '@shared/schemas/bookmark'
-import { useBookmarkList } from '../hooks/useBookmarkList'
 
 type Props = {
   bookmarks: Bookmark[]
   isLoading: boolean
   error: unknown
+  selectedId: string | null
+  onRowClick: (id: string) => void
+  onDoubleClick: (url: string) => void
 }
 
-export const BookmarkList = ({ bookmarks, isLoading, error }: Props) => {
-  const { handleDoubleClick } = useBookmarkList()
-
+export const BookmarkList = ({
+  bookmarks,
+  isLoading,
+  error,
+  selectedId,
+  onRowClick,
+  onDoubleClick,
+}: Props) => {
   if (isLoading) {
     return (
       <div
@@ -48,17 +55,29 @@ export const BookmarkList = ({ bookmarks, isLoading, error }: Props) => {
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50"></thead>
         <tbody className="bg-white">
-          {bookmarks.map((bookmark) => (
-            <tr
-              key={bookmark.id}
-              className="hover:bg-gray-50 transition-colors cursor-pointer"
-              onDoubleClick={() => handleDoubleClick(bookmark.url)}
-            >
-              <td className="px-2 py-1 whitespace-nowrap text-sm font-medium text-gray-900 text-left bg-blue-100 border-b border-blue-700">
-                {bookmark.title}
-              </td>
-            </tr>
-          ))}
+          {bookmarks.map((bookmark) => {
+            const isSelected = selectedId === bookmark.id
+            return (
+              <tr
+                key={bookmark.id}
+                className={`transition-colors cursor-pointer ${
+                  isSelected
+                    ? 'bg-blue-700 hover:bg-blue-800'
+                    : 'hover:bg-gray-50'
+                }`}
+                onClick={() => onRowClick(bookmark.id)}
+                onDoubleClick={() => onDoubleClick(bookmark.url)}
+              >
+                <td
+                  className={`px-2 py-1 whitespace-nowrap text-sm font-medium text-left border-b border-blue-700 ${
+                    isSelected ? 'text-white' : 'text-gray-900 bg-blue-100'
+                  }`}
+                >
+                  {bookmark.title}
+                </td>
+              </tr>
+            )
+          })}
         </tbody>
       </table>
     </div>

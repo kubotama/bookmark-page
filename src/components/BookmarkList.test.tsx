@@ -4,7 +4,6 @@ import { describe, it, expect, afterEach, vi } from 'vitest'
 import { BookmarkList } from './BookmarkList'
 import { UI_MESSAGES } from '@shared/constants'
 import type { Bookmark } from '@shared/schemas/bookmark'
-import * as useBookmarkListModule from '../hooks/useBookmarkList'
 
 describe('BookmarkList', () => {
   afterEach(() => {
@@ -16,20 +15,25 @@ describe('BookmarkList', () => {
     { id: '2', title: 'Test Bookmark 2', url: 'https://example.com/2' },
   ]
 
+  const defaultProps = {
+    bookmarks: mockBookmarks,
+    isLoading: false,
+    error: null,
+    selectedId: null,
+    onRowClick: vi.fn(),
+    onDoubleClick: vi.fn(),
+  }
+
   type TestCase = {
     name: string
-    props: {
-      bookmarks: Bookmark[]
-      isLoading: boolean
-      error: Error | string | null
-    }
+    props: Partial<typeof defaultProps>
     assert: () => void | Promise<void>
   }
 
   const testCases: TestCase[] = [
     {
       name: 'ローディング中にスピナーが表示されること',
-      props: { bookmarks: [], isLoading: true, error: null },
+      props: { bookmarks: [], isLoading: true },
       assert: () => {
         expect(screen.getByRole('status')).toBeInTheDocument()
         expect(
@@ -39,7 +43,7 @@ describe('BookmarkList', () => {
     },
     {
       name: 'ブックマーク一覧が正常に表示されること',
-      props: { bookmarks: mockBookmarks, isLoading: false, error: null },
+      props: { bookmarks: mockBookmarks },
       assert: () => {
         expect(screen.getByText('Test Bookmark 1')).toBeInTheDocument()
         expect(screen.getByText('Test Bookmark 2')).toBeInTheDocument()
@@ -49,7 +53,7 @@ describe('BookmarkList', () => {
     },
     {
       name: 'データが空の場合に適切なメッセージが表示されること',
-      props: { bookmarks: [], isLoading: false, error: null },
+      props: { bookmarks: [] },
       assert: () => {
         expect(screen.getByText(UI_MESSAGES.NO_BOOKMARKS)).toBeInTheDocument()
       },
@@ -58,7 +62,6 @@ describe('BookmarkList', () => {
       name: 'Errorインスタンス発生時にエラーメッセージが表示されること',
       props: {
         bookmarks: [],
-        isLoading: false,
         error: new Error('Test Error'),
       },
       assert: () => {
@@ -71,7 +74,6 @@ describe('BookmarkList', () => {
       name: 'Errorインスタンス以外のエラー発生時に、予期せぬエラーメッセージが表示されること',
       props: {
         bookmarks: [],
-        isLoading: false,
         error: 'Unexpected string error',
       },
       assert: () => {
@@ -83,28 +85,36 @@ describe('BookmarkList', () => {
   ]
 
   it.each(testCases)('$name', ({ props, assert }) => {
-    render(<BookmarkList {...props} />)
+    render(<BookmarkList {...defaultProps} {...props} />)
     assert()
   })
 
-  it('行をダブルクリックした際に handleDoubleClick が呼び出されること', async () => {
-    const user = userEvent.setup()
-    const handleDoubleClickSpy = vi.fn()
-
-    vi.spyOn(useBookmarkListModule, 'useBookmarkList').mockReturnValue({
-      handleDoubleClick: handleDoubleClickSpy,
-    })
-
-    render(
-      <BookmarkList bookmarks={mockBookmarks} isLoading={false} error={null} />,
-    )
+  it('選択された行のスタイルが反転すること', () => {
+    render(<BookmarkList {...defaultProps} selectedId="1" />)
 
     const row = screen.getByText('Test Bookmark 1').closest('tr')
-    expect(row).not.toBeNull()
+    const cell = screen.getByText('Test Bookmark 1')
 
-    if (row) {
-      await user.dblClick(row)
-      expect(handleDoubleClickSpy).toHaveBeenCalledWith(mockBookmarks[0].url)
-    }
+    // 選択時のクラスを確認
+    expect(row).toHaveClass('bg-blue-700')
+    expect(cell).toHaveClass('text-white')
+  })
+
+  it('行をクリックした際に onRowClick が呼び出されること', async () => {
+    const user = userEvent.setup()
+    const onRowClick = vi.fn()
+    render(<BookmarkList {...defaultProps} onRowClick={onRowClick} />)
+
+    await user.click(screen.getByText('Test Bookmark 1'))
+    expect(onRowClick).toHaveBeenCalledWith('1')
+  })
+
+  it('行をダブルクリックした際に onDoubleClick が呼び出されること', async () => {
+    const user = userEvent.setup()
+    const onDoubleClick = vi.fn()
+    render(<BookmarkList {...defaultProps} onDoubleClick={onDoubleClick} />)
+
+    await user.dblClick(screen.getByText('Test Bookmark 1'))
+    expect(onDoubleClick).toHaveBeenCalledWith('https://example.com/1')
   })
 })
