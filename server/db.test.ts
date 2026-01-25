@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { z } from 'zod'
 import { db, initializeDatabase, resetDatabase } from './db'
 import { LOG_MESSAGES } from '@shared/constants'
 
@@ -68,9 +69,9 @@ describe('db.ts', () => {
       resetDatabase()
 
       // 3. 削除されているか確認
-      const count = db.prepare('SELECT COUNT(*) as count FROM bookmarks').get() as {
-        count: number
-      }
+      const count = z
+        .object({ count: z.number() })
+        .parse(db.prepare('SELECT COUNT(*) as count FROM bookmarks').get())
       expect(count.count).toBe(0)
 
       // 4. 次の挿入でIDが1から始まることを確認

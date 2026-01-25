@@ -1,18 +1,17 @@
 import { Hono } from 'hono'
+import { z } from 'zod'
+
 import { zValidator } from '@hono/zod-validator'
-import { db } from '../db'
+import { ERROR_MESSAGES, LOG_MESSAGES } from '@shared/constants'
 import {
+  bookmarkRowSchema,
   bookmarksResponseSchema,
   createBookmarkSchema,
-  type BookmarkId,
 } from '@shared/schemas/bookmark'
-import { ERROR_MESSAGES, LOG_MESSAGES } from '@shared/constants'
+import { db } from '../db'
 
-interface BookmarkRow {
-  id: number
-  title: string
-  url: string
-}
+import type { BookmarkId } from '@shared/schemas/bookmark'
+
 
 const bookmarksRoute = new Hono()
   .get('/', (c) => {
@@ -20,7 +19,7 @@ const bookmarksRoute = new Hono()
       const stmt = db.prepare(
         'SELECT bookmark_id as id, title, url FROM bookmarks',
       )
-      const rows = stmt.all() as BookmarkRow[]
+      const rows = z.array(bookmarkRowSchema).parse(stmt.all())
 
       // DB のデータを API レスポンスの形式に整形
       const bookmarks = rows.map((row) => ({
@@ -50,7 +49,7 @@ const bookmarksRoute = new Hono()
       const stmt = db.prepare(
         'INSERT INTO bookmarks (title, url) VALUES (?, ?) RETURNING bookmark_id as id, title, url',
       )
-      const row = stmt.get(title, url) as BookmarkRow
+      const row = bookmarkRowSchema.parse(stmt.get(title, url))
 
       return c.json(
         {

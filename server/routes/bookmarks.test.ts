@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import app from '../app'
 import { db, initializeDatabase, resetDatabase } from '../db'
 import { ERROR_MESSAGES, API_PATHS, LOG_MESSAGES } from '@shared/constants'
+import { bookmarkRowSchema } from '@shared/schemas/bookmark'
 
 describe('GET /api/bookmarks', () => {
   beforeEach(() => {
@@ -117,9 +118,11 @@ describe('POST /api/bookmarks', () => {
     expect(body.url).toBe(VALID_DATA.url)
 
     // DBに保存されていることを確認
-    const row = db
-      .prepare('SELECT * FROM bookmarks WHERE url = ?')
-      .get(VALID_DATA.url) as { bookmark_id: number; title: string; url: string }
+    const row = bookmarkRowSchema.parse(
+      db
+        .prepare('SELECT bookmark_id as id, title, url FROM bookmarks WHERE url = ?')
+        .get(VALID_DATA.url),
+    )
     expect(row).toBeDefined()
     expect(row.title).toBe(VALID_DATA.title)
   })

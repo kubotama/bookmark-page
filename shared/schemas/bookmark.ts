@@ -14,6 +14,14 @@ export const bookmarkSchema = z.object({
 
 export type Bookmark = z.infer<typeof bookmarkSchema>
 
+export const bookmarkRowSchema = z.object({
+  id: z.number(),
+  title: z.string(),
+  url: z.string(),
+})
+
+export type BookmarkRow = z.infer<typeof bookmarkRowSchema>
+
 export const createBookmarkSchema = z.object({
   title: z.string().min(1, 'タイトルは必須です'),
   url: z.string().url().refine(isHttpUrl, {
