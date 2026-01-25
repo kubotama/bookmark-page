@@ -1,4 +1,4 @@
-import type { Bookmark, BookmarkId } from '@shared/schemas/bookmark'
+import type { Bookmark, BookmarkId } from '../schemas/bookmark'
 
 export const MOCK_BOOKMARK_1: Bookmark = {
   id: '1' as BookmarkId,

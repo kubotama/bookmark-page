@@ -7,7 +7,7 @@ import {
   MOCK_BOOKMARK_1,
   MOCK_BOOKMARK_2,
   MOCK_BOOKMARKS,
-} from '../test/fixtures'
+} from '@shared/test/fixtures'
 
 describe('BookmarkList', () => {
   afterEach(() => {

@@ -5,7 +5,7 @@ import { http, HttpResponse } from 'msw'
 import { server } from './test/setup'
 import App from './App'
 import { API_PATHS } from '@shared/constants'
-import { MOCK_BOOKMARK_1 } from './test/fixtures'
+import { MOCK_BOOKMARK_1 } from '@shared/test/fixtures'
 
 const createTestQueryClient = () =>
   new QueryClient({

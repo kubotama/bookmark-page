@@ -1,7 +1,7 @@
 import { renderHook, act } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { useBookmarkList } from './useBookmarkList'
-import { MOCK_BOOKMARK_1, MOCK_BOOKMARK_2, INVALID_URLS } from '../test/fixtures'
+import { MOCK_BOOKMARK_1, MOCK_BOOKMARK_2, INVALID_URLS } from '@shared/test/fixtures'
 
 describe('useBookmarkList', () => {
   beforeEach(() => {
