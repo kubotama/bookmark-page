@@ -64,32 +64,25 @@ describe('GET /api/bookmarks', () => {
     // console.error をスパイして出力を抑制する
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-    try {
-      const res = await app.request(API_PATHS.BOOKMARKS)
+    const res = await app.request(API_PATHS.BOOKMARKS)
 
-      // 1. ステータスコードが 500 であること
-      expect(res.status).toBe(500)
+    // 1. ステータスコードが 500 であること
+    expect(res.status).toBe(500)
 
-      const body = await res.json()
+    const body = await res.json()
 
-      // 2. メッセージが "Internal Server Error" であること
-      expect(body).toHaveProperty(
-        'message',
-        ERROR_MESSAGES.INTERNAL_SERVER_ERROR,
-      )
+    // 2. メッセージが "Internal Server Error" であること
+    expect(body).toHaveProperty('message', ERROR_MESSAGES.INTERNAL_SERVER_ERROR)
 
-      // 3. 詳細なエラー情報やスタックトレースが含まれていないこと
-      expect(body).not.toHaveProperty('error')
-      expect(body).not.toHaveProperty('stack')
+    // 3. 詳細なエラー情報やスタックトレースが含まれていないこと
+    expect(body).not.toHaveProperty('error')
+    expect(body).not.toHaveProperty('stack')
 
-      // 4. console.error が適切なメッセージとともに呼び出されたことを確認
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Failed to fetch bookmarks:',
-        expect.any(Error),
-      )
-      expect(consoleSpy.mock.calls[0][1].message).toBe(INTERNAL_ERROR_LOG)
-    } finally {
-      // afterEach により自動リセットされるが明示
-    }
+    // 4. console.error が適切なメッセージとともに呼び出されたことを確認
+    expect(consoleSpy).toHaveBeenCalledWith(
+      'Failed to fetch bookmarks:',
+      expect.any(Error),
+    )
+    expect(consoleSpy.mock.calls[0][1].message).toBe(INTERNAL_ERROR_LOG)
   })
 })
