@@ -54,7 +54,7 @@ export const BookmarkList = ({
 
   return (
     <div className="w-full max-w-2xl mx-auto overflow-hidden bg-white shadow border-t border-l border-r border-blue-700">
-      <table className="min-w-full divide-y divide-gray-200">
+      <table className="min-w-full border-collapse">
         <thead className="bg-gray-50"></thead>
         <tbody className="bg-white">
           {bookmarks.map((bookmark) => {
