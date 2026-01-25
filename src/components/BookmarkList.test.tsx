@@ -123,6 +123,7 @@ describe('BookmarkList', () => {
 
     const rows = screen.getAllByRole('row')
     expect(rows[0]).toHaveAttribute('tabIndex', '0')
+    expect(rows[1]).toHaveAttribute('tabIndex', '-1')
 
     await user.type(rows[1]!, '{enter}')
     expect(onDoubleClick).toHaveBeenCalledWith(
