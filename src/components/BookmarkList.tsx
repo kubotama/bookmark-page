@@ -1,16 +1,23 @@
 import { UI_MESSAGES } from '@shared/constants'
 import type { Bookmark } from '@shared/schemas/bookmark'
-import { useBookmarkList } from '../hooks/useBookmarkList'
 
-type Props = {
+export type BookmarkProps = {
   bookmarks: Bookmark[]
   isLoading: boolean
-  error: unknown
+  error: null | string | Error
+  selectedId: string | null
+  onRowClick: (id: string) => void
+  onDoubleClick: (id: string, url: string) => void
 }
 
-export const BookmarkList = ({ bookmarks, isLoading, error }: Props) => {
-  const { handleDoubleClick } = useBookmarkList()
-
+export const BookmarkList = ({
+  bookmarks,
+  isLoading,
+  error,
+  selectedId,
+  onRowClick,
+  onDoubleClick,
+}: BookmarkProps) => {
   if (isLoading) {
     return (
       <div
@@ -43,22 +50,46 @@ export const BookmarkList = ({ bookmarks, isLoading, error }: Props) => {
     )
   }
 
+  const trClassName = `transition-colors cursor-pointer hover:bg-blue-200 bg-blue-100 text-sm text-left text-gray-900 select-none`
+
   return (
-    <div className="w-full max-w-2xl mx-auto overflow-hidden bg-white shadow border border-blue-700">
-      <table className="min-w-full divide-y divide-gray-200">
+    <div className="w-full max-w-2xl mx-auto overflow-hidden bg-white shadow border-t border-l border-r border-blue-700">
+      <table className="min-w-full border-collapse">
         <thead className="bg-gray-50"></thead>
         <tbody className="bg-white">
-          {bookmarks.map((bookmark) => (
-            <tr
-              key={bookmark.id}
-              className="hover:bg-gray-50 transition-colors cursor-pointer"
-              onDoubleClick={() => handleDoubleClick(bookmark.url)}
-            >
-              <td className="px-2 py-1 whitespace-nowrap text-sm font-medium text-gray-900 text-left bg-blue-100 border-b border-blue-700">
-                {bookmark.title}
-              </td>
-            </tr>
-          ))}
+          {bookmarks.map((bookmark, index) => {
+            const tdClassName = `px-2 py-1 whitespace-nowrap border-b border-blue-700 ${
+              selectedId === bookmark.id ? 'font-bold' : ''
+            }`
+
+            return (
+              <tr
+                key={bookmark.id}
+                className={trClassName}
+                tabIndex={
+                  (selectedId === null && index === 0) ||
+                  selectedId === bookmark.id
+                    ? 0
+                    : -1
+                }
+                aria-selected={selectedId === bookmark.id}
+                onClick={() => onRowClick(bookmark.id)}
+                onDoubleClick={() => onDoubleClick(bookmark.id, bookmark.url)}
+                onKeyDown={(e) => {
+                  // EnterキーでURLを開く (ダブルクリック相当)
+                  if (e.key === 'Enter') {
+                    onDoubleClick(bookmark.id, bookmark.url)
+                  } else if (e.key === ' ') {
+                    // スペースキーで選択/解除 (クリック相当)
+                    e.preventDefault() // ページのスクロールを防止
+                    onRowClick(bookmark.id)
+                  }
+                }}
+              >
+                <td className={tdClassName}>{bookmark.title}</td>
+              </tr>
+            )
+          })}
         </tbody>
       </table>
     </div>

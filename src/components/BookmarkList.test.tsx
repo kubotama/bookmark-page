@@ -1,10 +1,9 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, afterEach, vi } from 'vitest'
-import { BookmarkList } from './BookmarkList'
+import { BookmarkList, type BookmarkProps } from './BookmarkList'
 import { UI_MESSAGES } from '@shared/constants'
 import type { Bookmark } from '@shared/schemas/bookmark'
-import * as useBookmarkListModule from '../hooks/useBookmarkList'
 
 describe('BookmarkList', () => {
   afterEach(() => {
@@ -16,20 +15,25 @@ describe('BookmarkList', () => {
     { id: '2', title: 'Test Bookmark 2', url: 'https://example.com/2' },
   ]
 
+  const defaultProps: BookmarkProps = {
+    bookmarks: mockBookmarks,
+    isLoading: false,
+    error: null,
+    selectedId: null,
+    onRowClick: vi.fn(),
+    onDoubleClick: vi.fn(),
+  }
+
   type TestCase = {
     name: string
-    props: {
-      bookmarks: Bookmark[]
-      isLoading: boolean
-      error: Error | string | null
-    }
+    props: Partial<typeof defaultProps>
     assert: () => void | Promise<void>
   }
 
   const testCases: TestCase[] = [
     {
       name: 'ローディング中にスピナーが表示されること',
-      props: { bookmarks: [], isLoading: true, error: null },
+      props: { bookmarks: [], isLoading: true },
       assert: () => {
         expect(screen.getByRole('status')).toBeInTheDocument()
         expect(
@@ -39,7 +43,7 @@ describe('BookmarkList', () => {
     },
     {
       name: 'ブックマーク一覧が正常に表示されること',
-      props: { bookmarks: mockBookmarks, isLoading: false, error: null },
+      props: { bookmarks: mockBookmarks },
       assert: () => {
         expect(screen.getByText('Test Bookmark 1')).toBeInTheDocument()
         expect(screen.getByText('Test Bookmark 2')).toBeInTheDocument()
@@ -49,7 +53,7 @@ describe('BookmarkList', () => {
     },
     {
       name: 'データが空の場合に適切なメッセージが表示されること',
-      props: { bookmarks: [], isLoading: false, error: null },
+      props: { bookmarks: [] },
       assert: () => {
         expect(screen.getByText(UI_MESSAGES.NO_BOOKMARKS)).toBeInTheDocument()
       },
@@ -58,7 +62,6 @@ describe('BookmarkList', () => {
       name: 'Errorインスタンス発生時にエラーメッセージが表示されること',
       props: {
         bookmarks: [],
-        isLoading: false,
         error: new Error('Test Error'),
       },
       assert: () => {
@@ -71,7 +74,6 @@ describe('BookmarkList', () => {
       name: 'Errorインスタンス以外のエラー発生時に、予期せぬエラーメッセージが表示されること',
       props: {
         bookmarks: [],
-        isLoading: false,
         error: 'Unexpected string error',
       },
       assert: () => {
@@ -83,28 +85,82 @@ describe('BookmarkList', () => {
   ]
 
   it.each(testCases)('$name', ({ props, assert }) => {
-    render(<BookmarkList {...props} />)
+    render(<BookmarkList {...defaultProps} {...props} />)
     assert()
   })
 
-  it('行をダブルクリックした際に handleDoubleClick が呼び出されること', async () => {
+  it('選択された行のスタイルが太字になること', () => {
+    render(<BookmarkList {...defaultProps} selectedId="1" />)
+
+    const cell = screen.getByText('Test Bookmark 1')
+
+    // 選択時のクラスを確認 (太字化)
+    expect(cell).toHaveClass('font-bold')
+  })
+
+  it('行をクリックした際に onRowClick が呼び出されること', async () => {
     const user = userEvent.setup()
-    const handleDoubleClickSpy = vi.fn()
+    const onRowClick = vi.fn()
+    render(<BookmarkList {...defaultProps} onRowClick={onRowClick} />)
 
-    vi.spyOn(useBookmarkListModule, 'useBookmarkList').mockReturnValue({
-      handleDoubleClick: handleDoubleClickSpy,
-    })
+    await user.click(screen.getByText('Test Bookmark 1'))
+    expect(onRowClick).toHaveBeenCalledWith('1')
+  })
 
-    render(
-      <BookmarkList bookmarks={mockBookmarks} isLoading={false} error={null} />,
-    )
+  it('行をダブルクリックした際に onDoubleClick が呼び出されること', async () => {
+    const user = userEvent.setup()
+    const onDoubleClick = vi.fn()
+    render(<BookmarkList {...defaultProps} onDoubleClick={onDoubleClick} />)
+
+    await user.dblClick(screen.getByText('Test Bookmark 1'))
+    expect(onDoubleClick).toHaveBeenCalledWith('1', 'https://example.com/1')
+  })
+
+  it('行にフォーカスして Enter キーを押した際に onDoubleClick が呼び出されること', async () => {
+    const user = userEvent.setup()
+    const onDoubleClick = vi.fn()
+    render(<BookmarkList {...defaultProps} onDoubleClick={onDoubleClick} />)
+
+    const rows = screen.getAllByRole('row')
+    // Roving tabindex: 未選択時は 1 行目が 0, 2 行目は -1
+    expect(rows[0]).toHaveAttribute('tabIndex', '0')
+    expect(rows[1]).toHaveAttribute('tabIndex', '-1')
+
+    await user.type(rows[1]!, '{enter}')
+    expect(onDoubleClick).toHaveBeenCalledWith('2', 'https://example.com/2')
+  })
+
+  it('行にフォーカスして スペース キーを押した際に onRowClick が呼び出されること', async () => {
+    const user = userEvent.setup()
+    const onRowClick = vi.fn()
+    render(<BookmarkList {...defaultProps} onRowClick={onRowClick} />)
+
+    const rows = screen.getAllByRole('row')
+    await user.type(rows[0]!, ' ')
+    expect(onRowClick).toHaveBeenCalledWith('1')
+  })
+
+  it('選択状態の行がフォーカス可能(tabIndex=0)になり、他の行は -1 になること', () => {
+    const { rerender } = render(<BookmarkList {...defaultProps} selectedId="2" />)
+
+    const rows = screen.getAllByRole('row')
+    expect(rows[0]).toHaveAttribute('tabIndex', '-1')
+    expect(rows[1]).toHaveAttribute('tabIndex', '0')
+
+    // 選択解除時
+    rerender(<BookmarkList {...defaultProps} selectedId={null} />)
+    const updatedRows = screen.getAllByRole('row')
+    expect(updatedRows[0]).toHaveAttribute('tabIndex', '0')
+    expect(updatedRows[1]).toHaveAttribute('tabIndex', '-1')
+  })
+
+  it('選択状態の行に aria-selected="true" が付与されること', () => {
+    render(<BookmarkList {...defaultProps} selectedId="1" />)
 
     const row = screen.getByText('Test Bookmark 1').closest('tr')
-    expect(row).not.toBeNull()
+    expect(row).toHaveAttribute('aria-selected', 'true')
 
-    if (row) {
-      await user.dblClick(row)
-      expect(handleDoubleClickSpy).toHaveBeenCalledWith(mockBookmarks[0].url)
-    }
+    const otherRow = screen.getByText('Test Bookmark 2').closest('tr')
+    expect(otherRow).toHaveAttribute('aria-selected', 'false')
   })
 })
