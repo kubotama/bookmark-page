@@ -8,10 +8,14 @@ import {
   bookmarksResponseSchema,
   createBookmarkSchema,
 } from '@shared/schemas/bookmark'
+
 import { db } from '../db'
 
 import type { BookmarkId } from '@shared/schemas/bookmark'
 
+function isSqliteError(error: unknown): error is Error & { code: string } {
+  return error instanceof Error && 'code' in error
+}
 
 const bookmarksRoute = new Hono()
   .get('/', (c) => {
@@ -60,11 +64,7 @@ const bookmarksRoute = new Hono()
         201,
       )
     } catch (error) {
-      if (
-        error instanceof Error &&
-        'code' in error &&
-        error.code === 'SQLITE_CONSTRAINT_UNIQUE'
-      ) {
+      if (isSqliteError(error) && error.code === 'SQLITE_CONSTRAINT_UNIQUE') {
         return c.json(
           {
             message: ERROR_MESSAGES.DUPLICATE_URL,
