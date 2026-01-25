@@ -57,7 +57,7 @@ export const BookmarkList = ({
       <table className="min-w-full border-collapse">
         <thead className="bg-gray-50"></thead>
         <tbody className="bg-white">
-          {bookmarks.map((bookmark) => {
+          {bookmarks.map((bookmark, index) => {
             const tdClassName = `px-2 py-1 whitespace-nowrap border-b border-blue-700 ${
               selectedId === bookmark.id ? 'font-bold' : ''
             }`
@@ -66,7 +66,12 @@ export const BookmarkList = ({
               <tr
                 key={bookmark.id}
                 className={trClassName}
-                tabIndex={0}
+                tabIndex={
+                  (selectedId === null && index === 0) ||
+                  selectedId === bookmark.id
+                    ? 0
+                    : -1
+                }
                 aria-selected={selectedId === bookmark.id}
                 onClick={() => onRowClick(bookmark.id)}
                 onDoubleClick={() => onDoubleClick(bookmark.id, bookmark.url)}
