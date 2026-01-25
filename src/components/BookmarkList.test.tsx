@@ -121,11 +121,13 @@ describe('BookmarkList', () => {
     const onDoubleClick = vi.fn()
     render(<BookmarkList {...defaultProps} onDoubleClick={onDoubleClick} />)
 
-    const row = screen.getByText('Test Bookmark 1').closest('tr')
-    expect(row).toHaveAttribute('tabIndex', '0')
+    const rows = screen.getAllByRole('row')
+    // Roving tabindex: 未選択時は 1 行目が 0, 2 行目は -1
+    expect(rows[0]).toHaveAttribute('tabIndex', '0')
+    expect(rows[1]).toHaveAttribute('tabIndex', '-1')
 
-    await user.type(row!, '{enter}')
-    expect(onDoubleClick).toHaveBeenCalledWith('1', 'https://example.com/1')
+    await user.type(rows[1]!, '{enter}')
+    expect(onDoubleClick).toHaveBeenCalledWith('2', 'https://example.com/2')
   })
 
   it('行にフォーカスして スペース キーを押した際に onRowClick が呼び出されること', async () => {
@@ -133,9 +135,23 @@ describe('BookmarkList', () => {
     const onRowClick = vi.fn()
     render(<BookmarkList {...defaultProps} onRowClick={onRowClick} />)
 
-    const row = screen.getByText('Test Bookmark 1').closest('tr')
-    await user.type(row!, ' ')
+    const rows = screen.getAllByRole('row')
+    await user.type(rows[0]!, ' ')
     expect(onRowClick).toHaveBeenCalledWith('1')
+  })
+
+  it('選択状態の行がフォーカス可能(tabIndex=0)になり、他の行は -1 になること', () => {
+    const { rerender } = render(<BookmarkList {...defaultProps} selectedId="2" />)
+
+    const rows = screen.getAllByRole('row')
+    expect(rows[0]).toHaveAttribute('tabIndex', '-1')
+    expect(rows[1]).toHaveAttribute('tabIndex', '0')
+
+    // 選択解除時
+    rerender(<BookmarkList {...defaultProps} selectedId={null} />)
+    const updatedRows = screen.getAllByRole('row')
+    expect(updatedRows[0]).toHaveAttribute('tabIndex', '0')
+    expect(updatedRows[1]).toHaveAttribute('tabIndex', '-1')
   })
 
   it('選択状態の行に aria-selected="true" が付与されること', () => {
