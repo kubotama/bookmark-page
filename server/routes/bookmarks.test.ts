@@ -13,15 +13,18 @@ describe('GET /api/bookmarks', () => {
     vi.restoreAllMocks()
   })
 
+  const SEED_DATA_1 = { title: 'Example Domain', url: 'https://example.com' }
+  const SEED_DATA_2 = { title: 'Google', url: 'https://google.com' }
+
   it('適切なレスポンス構造でブックマーク一覧を返すこと', async () => {
     // シードデータの投入
     db.prepare('INSERT INTO bookmarks (title, url) VALUES (?, ?)').run(
-      'Example Domain',
-      'https://example.com',
+      SEED_DATA_1.title,
+      SEED_DATA_1.url,
     )
     db.prepare('INSERT INTO bookmarks (title, url) VALUES (?, ?)').run(
-      'Google',
-      'https://google.com',
+      SEED_DATA_2.title,
+      SEED_DATA_2.url,
     )
 
     const res = await app.request(API_PATHS.BOOKMARKS)
@@ -37,8 +40,8 @@ describe('GET /api/bookmarks', () => {
     // 各ブックマークが期待されるプロパティを持っていることを確認
     const bookmark = body.bookmarks[0]
     expect(bookmark).toHaveProperty('id')
-    expect(bookmark.title).toBe('Example Domain')
-    expect(bookmark.url).toBe('https://example.com')
+    expect(bookmark.title).toBe(SEED_DATA_1.title)
+    expect(bookmark.url).toBe(SEED_DATA_1.url)
     // createdAt は除外されたことを確認
     expect(bookmark).not.toHaveProperty('createdAt')
   })
@@ -51,44 +54,35 @@ describe('GET /api/bookmarks', () => {
   })
 
   it('データベースエラー時に 500 ステータスと安全なメッセージを返すこと', async () => {
+    const INTERNAL_ERROR_LOG = 'Database connection failed'
+
     // db.prepare が呼ばれた時にエラーを投げるようにモックする
-    const dbSpy = vi.spyOn(db, 'prepare').mockImplementation(() => {
-      throw new Error('Database connection failed')
+    vi.spyOn(db, 'prepare').mockImplementation(() => {
+      throw new Error(INTERNAL_ERROR_LOG)
     })
 
     // console.error をスパイして出力を抑制する
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-    try {
-      const res = await app.request(API_PATHS.BOOKMARKS)
+    const res = await app.request(API_PATHS.BOOKMARKS)
 
-      // 1. ステータスコードが 500 であること
-      expect(res.status).toBe(500)
+    // 1. ステータスコードが 500 であること
+    expect(res.status).toBe(500)
 
-      const body = await res.json()
+    const body = await res.json()
 
-      // 2. メッセージが "Internal Server Error" であること
-      expect(body).toHaveProperty(
-        'message',
-        ERROR_MESSAGES.INTERNAL_SERVER_ERROR,
-      )
+    // 2. メッセージが "Internal Server Error" であること
+    expect(body).toHaveProperty('message', ERROR_MESSAGES.INTERNAL_SERVER_ERROR)
 
-      // 3. 詳細なエラー情報やスタックトレースが含まれていないこと
-      expect(body).not.toHaveProperty('error')
-      expect(body).not.toHaveProperty('stack')
+    // 3. 詳細なエラー情報やスタックトレースが含まれていないこと
+    expect(body).not.toHaveProperty('error')
+    expect(body).not.toHaveProperty('stack')
 
-      // 4. console.error が適切なメッセージとともに呼び出されたことを確認
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Failed to fetch bookmarks:',
-        expect.any(Error),
-      )
-      expect(consoleSpy.mock.calls[0][1].message).toBe(
-        'Database connection failed',
-      )
-    } finally {
-      // スパイを解除して他のテストに影響を与えないようにする
-      dbSpy.mockRestore()
-      consoleSpy.mockRestore()
-    }
+    // 4. console.error が適切なメッセージとともに呼び出されたことを確認
+    expect(consoleSpy).toHaveBeenCalledWith(
+      'Failed to fetch bookmarks:',
+      expect.any(Error),
+    )
+    expect(consoleSpy.mock.calls[0][1].message).toBe(INTERNAL_ERROR_LOG)
   })
 })

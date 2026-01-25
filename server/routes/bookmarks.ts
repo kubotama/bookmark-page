@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { db } from '../db'
-import { bookmarksResponseSchema } from '@shared/schemas/bookmark'
+import { bookmarksResponseSchema, type BookmarkId } from '@shared/schemas/bookmark'
 import { ERROR_MESSAGES } from '@shared/constants'
 
 interface BookmarkRow {
@@ -18,7 +18,7 @@ const bookmarksRoute = new Hono().get('/', (c) => {
 
     // DB のデータを API レスポンスの形式に整形
     const bookmarks = rows.map((row) => ({
-      id: String(row.id),
+      id: String(row.id) as BookmarkId,
       title: row.title,
       url: row.url,
     }))
