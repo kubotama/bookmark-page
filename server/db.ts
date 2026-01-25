@@ -1,5 +1,6 @@
 import Database from 'better-sqlite3'
 import path from 'path'
+import { LOG_MESSAGES } from '@shared/constants'
 
 const isTestEnvironment = () => process.env.NODE_ENV === 'test'
 
@@ -52,7 +53,7 @@ export const initializeDatabase = () => {
       db.exec(SCHEMA)
     })()
   } catch (error) {
-    console.error('Failed to initialize database:', error)
+    console.error(LOG_MESSAGES.DB_INIT_FAILED, error)
     throw error
   }
 }

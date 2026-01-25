@@ -4,11 +4,18 @@ import bookmarksRoute from './routes/bookmarks'
 
 const app = new Hono()
 
-// フロントエンド(Vite:5173)からのアクセスを許可
+// フロントエンド(Vite:5173)および Chrome 拡張機能からのアクセスを許可
 app.use(
   '/*',
   cors({
-    origin: process.env.BOOKMARK_PAGE_FRONTEND_URL || 'http://localhost:5173',
+    origin: (origin) => {
+      const allowedOrigin =
+        process.env.BOOKMARK_PAGE_FRONTEND_URL || 'http://localhost:5173'
+      if (origin === allowedOrigin || origin.startsWith('chrome-extension://')) {
+        return origin
+      }
+      return allowedOrigin
+    },
   }),
 )
 

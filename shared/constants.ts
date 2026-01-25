@@ -1,5 +1,6 @@
 export const ERROR_MESSAGES = {
   INTERNAL_SERVER_ERROR: 'Internal Server Error',
+  DUPLICATE_URL: 'この URL は既に登録されています',
 } as const
 
 export const UI_MESSAGES = {
@@ -12,4 +13,11 @@ export const UI_MESSAGES = {
 
 export const API_PATHS = {
   BOOKMARKS: '/api/bookmarks',
+} as const
+
+export const LOG_MESSAGES = {
+  DB_INIT_FAILED: 'Failed to initialize database:',
+  SERVER_START_FAILED: 'Failed to start server:',
+  FETCH_BOOKMARKS_FAILED: 'Failed to fetch bookmarks:',
+  CREATE_BOOKMARK_FAILED: 'Failed to create bookmark:',
 } as const

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { db, initializeDatabase, resetDatabase } from './db'
+import { LOG_MESSAGES } from '@shared/constants'
 
 describe('db.ts', () => {
   beforeEach(() => {
@@ -15,7 +16,6 @@ describe('db.ts', () => {
   })
 
   const DDL_ERROR_MSG = 'DDL Error'
-  const INIT_FAIL_LOG = 'Failed to initialize database:'
   const SEED_DATA = { title: 'Initial', url: 'https://initial.com' }
   const AFTER_RESET_DATA = {
     title: 'Test after reset',
@@ -35,7 +35,7 @@ describe('db.ts', () => {
 
       expect(() => initializeDatabase()).toThrow(DDL_ERROR_MSG)
       expect(dbSpy).toHaveBeenCalled()
-      expect(consoleSpy).toHaveBeenCalledWith(INIT_FAIL_LOG, expect.any(Error))
+      expect(consoleSpy).toHaveBeenCalledWith(LOG_MESSAGES.DB_INIT_FAILED, expect.any(Error))
     })
 
     it('テスト環境以外では WAL モードが設定されること', () => {
