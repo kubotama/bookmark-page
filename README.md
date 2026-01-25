@@ -9,7 +9,7 @@
 
 - **Frontend:** Vite, React, TypeScript, Tailwind CSS, TanStack Query
 - **Backend:** Hono (@hono/node-server), better-sqlite3
-- **Shared:** TypeScript (Zod schemas, constants)
+- **Shared:** TypeScript (Zod schemas, domain types like BookmarkId, constants)
 - **Database:** SQLite
 
 ## ディレクトリ構成 (Project Structure)
@@ -96,6 +96,7 @@ npm run test:coverage
 
 - テスト実行時は、開発用データベースに影響を与えないよう SQLite のインメモリモード (`:memory:`) が自動的に使用されます。
 - フロントエンドのテストには **React Testing Library** と **MSW (Mock Service Worker)** を使用しており、API リクエストをモックしてコンポーネントの挙動を検証しています。
+- テストデータは Fixture (例: `src/test/fixtures.ts`) として集約管理されており、保守性と一貫性が確保されています。
 - プロジェクトの品質維持のため、カバレッジ閾値が設定されています（詳細は `vite.config.ts` を参照）。
 
 ## API 仕様 (API Specifications)
