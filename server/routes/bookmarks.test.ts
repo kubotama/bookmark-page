@@ -13,15 +13,18 @@ describe('GET /api/bookmarks', () => {
     vi.restoreAllMocks()
   })
 
+  const SEED_DATA_1 = { title: 'Example Domain', url: 'https://example.com' }
+  const SEED_DATA_2 = { title: 'Google', url: 'https://google.com' }
+
   it('適切なレスポンス構造でブックマーク一覧を返すこと', async () => {
     // シードデータの投入
     db.prepare('INSERT INTO bookmarks (title, url) VALUES (?, ?)').run(
-      'Example Domain',
-      'https://example.com',
+      SEED_DATA_1.title,
+      SEED_DATA_1.url,
     )
     db.prepare('INSERT INTO bookmarks (title, url) VALUES (?, ?)').run(
-      'Google',
-      'https://google.com',
+      SEED_DATA_2.title,
+      SEED_DATA_2.url,
     )
 
     const res = await app.request(API_PATHS.BOOKMARKS)
@@ -37,8 +40,8 @@ describe('GET /api/bookmarks', () => {
     // 各ブックマークが期待されるプロパティを持っていることを確認
     const bookmark = body.bookmarks[0]
     expect(bookmark).toHaveProperty('id')
-    expect(bookmark.title).toBe('Example Domain')
-    expect(bookmark.url).toBe('https://example.com')
+    expect(bookmark.title).toBe(SEED_DATA_1.title)
+    expect(bookmark.url).toBe(SEED_DATA_1.url)
     // createdAt は除外されたことを確認
     expect(bookmark).not.toHaveProperty('createdAt')
   })
@@ -51,9 +54,11 @@ describe('GET /api/bookmarks', () => {
   })
 
   it('データベースエラー時に 500 ステータスと安全なメッセージを返すこと', async () => {
+    const INTERNAL_ERROR_LOG = 'Database connection failed'
+
     // db.prepare が呼ばれた時にエラーを投げるようにモックする
-    const dbSpy = vi.spyOn(db, 'prepare').mockImplementation(() => {
-      throw new Error('Database connection failed')
+    vi.spyOn(db, 'prepare').mockImplementation(() => {
+      throw new Error(INTERNAL_ERROR_LOG)
     })
 
     // console.error をスパイして出力を抑制する
@@ -82,13 +87,9 @@ describe('GET /api/bookmarks', () => {
         'Failed to fetch bookmarks:',
         expect.any(Error),
       )
-      expect(consoleSpy.mock.calls[0][1].message).toBe(
-        'Database connection failed',
-      )
+      expect(consoleSpy.mock.calls[0][1].message).toBe(INTERNAL_ERROR_LOG)
     } finally {
-      // スパイを解除して他のテストに影響を与えないようにする
-      dbSpy.mockRestore()
-      consoleSpy.mockRestore()
+      // afterEach により自動リセットされるが明示
     }
   })
 })

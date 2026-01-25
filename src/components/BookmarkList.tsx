@@ -1,13 +1,13 @@
 import { UI_MESSAGES } from '@shared/constants'
-import type { Bookmark } from '@shared/schemas/bookmark'
+import type { Bookmark, BookmarkId } from '@shared/schemas/bookmark'
 
 export type BookmarkProps = {
   bookmarks: Bookmark[]
   isLoading: boolean
   error: null | string | Error
-  selectedId: string | null
-  onRowClick: (id: string) => void
-  onDoubleClick: (id: string, url: string) => void
+  selectedId: BookmarkId | null
+  onRowClick: (id: BookmarkId) => void
+  onDoubleClick: (id: BookmarkId, url: string) => void
 }
 
 export const BookmarkList = ({

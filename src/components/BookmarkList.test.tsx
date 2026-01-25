@@ -3,20 +3,19 @@ import userEvent from '@testing-library/user-event'
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import { BookmarkList, type BookmarkProps } from './BookmarkList'
 import { UI_MESSAGES } from '@shared/constants'
-import type { Bookmark } from '@shared/schemas/bookmark'
+import {
+  MOCK_BOOKMARK_1,
+  MOCK_BOOKMARK_2,
+  MOCK_BOOKMARKS,
+} from '../test/fixtures'
 
 describe('BookmarkList', () => {
   afterEach(() => {
     vi.restoreAllMocks()
   })
 
-  const mockBookmarks: Bookmark[] = [
-    { id: '1', title: 'Test Bookmark 1', url: 'https://example.com/1' },
-    { id: '2', title: 'Test Bookmark 2', url: 'https://example.com/2' },
-  ]
-
   const defaultProps: BookmarkProps = {
-    bookmarks: mockBookmarks,
+    bookmarks: MOCK_BOOKMARKS,
     isLoading: false,
     error: null,
     selectedId: null,
@@ -43,10 +42,10 @@ describe('BookmarkList', () => {
     },
     {
       name: 'ブックマーク一覧が正常に表示されること',
-      props: { bookmarks: mockBookmarks },
+      props: { bookmarks: MOCK_BOOKMARKS },
       assert: () => {
-        expect(screen.getByText('Test Bookmark 1')).toBeInTheDocument()
-        expect(screen.getByText('Test Bookmark 2')).toBeInTheDocument()
+        expect(screen.getByText(MOCK_BOOKMARK_1.title)).toBeInTheDocument()
+        expect(screen.getByText(MOCK_BOOKMARK_2.title)).toBeInTheDocument()
         expect(screen.getByRole('table')).toBeInTheDocument()
         expect(screen.getAllByRole('row')).toHaveLength(2)
       },
@@ -90,11 +89,9 @@ describe('BookmarkList', () => {
   })
 
   it('選択された行のスタイルが太字になること', () => {
-    render(<BookmarkList {...defaultProps} selectedId="1" />)
+    render(<BookmarkList {...defaultProps} selectedId={MOCK_BOOKMARK_1.id} />)
 
-    const cell = screen.getByText('Test Bookmark 1')
-
-    // 選択時のクラスを確認 (太字化)
+    const cell = screen.getByText(MOCK_BOOKMARK_1.title)
     expect(cell).toHaveClass('font-bold')
   })
 
@@ -103,8 +100,8 @@ describe('BookmarkList', () => {
     const onRowClick = vi.fn()
     render(<BookmarkList {...defaultProps} onRowClick={onRowClick} />)
 
-    await user.click(screen.getByText('Test Bookmark 1'))
-    expect(onRowClick).toHaveBeenCalledWith('1')
+    await user.click(screen.getByText(MOCK_BOOKMARK_1.title))
+    expect(onRowClick).toHaveBeenCalledWith(MOCK_BOOKMARK_1.id)
   })
 
   it('行をダブルクリックした際に onDoubleClick が呼び出されること', async () => {
@@ -112,8 +109,11 @@ describe('BookmarkList', () => {
     const onDoubleClick = vi.fn()
     render(<BookmarkList {...defaultProps} onDoubleClick={onDoubleClick} />)
 
-    await user.dblClick(screen.getByText('Test Bookmark 1'))
-    expect(onDoubleClick).toHaveBeenCalledWith('1', 'https://example.com/1')
+    await user.dblClick(screen.getByText(MOCK_BOOKMARK_1.title))
+    expect(onDoubleClick).toHaveBeenCalledWith(
+      MOCK_BOOKMARK_1.id,
+      MOCK_BOOKMARK_1.url,
+    )
   })
 
   it('行にフォーカスして Enter キーを押した際に onDoubleClick が呼び出されること', async () => {
@@ -122,12 +122,13 @@ describe('BookmarkList', () => {
     render(<BookmarkList {...defaultProps} onDoubleClick={onDoubleClick} />)
 
     const rows = screen.getAllByRole('row')
-    // Roving tabindex: 未選択時は 1 行目が 0, 2 行目は -1
     expect(rows[0]).toHaveAttribute('tabIndex', '0')
-    expect(rows[1]).toHaveAttribute('tabIndex', '-1')
 
     await user.type(rows[1]!, '{enter}')
-    expect(onDoubleClick).toHaveBeenCalledWith('2', 'https://example.com/2')
+    expect(onDoubleClick).toHaveBeenCalledWith(
+      MOCK_BOOKMARK_2.id,
+      MOCK_BOOKMARK_2.url,
+    )
   })
 
   it('行にフォーカスして スペース キーを押した際に onRowClick が呼び出されること', async () => {
@@ -137,11 +138,13 @@ describe('BookmarkList', () => {
 
     const rows = screen.getAllByRole('row')
     await user.type(rows[0]!, ' ')
-    expect(onRowClick).toHaveBeenCalledWith('1')
+    expect(onRowClick).toHaveBeenCalledWith(MOCK_BOOKMARK_1.id)
   })
 
   it('選択状態の行がフォーカス可能(tabIndex=0)になり、他の行は -1 になること', () => {
-    const { rerender } = render(<BookmarkList {...defaultProps} selectedId="2" />)
+    const { rerender } = render(
+      <BookmarkList {...defaultProps} selectedId={MOCK_BOOKMARK_2.id} />,
+    )
 
     const rows = screen.getAllByRole('row')
     expect(rows[0]).toHaveAttribute('tabIndex', '-1')
@@ -155,12 +158,12 @@ describe('BookmarkList', () => {
   })
 
   it('選択状態の行に aria-selected="true" が付与されること', () => {
-    render(<BookmarkList {...defaultProps} selectedId="1" />)
+    render(<BookmarkList {...defaultProps} selectedId={MOCK_BOOKMARK_1.id} />)
 
-    const row = screen.getByText('Test Bookmark 1').closest('tr')
+    const row = screen.getByText(MOCK_BOOKMARK_1.title).closest('tr')
     expect(row).toHaveAttribute('aria-selected', 'true')
 
-    const otherRow = screen.getByText('Test Bookmark 2').closest('tr')
+    const otherRow = screen.getByText(MOCK_BOOKMARK_2.title).closest('tr')
     expect(otherRow).toHaveAttribute('aria-selected', 'false')
   })
 })

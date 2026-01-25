@@ -1,6 +1,7 @@
 import { renderHook, act } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { useBookmarkList } from './useBookmarkList'
+import { MOCK_BOOKMARK_1, MOCK_BOOKMARK_2, INVALID_URLS } from '../test/fixtures'
 
 describe('useBookmarkList', () => {
   beforeEach(() => {
@@ -31,30 +32,29 @@ describe('useBookmarkList', () => {
     },
     {
       name: 'javascript: スキームの場合は実行されないこと',
-      url: 'javascript:alert(1)',
+      url: INVALID_URLS.JAVASCRIPT,
       expectedCalled: false,
     },
     {
       name: 'プロトコルのない文字列の場合は実行されないこと',
-      url: 'example.com',
+      url: INVALID_URLS.NO_PROTOCOL,
       expectedCalled: false,
     },
     {
       name: '不正な形式の文字列の場合は実行されないこと',
-      url: 'not-a-url',
+      url: INVALID_URLS.MALFORMED,
       expectedCalled: false,
     },
   ]
 
   it.each(testCases)('$name', ({ url, expectedCalled }) => {
     const { result } = renderHook(() => useBookmarkList())
-    const id = 'test-id'
 
     act(() => {
-      result.current.handleDoubleClick(id, url)
+      result.current.handleDoubleClick(MOCK_BOOKMARK_1.id, url)
     })
 
-    expect(result.current.selectedId).toBe(id) // 無効なURLでも選択は行われる仕様とする
+    expect(result.current.selectedId).toBe(MOCK_BOOKMARK_1.id)
 
     if (expectedCalled) {
       expect(window.open).toHaveBeenCalledWith(
@@ -76,30 +76,24 @@ describe('useBookmarkList', () => {
     it('handleRowClick を呼ぶと ID が選択されること', () => {
       const { result } = renderHook(() => useBookmarkList())
 
-      const id = '1'
-
       act(() => {
-        result.current.handleRowClick(id)
+        result.current.handleRowClick(MOCK_BOOKMARK_1.id)
       })
 
-      expect(result.current.selectedId).toBe(id)
+      expect(result.current.selectedId).toBe(MOCK_BOOKMARK_1.id)
     })
 
     it('同じ ID で再度 handleRowClick を呼ぶと選択が解除されること', () => {
       const { result } = renderHook(() => useBookmarkList())
 
-      const id = '1'
+      act(() => {
+        result.current.handleRowClick(MOCK_BOOKMARK_1.id)
+      })
+      expect(result.current.selectedId).toBe(MOCK_BOOKMARK_1.id)
 
       act(() => {
-        result.current.handleRowClick(id) // 選択
+        result.current.handleRowClick(MOCK_BOOKMARK_1.id)
       })
-
-      expect(result.current.selectedId).toBe(id)
-
-      act(() => {
-        result.current.handleRowClick(id) // 解除
-      })
-
       expect(result.current.selectedId).toBeNull()
     })
 
@@ -107,14 +101,13 @@ describe('useBookmarkList', () => {
       const { result } = renderHook(() => useBookmarkList())
 
       act(() => {
-        result.current.handleRowClick('1')
+        result.current.handleRowClick(MOCK_BOOKMARK_1.id)
       })
-
       act(() => {
-        result.current.handleRowClick('2')
+        result.current.handleRowClick(MOCK_BOOKMARK_2.id)
       })
 
-      expect(result.current.selectedId).toBe('2')
+      expect(result.current.selectedId).toBe(MOCK_BOOKMARK_2.id)
     })
   })
 })

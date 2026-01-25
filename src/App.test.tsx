@@ -5,6 +5,7 @@ import { http, HttpResponse } from 'msw'
 import { server } from './test/setup'
 import App from './App'
 import { API_PATHS } from '@shared/constants'
+import { MOCK_BOOKMARK_1 } from './test/fixtures'
 
 const createTestQueryClient = () =>
   new QueryClient({
@@ -23,27 +24,23 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
 
 describe('App Integration', () => {
   it('ブックマーク一覧が正常に取得・表示されること', async () => {
-    const mockBookmarks = [
-      { id: '1', title: 'Integrated Bookmark', url: 'https://example.com' },
-    ]
-
     server.use(
       http.get(API_PATHS.BOOKMARKS, () => {
-        return HttpResponse.json({ bookmarks: mockBookmarks })
-      })
+        return HttpResponse.json({ bookmarks: [MOCK_BOOKMARK_1] })
+      }),
     )
 
     render(<App />, { wrapper })
 
     // データの取得待ちと表示確認
-    expect(await screen.findByText('Integrated Bookmark')).toBeInTheDocument()
+    expect(await screen.findByText(MOCK_BOOKMARK_1.title)).toBeInTheDocument()
   })
 
   it('APIエラー時にエラーメッセージが表示されること', async () => {
     server.use(
       http.get(API_PATHS.BOOKMARKS, () => {
         return new HttpResponse(null, { status: 500 })
-      })
+      }),
     )
 
     render(<App />, { wrapper })

@@ -1,8 +1,10 @@
 import { z } from 'zod'
 import { isHttpUrl } from '../utils/url'
 
+export type BookmarkId = string
+
 export const bookmarkSchema = z.object({
-  id: z.string(),
+  id: z.string() as z.ZodType<BookmarkId>,
   title: z.string(),
   url: z.string().url().refine(isHttpUrl, {
     message: 'URL は http:// または https:// で始まる必要があります',
