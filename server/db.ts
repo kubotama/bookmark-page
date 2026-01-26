@@ -1,5 +1,7 @@
 import Database from 'better-sqlite3'
 import path from 'path'
+import { z } from 'zod'
+import { LOG_MESSAGES } from '@shared/constants'
 
 const isTestEnvironment = () => process.env.NODE_ENV === 'test'
 
@@ -52,7 +54,7 @@ export const initializeDatabase = () => {
       db.exec(SCHEMA)
     })()
   } catch (error) {
-    console.error('Failed to initialize database:', error)
+    console.error(LOG_MESSAGES.DB_INIT_FAILED, error)
     throw error
   }
 }
@@ -64,11 +66,16 @@ export const resetDatabase = () => {
   }
 
   // ユーザ定義テーブルの一覧を取得（sqlite_sequence などのシステムテーブルを除外）
-  const tables = db
-    .prepare(
-      "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'",
+  const tableSchema = z.object({ name: z.string() })
+  const tables = z
+    .array(tableSchema)
+    .parse(
+      db
+        .prepare(
+          "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'",
+        )
+        .all(),
     )
-    .all() as { name: string }[]
 
   // 外部キー制約を一時的に無効化（トランザクションの外で実行する必要がある）
   db.pragma('foreign_keys = OFF')

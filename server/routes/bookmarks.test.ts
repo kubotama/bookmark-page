@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import app from '../app'
 import { db, initializeDatabase, resetDatabase } from '../db'
-import { ERROR_MESSAGES, API_PATHS } from '@shared/constants'
+import { ERROR_MESSAGES, API_PATHS, LOG_MESSAGES } from '@shared/constants'
+import { bookmarkRowSchema } from '@shared/schemas/bookmark'
 
 describe('GET /api/bookmarks', () => {
   beforeEach(() => {
@@ -80,9 +81,108 @@ describe('GET /api/bookmarks', () => {
 
     // 4. console.error が適切なメッセージとともに呼び出されたことを確認
     expect(consoleSpy).toHaveBeenCalledWith(
-      'Failed to fetch bookmarks:',
+      LOG_MESSAGES.FETCH_BOOKMARKS_FAILED,
       expect.any(Error),
     )
     expect(consoleSpy.mock.calls[0][1].message).toBe(INTERNAL_ERROR_LOG)
+  })
+})
+
+describe('POST /api/bookmarks', () => {
+  beforeEach(() => {
+    initializeDatabase()
+    resetDatabase()
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  const VALID_DATA = {
+    title: 'New Bookmark',
+    url: 'https://new-example.com',
+  }
+
+  it('正しいデータでブックマークを登録できること', async () => {
+    const res = await app.request(API_PATHS.BOOKMARKS, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(VALID_DATA),
+    })
+
+    expect(res.status).toBe(201)
+    const body = await res.json()
+
+    expect(body).toHaveProperty('id')
+    expect(body.title).toBe(VALID_DATA.title)
+    expect(body.url).toBe(VALID_DATA.url)
+
+    // DBに保存されていることを確認
+    const row = bookmarkRowSchema.parse(
+      db
+        .prepare('SELECT bookmark_id as id, title, url FROM bookmarks WHERE url = ?')
+        .get(VALID_DATA.url),
+    )
+    expect(row).toBeDefined()
+    expect(row.title).toBe(VALID_DATA.title)
+  })
+
+  it.each([
+    { name: 'タイトルが空', body: { title: '', url: 'https://new-example.com' } },
+    { name: 'タイトルが欠落', body: { url: 'https://new-example.com' } },
+    { name: 'URL の形式が不正', body: { title: 'New', url: 'not-a-url' } },
+    { name: 'URL が欠落', body: { title: 'New' } },
+    { name: '空のオブジェクト', body: {} },
+  ])(
+    'バリデーションエラー ($name) の場合に 400 エラーを返すこと',
+    async ({ body }) => {
+      const res = await app.request(API_PATHS.BOOKMARKS, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+
+      expect(res.status).toBe(400)
+    },
+  )
+
+  it('既に登録されている URL の場合に 409 エラーを返すこと', async () => {
+    // 先に一つ登録
+    db.prepare('INSERT INTO bookmarks (title, url) VALUES (?, ?)').run(
+      VALID_DATA.title,
+      VALID_DATA.url,
+    )
+
+    // 同じ URL で登録試行
+    const res = await app.request(API_PATHS.BOOKMARKS, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(VALID_DATA),
+    })
+
+    expect(res.status).toBe(409)
+    const body = await res.json()
+    expect(body.message).toBe(ERROR_MESSAGES.DUPLICATE_URL)
+  })
+
+  it('データベースエラー時に 500 ステータスを返すこと', async () => {
+    vi.spyOn(db, 'prepare').mockImplementation(() => {
+      throw new Error('Database error')
+    })
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    const res = await app.request(API_PATHS.BOOKMARKS, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(VALID_DATA),
+    })
+
+    expect(res.status).toBe(500)
+    const body = await res.json()
+    expect(body.message).toBe(ERROR_MESSAGES.INTERNAL_SERVER_ERROR)
+    expect(consoleSpy).toHaveBeenCalledWith(
+      LOG_MESSAGES.CREATE_BOOKMARK_FAILED,
+      expect.any(Error),
+    )
   })
 })
