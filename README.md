@@ -141,3 +141,13 @@ npm run test:coverage
   "url": "https://github.com"
 }
 ```
+
+### DELETE /api/bookmarks/:id
+
+指定された ID のブックマークを削除します。
+
+**レスポンス:**
+
+- **204 No Content**: 削除成功
+- **404 Not Found**: 指定された ID が存在しない
+- **500 Internal Server Error**: サーバーエラー
