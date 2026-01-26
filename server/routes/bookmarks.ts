@@ -4,14 +4,13 @@ import { z } from 'zod'
 import { zValidator } from '@hono/zod-validator'
 import { ERROR_MESSAGES, LOG_MESSAGES } from '@shared/constants'
 import {
+  BookmarkIdSchema,
   bookmarkRowSchema,
   bookmarksResponseSchema,
   createBookmarkSchema,
 } from '@shared/schemas/bookmark'
 
 import { db } from '../db'
-
-import type { BookmarkId } from '@shared/schemas/bookmark'
 
 function isSqliteError(error: unknown): error is Error & { code: string } {
   return error instanceof Error && 'code' in error
@@ -27,7 +26,7 @@ const bookmarksRoute = new Hono()
 
       // DB のデータを API レスポンスの形式に整形
       const bookmarks = rows.map((row) => ({
-        id: String(row.id) as BookmarkId,
+        id: BookmarkIdSchema.parse(String(row.id)),
         title: row.title,
         url: row.url,
       }))
@@ -57,7 +56,7 @@ const bookmarksRoute = new Hono()
 
       return c.json(
         {
-          id: String(row.id) as BookmarkId,
+          id: BookmarkIdSchema.parse(String(row.id)),
           title: row.title,
           url: row.url,
         },
