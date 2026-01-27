@@ -234,6 +234,22 @@ describe('DELETE /api/bookmarks/:id', () => {
     expect(row).toBeUndefined()
   })
 
+  it.each([
+    { id: 'abc', name: '文字列' },
+    { id: '0', name: 'ゼロ' },
+    { id: '-1', name: '負の数' },
+    { id: '1.5', name: '小数' },
+  ])(
+    '不正な ID 形式 ($name) の場合に 400 エラーを返すこと',
+    async ({ id }) => {
+      const res = await app.request(`${API_PATHS.BOOKMARKS}/${id}`, {
+        method: 'DELETE',
+      })
+
+      expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
+    },
+  )
+
   it('存在しない ID を指定した場合に 404 エラーを返すこと', async () => {
     const res = await app.request(`${API_PATHS.BOOKMARKS}/999`, {
       method: 'DELETE',
