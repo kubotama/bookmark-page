@@ -123,18 +123,7 @@ const bookmarksRoute = new Hono()
       const updates = c.req.valid('json')
 
       try {
-        // 存在確認
-        const current = db
-          .prepare('SELECT bookmark_id FROM bookmarks WHERE bookmark_id = ?')
-          .get(id)
-        if (!current) {
-          return c.json(
-            { message: ERROR_MESSAGES.BOOKMARK_NOT_FOUND },
-            HTTP_STATUS.NOT_FOUND,
-          )
-        }
-
-        // 動的な更新クエリの構築
+        // 動的な更新クエリの構築と実行
         const fields = Object.keys(updates)
           .map((key) => `${key} = ?`)
           .join(', ')
@@ -143,7 +132,17 @@ const bookmarksRoute = new Hono()
         const stmt = db.prepare(
           `UPDATE bookmarks SET ${fields} WHERE bookmark_id = ? RETURNING bookmark_id as id, title, url`,
         )
-        const row = bookmarkRowSchema.parse(stmt.get(...values, id))
+        const rawRow = stmt.get(...values, id)
+
+        // 更新対象が見つからない場合は 404 を返す
+        if (!rawRow) {
+          return c.json(
+            { message: ERROR_MESSAGES.BOOKMARK_NOT_FOUND },
+            HTTP_STATUS.NOT_FOUND,
+          )
+        }
+
+        const row = bookmarkRowSchema.parse(rawRow)
 
         return c.json({
           id: BookmarkIdSchema.parse(String(row.id)),
