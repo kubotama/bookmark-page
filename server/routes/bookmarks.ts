@@ -123,12 +123,17 @@ const bookmarksRoute = new Hono()
       const updates = c.req.valid('json')
 
       try {
-        // 動的な更新クエリの構築と実行
-        const fields = Object.keys(updates)
-          .map((key) => `${key} = ?`)
-          .join(', ')
-        const values = Object.values(updates)
-
+        const setClauses: string[] = []
+        const values: (string | number)[] = []
+        if (updates.title !== undefined) {
+          setClauses.push('title = ?')
+          values.push(updates.title)
+        }
+        if (updates.url !== undefined) {
+          setClauses.push('url = ?')
+          values.push(updates.url)
+        }
+        const fields = setClauses.join(', ')
         const stmt = db.prepare(
           `UPDATE bookmarks SET ${fields} WHERE bookmark_id = ? RETURNING bookmark_id as id, title, url`,
         )

@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { z } from 'zod'
 import { db, initializeDatabase, resetDatabase } from './db'
 import { LOG_MESSAGES } from '@shared/constants'
+import { TEST_MESSAGES } from '@shared/test/fixtures'
 
 describe('db.ts', () => {
   beforeEach(() => {
@@ -16,7 +17,6 @@ describe('db.ts', () => {
     vi.unstubAllEnvs()
   })
 
-  const DDL_ERROR_MSG = 'DDL Error'
   const SEED_DATA = { title: 'Initial', url: 'https://initial.com' }
   const AFTER_RESET_DATA = {
     title: 'Test after reset',
@@ -30,13 +30,14 @@ describe('db.ts', () => {
 
     it('DDL実行失敗時にエラーをスローしログを出力すること', () => {
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const dbError = new Error(TEST_MESSAGES.DATABASE_ERROR)
       const dbSpy = vi.spyOn(db, 'exec').mockImplementation(() => {
-        throw new Error(DDL_ERROR_MSG)
+        throw dbError
       })
 
-      expect(() => initializeDatabase()).toThrow(DDL_ERROR_MSG)
+      expect(() => initializeDatabase()).toThrow(dbError)
       expect(dbSpy).toHaveBeenCalled()
-      expect(consoleSpy).toHaveBeenCalledWith(LOG_MESSAGES.DB_INIT_FAILED, expect.any(Error))
+      expect(consoleSpy).toHaveBeenCalledWith(LOG_MESSAGES.DB_INIT_FAILED, dbError)
     })
 
     it('テスト環境以外では WAL モードが設定されること', () => {
