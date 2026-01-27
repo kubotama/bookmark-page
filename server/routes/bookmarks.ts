@@ -81,31 +81,37 @@ const bookmarksRoute = new Hono()
       )
     }
   })
-  .delete('/:id', zValidator('param', z.object({ id: BookmarkIdSchema })), (c) => {
-    const { id } = c.req.valid('param')
+  .delete(
+    '/:id',
+    zValidator('param', z.object({ id: z.string().regex(/^[1-9]\d*$/) })),
+    (c) => {
+      const { id } = c.req.valid('param')
 
-    try {
-      const info = db.prepare('DELETE FROM bookmarks WHERE bookmark_id = ?').run(id)
+      try {
+        const info = db
+          .prepare('DELETE FROM bookmarks WHERE bookmark_id = ?')
+          .run(id)
 
-      if (info.changes === 0) {
+        if (info.changes === 0) {
+          return c.json(
+            {
+              message: ERROR_MESSAGES.BOOKMARK_NOT_FOUND,
+            },
+            HTTP_STATUS.NOT_FOUND,
+          )
+        }
+
+        return c.body(null, HTTP_STATUS.NO_CONTENT)
+      } catch (error) {
+        console.error(LOG_MESSAGES.DELETE_BOOKMARK_FAILED, error)
         return c.json(
           {
-            message: ERROR_MESSAGES.BOOKMARK_NOT_FOUND,
+            message: ERROR_MESSAGES.INTERNAL_SERVER_ERROR,
           },
-          HTTP_STATUS.NOT_FOUND,
+          HTTP_STATUS.INTERNAL_SERVER_ERROR,
         )
       }
-
-      return c.body(null, HTTP_STATUS.NO_CONTENT)
-    } catch (error) {
-      console.error(LOG_MESSAGES.DELETE_BOOKMARK_FAILED, error)
-      return c.json(
-        {
-          message: ERROR_MESSAGES.INTERNAL_SERVER_ERROR,
-        },
-        HTTP_STATUS.INTERNAL_SERVER_ERROR,
-      )
-    }
-  })
+    },
+  )
 
 export default bookmarksRoute
