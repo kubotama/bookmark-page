@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 import { z } from 'zod'
 
 import { zValidator } from '@hono/zod-validator'
-import { ERROR_MESSAGES, LOG_MESSAGES } from '@shared/constants'
+import { ERROR_MESSAGES, LOG_MESSAGES, HTTP_STATUS } from '@shared/constants'
 import {
   BookmarkIdSchema,
   bookmarkRowSchema,
@@ -41,7 +41,7 @@ const bookmarksRoute = new Hono()
         {
           message: ERROR_MESSAGES.INTERNAL_SERVER_ERROR,
         },
-        500,
+        HTTP_STATUS.INTERNAL_SERVER_ERROR,
       )
     }
   })
@@ -60,7 +60,7 @@ const bookmarksRoute = new Hono()
           title: row.title,
           url: row.url,
         },
-        201,
+        HTTP_STATUS.CREATED,
       )
     } catch (error) {
       if (isSqliteError(error) && error.code === 'SQLITE_CONSTRAINT_UNIQUE') {
@@ -68,7 +68,7 @@ const bookmarksRoute = new Hono()
           {
             message: ERROR_MESSAGES.DUPLICATE_URL,
           },
-          409,
+          HTTP_STATUS.CONFLICT,
         )
       }
 
@@ -77,9 +77,41 @@ const bookmarksRoute = new Hono()
         {
           message: ERROR_MESSAGES.INTERNAL_SERVER_ERROR,
         },
-        500,
+        HTTP_STATUS.INTERNAL_SERVER_ERROR,
       )
     }
   })
+  .delete(
+    '/:id',
+    zValidator('param', z.object({ id: z.string().regex(/^[1-9]\d*$/) })),
+    (c) => {
+      const { id } = c.req.valid('param')
+
+      try {
+        const info = db
+          .prepare('DELETE FROM bookmarks WHERE bookmark_id = ?')
+          .run(id)
+
+        if (info.changes === 0) {
+          return c.json(
+            {
+              message: ERROR_MESSAGES.BOOKMARK_NOT_FOUND,
+            },
+            HTTP_STATUS.NOT_FOUND,
+          )
+        }
+
+        return c.body(null, HTTP_STATUS.NO_CONTENT)
+      } catch (error) {
+        console.error(LOG_MESSAGES.DELETE_BOOKMARK_FAILED, error)
+        return c.json(
+          {
+            message: ERROR_MESSAGES.INTERNAL_SERVER_ERROR,
+          },
+          HTTP_STATUS.INTERNAL_SERVER_ERROR,
+        )
+      }
+    },
+  )
 
 export default bookmarksRoute

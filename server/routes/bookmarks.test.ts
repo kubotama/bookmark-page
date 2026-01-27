@@ -1,7 +1,12 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import app from '../app'
 import { db, initializeDatabase, resetDatabase } from '../db'
-import { ERROR_MESSAGES, API_PATHS, LOG_MESSAGES } from '@shared/constants'
+import {
+  ERROR_MESSAGES,
+  API_PATHS,
+  LOG_MESSAGES,
+  HTTP_STATUS,
+} from '@shared/constants'
 import { bookmarkRowSchema } from '@shared/schemas/bookmark'
 
 describe('GET /api/bookmarks', () => {
@@ -29,7 +34,7 @@ describe('GET /api/bookmarks', () => {
     )
 
     const res = await app.request(API_PATHS.BOOKMARKS)
-    expect(res.status).toBe(200)
+    expect(res.status).toBe(HTTP_STATUS.OK)
 
     const body = await res.json()
 
@@ -49,7 +54,7 @@ describe('GET /api/bookmarks', () => {
 
   it('データが空の場合、空の配列を返すこと', async () => {
     const res = await app.request(API_PATHS.BOOKMARKS)
-    expect(res.status).toBe(200)
+    expect(res.status).toBe(HTTP_STATUS.OK)
     const body = await res.json()
     expect(body.bookmarks).toEqual([])
   })
@@ -68,7 +73,7 @@ describe('GET /api/bookmarks', () => {
     const res = await app.request(API_PATHS.BOOKMARKS)
 
     // 1. ステータスコードが 500 であること
-    expect(res.status).toBe(500)
+    expect(res.status).toBe(HTTP_STATUS.INTERNAL_SERVER_ERROR)
 
     const body = await res.json()
 
@@ -110,7 +115,7 @@ describe('POST /api/bookmarks', () => {
       body: JSON.stringify(VALID_DATA),
     })
 
-    expect(res.status).toBe(201)
+    expect(res.status).toBe(HTTP_STATUS.CREATED)
     const body = await res.json()
 
     expect(body).toHaveProperty('id')
@@ -120,7 +125,9 @@ describe('POST /api/bookmarks', () => {
     // DBに保存されていることを確認
     const row = bookmarkRowSchema.parse(
       db
-        .prepare('SELECT bookmark_id as id, title, url FROM bookmarks WHERE url = ?')
+        .prepare(
+          'SELECT bookmark_id as id, title, url FROM bookmarks WHERE url = ?',
+        )
         .get(VALID_DATA.url),
     )
     expect(row).toBeDefined()
@@ -128,7 +135,10 @@ describe('POST /api/bookmarks', () => {
   })
 
   it.each([
-    { name: 'タイトルが空', body: { title: '', url: 'https://new-example.com' } },
+    {
+      name: 'タイトルが空',
+      body: { title: '', url: 'https://new-example.com' },
+    },
     { name: 'タイトルが欠落', body: { url: 'https://new-example.com' } },
     { name: 'URL の形式が不正', body: { title: 'New', url: 'not-a-url' } },
     { name: 'URL が欠落', body: { title: 'New' } },
@@ -142,7 +152,7 @@ describe('POST /api/bookmarks', () => {
         body: JSON.stringify(body),
       })
 
-      expect(res.status).toBe(400)
+      expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
     },
   )
 
@@ -160,7 +170,7 @@ describe('POST /api/bookmarks', () => {
       body: JSON.stringify(VALID_DATA),
     })
 
-    expect(res.status).toBe(409)
+    expect(res.status).toBe(HTTP_STATUS.CONFLICT)
     const body = await res.json()
     expect(body.message).toBe(ERROR_MESSAGES.DUPLICATE_URL)
   })
@@ -177,11 +187,94 @@ describe('POST /api/bookmarks', () => {
       body: JSON.stringify(VALID_DATA),
     })
 
-    expect(res.status).toBe(500)
+    expect(res.status).toBe(HTTP_STATUS.INTERNAL_SERVER_ERROR)
     const body = await res.json()
     expect(body.message).toBe(ERROR_MESSAGES.INTERNAL_SERVER_ERROR)
     expect(consoleSpy).toHaveBeenCalledWith(
       LOG_MESSAGES.CREATE_BOOKMARK_FAILED,
+      expect.any(Error),
+    )
+  })
+})
+
+describe('DELETE /api/bookmarks/:id', () => {
+  beforeEach(() => {
+    initializeDatabase()
+    resetDatabase()
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  const VALID_DATA = {
+    title: 'Delete Target',
+    url: 'https://delete-me.com',
+  }
+
+  it('指定した ID のブックマークを削除できること', async () => {
+    // 削除対象を登録
+    const { bookmark_id: id } = db
+      .prepare(
+        'INSERT INTO bookmarks (title, url) VALUES (?, ?) RETURNING bookmark_id',
+      )
+      .get(VALID_DATA.title, VALID_DATA.url) as { bookmark_id: number }
+
+    const res = await app.request(`${API_PATHS.BOOKMARKS}/${id}`, {
+      method: 'DELETE',
+    })
+
+    expect(res.status).toBe(HTTP_STATUS.NO_CONTENT)
+    expect(await res.text()).toBe('')
+
+    // DB から消えていることを確認
+    const row = db
+      .prepare('SELECT * FROM bookmarks WHERE bookmark_id = ?')
+      .get(id)
+    expect(row).toBeUndefined()
+  })
+
+  it.each([
+    { id: 'abc', name: '文字列' },
+    { id: '0', name: 'ゼロ' },
+    { id: '-1', name: '負の数' },
+    { id: '1.5', name: '小数' },
+  ])(
+    '不正な ID 形式 ($name) の場合に 400 エラーを返すこと',
+    async ({ id }) => {
+      const res = await app.request(`${API_PATHS.BOOKMARKS}/${id}`, {
+        method: 'DELETE',
+      })
+
+      expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
+    },
+  )
+
+  it('存在しない ID を指定した場合に 404 エラーを返すこと', async () => {
+    const res = await app.request(`${API_PATHS.BOOKMARKS}/999`, {
+      method: 'DELETE',
+    })
+
+    expect(res.status).toBe(HTTP_STATUS.NOT_FOUND)
+    const body = await res.json()
+    expect(body.message).toBe(ERROR_MESSAGES.BOOKMARK_NOT_FOUND)
+  })
+
+  it('データベースエラー時に 500 ステータスを返すこと', async () => {
+    vi.spyOn(db, 'prepare').mockImplementation(() => {
+      throw new Error('Database error')
+    })
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    const res = await app.request(`${API_PATHS.BOOKMARKS}/1`, {
+      method: 'DELETE',
+    })
+
+    expect(res.status).toBe(HTTP_STATUS.INTERNAL_SERVER_ERROR)
+    const body = await res.json()
+    expect(body.message).toBe(ERROR_MESSAGES.INTERNAL_SERVER_ERROR)
+    expect(consoleSpy).toHaveBeenCalledWith(
+      LOG_MESSAGES.DELETE_BOOKMARK_FAILED,
       expect.any(Error),
     )
   })
