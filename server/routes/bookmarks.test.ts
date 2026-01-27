@@ -1,7 +1,12 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import app from '../app'
 import { db, initializeDatabase, resetDatabase } from '../db'
-import { ERROR_MESSAGES, API_PATHS, LOG_MESSAGES, HTTP_STATUS } from '@shared/constants'
+import {
+  ERROR_MESSAGES,
+  API_PATHS,
+  LOG_MESSAGES,
+  HTTP_STATUS,
+} from '@shared/constants'
 import { bookmarkRowSchema } from '@shared/schemas/bookmark'
 
 describe('GET /api/bookmarks', () => {
@@ -120,7 +125,9 @@ describe('POST /api/bookmarks', () => {
     // DBに保存されていることを確認
     const row = bookmarkRowSchema.parse(
       db
-        .prepare('SELECT bookmark_id as id, title, url FROM bookmarks WHERE url = ?')
+        .prepare(
+          'SELECT bookmark_id as id, title, url FROM bookmarks WHERE url = ?',
+        )
         .get(VALID_DATA.url),
     )
     expect(row).toBeDefined()
@@ -128,7 +135,10 @@ describe('POST /api/bookmarks', () => {
   })
 
   it.each([
-    { name: 'タイトルが空', body: { title: '', url: 'https://new-example.com' } },
+    {
+      name: 'タイトルが空',
+      body: { title: '', url: 'https://new-example.com' },
+    },
     { name: 'タイトルが欠落', body: { url: 'https://new-example.com' } },
     { name: 'URL の形式が不正', body: { title: 'New', url: 'not-a-url' } },
     { name: 'URL が欠落', body: { title: 'New' } },
@@ -205,7 +215,9 @@ describe('DELETE /api/bookmarks/:id', () => {
   it('指定した ID のブックマークを削除できること', async () => {
     // 削除対象を登録
     const { bookmark_id: id } = db
-      .prepare('INSERT INTO bookmarks (title, url) VALUES (?, ?) RETURNING bookmark_id')
+      .prepare(
+        'INSERT INTO bookmarks (title, url) VALUES (?, ?) RETURNING bookmark_id',
+      )
       .get(VALID_DATA.title, VALID_DATA.url) as { bookmark_id: number }
 
     const res = await app.request(`${API_PATHS.BOOKMARKS}/${id}`, {
@@ -213,7 +225,7 @@ describe('DELETE /api/bookmarks/:id', () => {
     })
 
     expect(res.status).toBe(HTTP_STATUS.NO_CONTENT)
-    expect(res.body).toBeNull()
+    expect(await res.text()).toBe('')
 
     // DB から消えていることを確認
     const row = db
