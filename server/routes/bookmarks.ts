@@ -8,6 +8,7 @@ import {
   bookmarkRowSchema,
   bookmarksResponseSchema,
   createBookmarkSchema,
+  updateBookmarkSchema,
 } from '@shared/schemas/bookmark'
 
 import { db } from '../db'
@@ -108,6 +109,58 @@ const bookmarksRoute = new Hono()
           {
             message: ERROR_MESSAGES.INTERNAL_SERVER_ERROR,
           },
+          HTTP_STATUS.INTERNAL_SERVER_ERROR,
+        )
+      }
+    },
+  )
+  .patch(
+    '/:id',
+    zValidator('param', z.object({ id: z.string().regex(/^[1-9]\d*$/) })),
+    zValidator('json', updateBookmarkSchema),
+    (c) => {
+      const { id } = c.req.valid('param')
+      const updates = c.req.valid('json')
+
+      try {
+        // 存在確認
+        const current = db
+          .prepare('SELECT bookmark_id FROM bookmarks WHERE bookmark_id = ?')
+          .get(id)
+        if (!current) {
+          return c.json(
+            { message: ERROR_MESSAGES.BOOKMARK_NOT_FOUND },
+            HTTP_STATUS.NOT_FOUND,
+          )
+        }
+
+        // 動的な更新クエリの構築
+        const fields = Object.keys(updates)
+          .map((key) => `${key} = ?`)
+          .join(', ')
+        const values = Object.values(updates)
+
+        const stmt = db.prepare(
+          `UPDATE bookmarks SET ${fields} WHERE bookmark_id = ? RETURNING bookmark_id as id, title, url`,
+        )
+        const row = bookmarkRowSchema.parse(stmt.get(...values, id))
+
+        return c.json({
+          id: BookmarkIdSchema.parse(String(row.id)),
+          title: row.title,
+          url: row.url,
+        })
+      } catch (error) {
+        if (isSqliteError(error) && error.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+          return c.json(
+            { message: ERROR_MESSAGES.DUPLICATE_URL },
+            HTTP_STATUS.CONFLICT,
+          )
+        }
+
+        console.error(LOG_MESSAGES.UPDATE_BOOKMARK_FAILED, error)
+        return c.json(
+          { message: ERROR_MESSAGES.INTERNAL_SERVER_ERROR },
           HTTP_STATUS.INTERNAL_SERVER_ERROR,
         )
       }

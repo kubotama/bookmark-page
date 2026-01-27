@@ -279,3 +279,122 @@ describe('DELETE /api/bookmarks/:id', () => {
     )
   })
 })
+
+describe('PATCH /api/bookmarks/:id', () => {
+  beforeEach(() => {
+    initializeDatabase()
+    resetDatabase()
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  const INITIAL_DATA = {
+    title: 'Initial Title',
+    url: 'https://initial.com',
+  }
+
+  const setupBookmark = () => {
+    return db
+      .prepare(
+        'INSERT INTO bookmarks (title, url) VALUES (?, ?) RETURNING bookmark_id as id',
+      )
+      .get(INITIAL_DATA.title, INITIAL_DATA.url) as { id: number }
+  }
+
+  it.each([
+    {
+      name: 'タイトルのみ',
+      updates: { title: 'Updated Title' },
+      expected: { title: 'Updated Title', url: INITIAL_DATA.url },
+    },
+    {
+      name: 'URLのみ',
+      updates: { url: 'https://updated.com' },
+      expected: { title: INITIAL_DATA.title, url: 'https://updated.com' },
+    },
+    {
+      name: '両方のフィールド',
+      updates: { title: 'Both Updated', url: 'https://both.com' },
+      expected: { title: 'Both Updated', url: 'https://both.com' },
+    },
+  ])('$name を更新できること', async ({ updates, expected }) => {
+    const { id } = setupBookmark()
+
+    const res = await app.request(`${API_PATHS.BOOKMARKS}/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    })
+
+    expect(res.status).toBe(HTTP_STATUS.OK)
+    const body = await res.json()
+    expect(body.title).toBe(expected.title)
+    expect(body.url).toBe(expected.url)
+  })
+
+  it.each([
+    { name: '空のリクエストボディ', body: {} },
+    { name: 'タイトルが空文字', body: { title: '' } },
+    { name: '不正な URL 形式', body: { url: 'not-a-url' } },
+  ])(
+    'バリデーションエラー ($name) の場合に 400 エラーを返すこと',
+    async ({ body }) => {
+      const { id } = setupBookmark()
+      const res = await app.request(`${API_PATHS.BOOKMARKS}/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+
+      expect(res.status).toBe(HTTP_STATUS.BAD_REQUEST)
+    },
+  )
+
+  it('存在しない ID を指定した場合に 404 エラーを返すこと', async () => {
+    const res = await app.request(`${API_PATHS.BOOKMARKS}/999`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: 'Non-existent' }),
+    })
+
+    expect(res.status).toBe(HTTP_STATUS.NOT_FOUND)
+  })
+
+  it('更新後の URL が既に存在する場合に 409 エラーを返すこと', async () => {
+    const { id: id1 } = setupBookmark()
+    db.prepare('INSERT INTO bookmarks (title, url) VALUES (?, ?)').run(
+      'Other',
+      'https://other.com',
+    )
+
+    const res = await app.request(`${API_PATHS.BOOKMARKS}/${id1}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: 'https://other.com' }),
+    })
+
+    expect(res.status).toBe(HTTP_STATUS.CONFLICT)
+  })
+
+  it('データベースエラー時に 500 ステータスを返すこと', async () => {
+    const { id } = setupBookmark()
+    vi.spyOn(db, 'prepare').mockImplementation(() => {
+      throw new Error('Database error')
+    })
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    const res = await app.request(`${API_PATHS.BOOKMARKS}/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: 'Error' }),
+    })
+
+    expect(res.status).toBe(HTTP_STATUS.INTERNAL_SERVER_ERROR)
+    expect(consoleSpy).toHaveBeenCalledWith(
+      LOG_MESSAGES.UPDATE_BOOKMARK_FAILED,
+      expect.any(Error),
+    )
+  })
+})
