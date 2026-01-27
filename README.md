@@ -146,8 +146,13 @@ npm run test:coverage
 
 指定された ID のブックマークを削除します。
 
+**パスパラメータ:**
+
+- `id`: ブックマーク ID (1 以上の整数文字列)
+
 **レスポンス:**
 
 - **204 No Content**: 削除成功
+- **400 Bad Request**: ID の形式が不正な場合
 - **404 Not Found**: 指定された ID が存在しない
 - **500 Internal Server Error**: サーバーエラー
