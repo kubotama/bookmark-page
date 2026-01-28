@@ -49,7 +49,7 @@ describe('BookmarkDetail', () => {
     await user.clear(titleInput)
     await user.type(titleInput, 'New Title')
 
-    await user.click(screen.getByText('更新'))
+    await user.click(screen.getByText(UI_MESSAGES.BUTTON_UPDATE))
     expect(onUpdate).toHaveBeenCalledWith('New Title', MOCK_BOOKMARK_1.url)
   })
 
@@ -60,7 +60,7 @@ describe('BookmarkDetail', () => {
 
     render(<BookmarkDetail {...defaultProps} onDelete={onDelete} />)
 
-    await user.click(screen.getByText('削除'))
+    await user.click(screen.getByText(UI_MESSAGES.BUTTON_DELETE))
 
     expect(confirmSpy).toHaveBeenCalledWith(UI_MESSAGES.DELETE_CONFIRM)
     expect(onDelete).toHaveBeenCalled()
@@ -73,7 +73,7 @@ describe('BookmarkDetail', () => {
 
     render(<BookmarkDetail {...defaultProps} onDelete={onDelete} />)
 
-    await user.click(screen.getByText('削除'))
+    await user.click(screen.getByText(UI_MESSAGES.BUTTON_DELETE))
 
     expect(confirmSpy).toHaveBeenCalledWith(UI_MESSAGES.DELETE_CONFIRM)
     expect(onDelete).not.toHaveBeenCalled()
@@ -85,7 +85,7 @@ describe('BookmarkDetail', () => {
 
     render(<BookmarkDetail {...defaultProps} />)
 
-    await user.click(screen.getByText('開く'))
+    await user.click(screen.getByText(UI_MESSAGES.BUTTON_OPEN))
 
     expect(openSpy).toHaveBeenCalledWith(MOCK_BOOKMARK_1.url, '_blank', 'noreferrer')
   })
@@ -96,7 +96,7 @@ describe('BookmarkDetail', () => {
     render(<BookmarkDetail {...defaultProps} onClose={onClose} />)
 
     // md:block なので通常は見えているはずだが、テスト環境によっては注意が必要
-    const closeButton = screen.getByTitle('閉じる')
+    const closeButton = screen.getByTitle(UI_MESSAGES.BUTTON_CLOSE)
     await user.click(closeButton)
 
     expect(onClose).toHaveBeenCalled()

@@ -35,7 +35,7 @@ export const useUpdateBookmark = () => {
         json: updates,
       })
       if (!res.ok) {
-        throw new Error('更新に失敗しました')
+        throw new Error(UI_MESSAGES.UPDATE_FAILED)
       }
       return await res.json()
     },
@@ -54,7 +54,7 @@ export const useDeleteBookmark = () => {
         param: { id },
       })
       if (!res.ok) {
-        throw new Error('削除に失敗しました')
+        throw new Error(UI_MESSAGES.DELETE_FAILED)
       }
       // 204 No Content の場合は res.json() を呼ばない
       return

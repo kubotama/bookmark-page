@@ -5,7 +5,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { http, HttpResponse } from 'msw'
 import { server } from './test/setup'
 import App from './App'
-import { API_PATHS, HTTP_STATUS } from '@shared/constants'
+import { API_PATHS, HTTP_STATUS, UI_MESSAGES } from '@shared/constants'
 import { MOCK_BOOKMARK_1 } from '@shared/test/fixtures'
 
 const createTestQueryClient = () =>
@@ -59,16 +59,19 @@ describe('App Integration', () => {
 
     render(<App />, { wrapper })
 
-    const row = await screen.findByText(MOCK_BOOKMARK_1.title)
-    await user.click(row)
+        const row = await screen.findByText(MOCK_BOOKMARK_1.title)
+
+        await user.click(row)
+
+    
 
         // 詳細パネルの要素が表示されているか確認
 
         expect(screen.getByDisplayValue(MOCK_BOOKMARK_1.title)).toBeInTheDocument()
 
-        expect(screen.getByText('更新')).toBeInTheDocument()
+        expect(screen.getByText(UI_MESSAGES.BUTTON_UPDATE)).toBeInTheDocument()
 
-        expect(screen.getByText('削除')).toBeInTheDocument()
+        expect(screen.getByText(UI_MESSAGES.BUTTON_DELETE)).toBeInTheDocument()
 
       })
 
@@ -128,7 +131,7 @@ describe('App Integration', () => {
 
         // 更新実行
 
-        await user.click(screen.getByText('更新'))
+        await user.click(screen.getByText(UI_MESSAGES.BUTTON_UPDATE))
 
     
 
@@ -182,7 +185,7 @@ describe('App Integration', () => {
 
         // 削除実行
 
-        await user.click(screen.getByText('削除'))
+        await user.click(screen.getByText(UI_MESSAGES.BUTTON_DELETE))
 
     
 
@@ -195,5 +198,7 @@ describe('App Integration', () => {
       })
 
     })
+
+    
 
     
