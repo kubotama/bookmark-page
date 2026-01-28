@@ -1,5 +1,7 @@
 import { useCallback, useState } from 'react'
+
 import { isHttpUrl } from '@shared/utils/url'
+
 import type { BookmarkId } from '@shared/schemas/bookmark'
 
 export const useBookmarkList = () => {
@@ -32,5 +34,6 @@ export const useBookmarkList = () => {
     selectedId,
     handleRowClick,
     handleDoubleClick,
+    setSelectedId,
   }
 }

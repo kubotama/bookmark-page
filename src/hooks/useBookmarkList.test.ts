@@ -109,5 +109,19 @@ describe('useBookmarkList', () => {
 
       expect(result.current.selectedId).toBe(MOCK_BOOKMARK_2.id)
     })
+
+    it('setSelectedId を直接呼んで選択状態を変更できること', () => {
+      const { result } = renderHook(() => useBookmarkList())
+
+      act(() => {
+        result.current.setSelectedId(MOCK_BOOKMARK_1.id)
+      })
+      expect(result.current.selectedId).toBe(MOCK_BOOKMARK_1.id)
+
+      act(() => {
+        result.current.setSelectedId(null)
+      })
+      expect(result.current.selectedId).toBeNull()
+    })
   })
 })
