@@ -8,6 +8,7 @@ import {
   bookmarkRowSchema,
   bookmarksResponseSchema,
   createBookmarkSchema,
+  updateBookmarkSchema,
 } from '@shared/schemas/bookmark'
 
 import { db } from '../db'
@@ -108,6 +109,62 @@ const bookmarksRoute = new Hono()
           {
             message: ERROR_MESSAGES.INTERNAL_SERVER_ERROR,
           },
+          HTTP_STATUS.INTERNAL_SERVER_ERROR,
+        )
+      }
+    },
+  )
+  .patch(
+    '/:id',
+    zValidator('param', z.object({ id: z.string().regex(/^[1-9]\d*$/) })),
+    zValidator('json', updateBookmarkSchema),
+    (c) => {
+      const { id } = c.req.valid('param')
+      const updates = c.req.valid('json')
+
+      try {
+        const setClauses: string[] = []
+        const values: (string | number)[] = []
+        if (updates.title !== undefined) {
+          setClauses.push('title = ?')
+          values.push(updates.title)
+        }
+        if (updates.url !== undefined) {
+          setClauses.push('url = ?')
+          values.push(updates.url)
+        }
+        const fields = setClauses.join(', ')
+        const stmt = db.prepare(
+          `UPDATE bookmarks SET ${fields} WHERE bookmark_id = ? RETURNING bookmark_id as id, title, url`,
+        )
+        const rawRow = stmt.get(...values, id)
+
+        // 更新対象が見つからない場合は 404 を返す
+        if (!rawRow) {
+          return c.json(
+            { message: ERROR_MESSAGES.BOOKMARK_NOT_FOUND },
+            HTTP_STATUS.NOT_FOUND,
+          )
+        }
+
+        const row = bookmarkRowSchema.parse(rawRow)
+
+        return c.json({
+          id: BookmarkIdSchema.parse(String(row.id)),
+          title: row.title,
+          url: row.url,
+        })
+      } catch (error) {
+        if (isSqliteError(error) && error.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+          return c.json(
+            { message: ERROR_MESSAGES.DUPLICATE_URL },
+            HTTP_STATUS.CONFLICT,
+          )
+        }
+
+        console.error(LOG_MESSAGES.UPDATE_BOOKMARK_FAILED, error)
+        return c.json(
+          { message: ERROR_MESSAGES.INTERNAL_SERVER_ERROR },
           HTTP_STATUS.INTERNAL_SERVER_ERROR,
         )
       }

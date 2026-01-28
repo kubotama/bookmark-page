@@ -156,3 +156,28 @@ npm run test:coverage
 - **400 Bad Request**: ID の形式が不正な場合
 - **404 Not Found**: 指定された ID が存在しない
 - **500 Internal Server Error**: サーバーエラー
+
+### PATCH /api/bookmarks/:id
+
+指定された ID のブックマーク情報を更新します。タイトルまたは URL の少なくとも一方は必須です。
+
+**パスパラメータ:**
+
+- `id`: ブックマーク ID (1 以上の整数文字列)
+
+**リクエストボディ:**
+
+```json
+{
+  "title": "新しいタイトル",
+  "url": "https://updated-example.com"
+}
+```
+
+**レスポンス:**
+
+- **200 OK**: 更新成功。更新後のオブジェクトを返却
+- **400 Bad Request**: リクエスト形式または ID が不正な場合
+- **404 Not Found**: 指定された ID が存在しない
+- **409 Conflict**: 更新後の URL が既に登録されている場合
+- **500 Internal Server Error**: サーバーエラー

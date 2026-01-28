@@ -19,3 +19,7 @@ export const INVALID_URLS = {
   NO_PROTOCOL: 'example.com',
   MALFORMED: 'not-a-url',
 } as const
+
+export const TEST_MESSAGES = {
+  DATABASE_ERROR: 'Database error',
+} as const

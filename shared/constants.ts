@@ -32,4 +32,13 @@ export const LOG_MESSAGES = {
   FETCH_BOOKMARKS_FAILED: 'Failed to fetch bookmarks:',
   CREATE_BOOKMARK_FAILED: 'Failed to create bookmark:',
   DELETE_BOOKMARK_FAILED: 'Failed to delete bookmark:',
+  UPDATE_BOOKMARK_FAILED: 'Failed to update bookmark:',
+} as const
+
+export const VALIDATION_MESSAGES = {
+  TITLE_REQUIRED: 'タイトルは必須です',
+  TITLE_MIN_LENGTH: 'タイトルは1文字以上である必要があります',
+  URL_INVALID_PROTOCOL: 'URL は http:// または https:// で始まる必要があります',
+  URL_INVALID_FORMAT: '有効な URL 形式である必要があります',
+  UPDATE_MIN_FIELDS: 'タイトルまたは URL の少なくとも一方は指定する必要があります',
 } as const
