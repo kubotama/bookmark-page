@@ -33,7 +33,7 @@ function App() {
   }
 
   return (
-    <div className="flex flex-col h-screen max-w-4xl mx-auto overflow-hidden">
+    <div className="flex flex-col h-screen max-w-2xl mx-auto overflow-hidden">
       <main className="flex-1 overflow-y-auto">
         <BookmarkList
           bookmarks={bookmarks}

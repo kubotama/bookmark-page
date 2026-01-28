@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react'
 
 import { UI_MESSAGES } from '@shared/constants'
+import { Button } from './ui/Button'
+import { InputField } from './ui/InputField'
 
 import type { Bookmark } from '@shared/schemas/bookmark'
 
@@ -42,71 +44,47 @@ export const BookmarkDetail: React.FC<BookmarkDetailProps> = ({
   }
 
   return (
-    <div className="bg-white border-t border-gray-200 p-4 shadow-lg fixed bottom-0 left-0 right-0 z-50">
-      <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-end gap-4">
-        <div className="flex-1 w-full space-y-2">
-          <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider">
-            Title
-          </label>
-          <input
-            type="text"
-            value={editTitle}
-            onChange={(e) => setEditTitle(e.target.value)}
-            className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-            placeholder="Bookmark Title"
-          />
-        </div>
-        <div className="flex-2 w-full space-y-2">
-          <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider">
-            URL
-          </label>
-          <input
-            type="text"
-            value={editUrl}
-            onChange={(e) => setEditUrl(e.target.value)}
-            className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-mono"
-            placeholder="https://..."
-          />
-        </div>
-        <div className="flex flex-row gap-2 w-full md:w-auto mt-2 md:mt-0">
-          <button
-            onClick={handleUpdate}
-            className="flex-1 md:flex-none px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors shadow-sm"
-          >
-            {UI_MESSAGES.BUTTON_UPDATE}
-          </button>
-          <button
-            onClick={handleOpen}
-            className="flex-1 md:flex-none px-4 py-2 bg-gray-100 text-gray-700 border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-200 transition-colors shadow-sm"
-          >
-            {UI_MESSAGES.BUTTON_OPEN}
-          </button>
-          <button
-            onClick={handleDelete}
-            className="flex-1 md:flex-none px-4 py-2 bg-red-50 text-red-600 border border-red-200 rounded-md text-sm font-medium hover:bg-red-100 transition-colors"
-          >
-            {UI_MESSAGES.BUTTON_DELETE}
-          </button>
-          <button
-            onClick={onClose}
-            className="hidden md:block px-2 py-2 text-gray-400 hover:text-gray-600 transition-colors"
-            title={UI_MESSAGES.BUTTON_CLOSE}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+    <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none flex justify-center">
+      <div className="w-full max-w-2xl bg-white border border-gray-200 rounded-t-xl shadow-2xl p-6 pointer-events-auto">
+        <div className="grid grid-cols-[1fr_auto] gap-4 items-stretch">
+          {/* 左側: テキストボックスを2段で配置 */}
+          <div className="grid grid-rows-2 gap-4">
+            <InputField
+              id="detail-title"
+              label="Title"
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              placeholder="Bookmark Title"
+            />
+            <InputField
+              id="detail-url"
+              label="URL"
+              value={editUrl}
+              onChange={(e) => setEditUrl(e.target.value)}
+              placeholder="https://..."
+              className="font-mono"
+            />
+          </div>
+
+          {/* 右側: 4つのボタンを4段で配置 */}
+          <div className="grid grid-rows-4 gap-0.5 min-w-[80px]">
+            <Button variant="primary" onClick={handleUpdate}>
+              {UI_MESSAGES.BUTTON_UPDATE}
+            </Button>
+            <Button variant="secondary" onClick={handleOpen}>
+              {UI_MESSAGES.BUTTON_OPEN}
+            </Button>
+            <Button variant="danger" onClick={handleDelete}>
+              {UI_MESSAGES.BUTTON_DELETE}
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={onClose}
+              title={UI_MESSAGES.BUTTON_CLOSE}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
+              {UI_MESSAGES.BUTTON_CLOSE}
+            </Button>
+          </div>
         </div>
       </div>
     </div>
