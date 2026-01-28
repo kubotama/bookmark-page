@@ -28,9 +28,18 @@ export const useBookmarkList = () => {
     [setSelectedId],
   )
 
-  return {
-    selectedId,
-    handleRowClick,
-    handleDoubleClick,
+    return {
+
+      selectedId,
+
+      handleRowClick,
+
+      handleDoubleClick,
+
+      setSelectedId,
+
+    }
+
   }
-}
+
+  

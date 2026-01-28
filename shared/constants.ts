@@ -10,6 +10,7 @@ export const UI_MESSAGES = {
   NO_BOOKMARKS: 'ブックマークがありません。',
   LOADING_LABEL: '読み込み中...',
   FETCH_FAILED: 'ブックマークの取得に失敗しました',
+  DELETE_CONFIRM: 'このブックマークを削除してもよろしいですか？',
 } as const
 
 export const API_PATHS = {
