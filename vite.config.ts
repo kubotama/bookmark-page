@@ -1,14 +1,24 @@
-import build from "@hono/vite-build/cloudflare-pages";
-import devServer from "@hono/vite-dev-server";
-import adapter from "@hono/vite-dev-server/cloudflare";
-import { defineConfig } from "vite";
+import honox from "honox/vite";
+import preact from "@preact/preset-vite";
+import { defineConfig } from "vitest/config";
+
+const isTest = process.env.VITEST !== undefined;
 
 export default defineConfig({
-  plugins: [
-    build(),
-    devServer({
-      adapter,
-      entry: "app/index.tsx",
-    }),
-  ],
+  plugins: isTest
+    ? [] // テスト時は重い HonoX / Preact のプラグインをスキップして最速化
+    : [
+        honox({
+          entry: "app/server.ts",
+          client: {
+            input: ["/app/client.ts"],
+          },
+        }),
+        preact(),
+      ],
+  test: {
+    globals: true,
+    environment: "happy-dom",
+    include: ["app/**/*.test.{ts,tsx}"],
+  },
 });
