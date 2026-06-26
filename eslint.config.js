@@ -1,11 +1,13 @@
-import tsParser from "@typescript-eslint/parser";
-import tsPlugin from "@typescript-eslint/eslint-plugin";
+import tsParser from "@typescript-eslint/parser"
+import tsPlugin from "@typescript-eslint/eslint-plugin"
 
 export default [
   {
+    ignores: ["node_modules/**", "dist/**", ".wrangler/**", "src/coverage/**"],
+  },
+  {
     // 解析対象にするファイル
     files: ["app/**/*.{ts,tsx}", "vite.config.ts"],
-    ignores: ["node_modules/**", "dist/**"],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
@@ -26,4 +28,4 @@ export default [
       "@typescript-eslint/no-explicit-any": "warn", // anyは警告（徐々に無くしていくため）
     },
   },
-];
+]
