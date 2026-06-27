@@ -1,24 +1,39 @@
 import { useEffect, useState } from "react"
 import { Bookmark } from "@functions/schemas/bookmark"
+import { hc } from "hono/client"
+// 💡 バックエンドの型定義を直接相対パスでインポート
+import type { AppType } from "@functions/[[path]]"
+
+const client = hc<AppType>("/")
 
 export default function App() {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // HonoのAPIからデータを取得
-    fetch("/api/bookmarks")
-      .then((res) => res.json())
-      .then((resData) => {
-        // MVPなので簡易的なパース（本来はZodでsafeParseすると安全）
-        if (resData.success) {
-          setBookmarks(resData.data)
-        }
-      })
-      .catch((err) => console.error("データ取得失敗:", err))
-      .finally(() => setLoading(false))
-  }, [])
+    const fetchBookmarks = async () => {
+      try {
+        const res = await client.api.bookmarks.$get()
 
+        if (!res.ok) {
+          throw new Error("サーバーエラーが発生しました")
+        }
+
+        const json = await res.json()
+
+        if (!json.success) {
+          throw new Error("データの取得に失敗しました")
+        }
+
+        setBookmarks(json.data)
+      } catch (err) {
+        console.error("データ取得失敗:", err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchBookmarks()
+  }, [])
   if (loading) return <div style={{ padding: "20px" }}>読み込み中...</div>
 
   return (

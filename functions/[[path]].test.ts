@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest"
 import { app } from "./[[path]]" // 💡 exportしたappをインポート
+import { TestBookmarks } from "./test/fixtures"
 
 describe("Hono Backend API - app.request", () => {
   it("GET /api/bookmarks が正しいJSONを返すこと", async () => {
@@ -13,10 +14,7 @@ describe("Hono Backend API - app.request", () => {
     const body = await res.json()
     expect(body).toEqual({
       success: true,
-      data: [
-        { id: "1", title: "Hono", url: "https://hono.dev" },
-        { id: "2", title: "Vite", url: "https://vitejs.dev" },
-      ],
+      data: TestBookmarks,
     })
   })
 

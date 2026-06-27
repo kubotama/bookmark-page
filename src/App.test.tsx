@@ -20,28 +20,31 @@ describe("App Component (MVP Bookmark List)", () => {
   })
 
   it("APIから取得したブックマーク一覧が正しく画面にレンダリングされること", async () => {
-    // 模擬的なAPIレスポンスを設定
-    const mockData = {
-      success: true,
-      data: TestBookmarks,
-    }
-
     // fetchの戻り値をモック化
     vi.spyOn(globalThis, "fetch").mockResolvedValue({
-      json: async () => mockData,
+      ok: true,
+      status: 200,
+      json: async () => {
+        return {
+          success: true,
+          data: TestBookmarks,
+        }
+      },
     } as Response)
 
     render(<App />)
 
     // 非同期でデータが読み込まれ、タイトルが表示されるのを待つ
     await waitFor(() => {
-      expect(screen.getByText("テスト駆動開発")).toBeInTheDocument()
-      expect(screen.getByText("Cloudflare D1")).toBeInTheDocument()
+      expect(screen.getByText(TestBookmarks[0].title)).toBeInTheDocument()
+      expect(screen.getByText(TestBookmarks[1].title)).toBeInTheDocument()
     })
 
     // リンクが正しいURLを持っているか検証
-    const linkElement = screen.getByText("テスト駆動開発") as HTMLAnchorElement
-    expect(linkElement.href).toBe("https://example.com/tdd")
+    const linkElement = screen.getByText(
+      TestBookmarks[0].title,
+    ) as HTMLAnchorElement
+    expect(linkElement.href).toBe(TestBookmarks[0].url)
   })
 
   it("データが空の場合に適切なメッセージが表示されること", async () => {
