@@ -3,11 +3,11 @@ import tsPlugin from "@typescript-eslint/eslint-plugin"
 
 export default [
   {
-    ignores: ["node_modules/**", "dist/**", ".wrangler/**", "src/coverage/**"],
+    ignores: ["node_modules/**", "dist/**", ".wrangler/**", "coverage/**"],
   },
   {
     // 解析対象にするファイル
-    files: ["app/**/*.{ts,tsx}", "vite.config.ts"],
+    files: ["src/**/*.{ts,tsx}", "functions/**/*.{ts,tsx}", "vite.config.ts"],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
