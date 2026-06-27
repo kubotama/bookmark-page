@@ -1,11 +1,11 @@
-import { describe, it, expect } from "vitest"
-import { app } from "./[[path]]" // 💡 exportしたappをインポート
-import { TestBookmarks } from "./test/fixtures"
+import { describe, it, expect } from 'vitest'
+import { app } from './[[path]]' // 💡 exportしたappをインポート
+import { TestBookmarks } from './test/fixtures'
 
-describe("Hono Backend API - app.request", () => {
-  it("GET /api/bookmarks が正しいJSONを返すこと", async () => {
+describe('Hono Backend API - app.request', () => {
+  it('GET /api/bookmarks が正しいJSONを返すこと', async () => {
     // 💡 実際のURLではなく、パスを指定して直接リクエストを流し込む
-    const res = await app.request("/api/bookmarks")
+    const res = await app.request('/api/bookmarks')
 
     // ステータスコードの検証
     expect(res.status).toBe(200)
@@ -18,8 +18,8 @@ describe("Hono Backend API - app.request", () => {
     })
   })
 
-  it("存在しないパスにアクセスした場合は404になること", async () => {
-    const res = await app.request("/api/unknown-route")
+  it('存在しないパスにアクセスした場合は404になること', async () => {
+    const res = await app.request('/api/unknown-route')
     expect(res.status).toBe(404)
   })
 })
