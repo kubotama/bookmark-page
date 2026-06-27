@@ -57,4 +57,17 @@ describe("App Component (MVP Bookmark List)", () => {
       expect(screen.getByText("ブックマークがありません。")).toBeInTheDocument()
     })
   })
+
+  it("APIがエラーの場合にはエラーメッセージが返されること", async () => {
+    const fetchError = new TypeError("Failed to fetch")
+    vi.spyOn(globalThis, "fetch").mockRejectedValue(fetchError)
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {})
+
+    render(<App />)
+    await waitFor(() => {
+      expect(consoleSpy).toHaveBeenCalledWith("データ取得失敗:", fetchError)
+    })
+  })
 })
+
+// Todo: mockRejectedValueにどのような値を設定すべきなのか
