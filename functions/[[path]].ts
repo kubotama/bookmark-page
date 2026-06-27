@@ -1,7 +1,7 @@
 import { Hono } from "hono"
 import { handle } from "hono/cloudflare-pages"
 
-const app = new Hono().basePath("/api") // APIのベースパスを /api に設定
+export const app = new Hono().basePath("/api") // APIのベースパスを /api に設定
 
 // MVP用のダミーデータ
 const dummyBookmarks = [
