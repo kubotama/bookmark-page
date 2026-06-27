@@ -42,54 +42,19 @@ export default function App() {
   const bookmarks = resJson?.data ?? []
 
   return (
-    <div
-      style={{
-        maxWidth: '600px',
-        margin: '0 auto',
-        padding: '20px',
-        fontFamily: 'sans-serif',
-      }}
-    >
-      <h1 style={{ fontSize: '24px', marginBottom: '20px' }}>
-        {DISPLAY_TEXT.MY_BOOKMARKS}
-      </h1>
+    <div>
+      <h1>{DISPLAY_TEXT.MY_BOOKMARKS}</h1>
 
       {bookmarks.length === 0 ? (
         <p>{DISPLAY_TEXT.NO_BOOKMARKS}</p>
       ) : (
-        <ul style={{ listStyle: 'none', padding: 0 }}>
+        <ul>
           {bookmarks.map((bookmark) => (
-            <li
-              key={bookmark.id}
-              style={{
-                marginBottom: '12px',
-                borderBottom: '1px solid #eee',
-                paddingBottom: '12px',
-              }}
-            >
-              <a
-                href={bookmark.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  textDecoration: 'none',
-                  color: '#0066cc',
-                  fontWeight: 'bold',
-                  fontSize: '18px',
-                }}
-              >
+            <li key={bookmark.id}>
+              <a href={bookmark.url} target="_blank" rel="noopener noreferrer">
                 {bookmark.title}
               </a>
-              <div
-                style={{
-                  color: '#666',
-                  fontSize: '12px',
-                  wordBreak: 'break-all',
-                  marginTop: '4px',
-                }}
-              >
-                {bookmark.url}
-              </div>
+              <div>{bookmark.url}</div>
             </li>
           ))}
         </ul>
