@@ -3,6 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import { TestBookmarks } from '@functions/test/fixtures'
 import App from './App'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { DISPLAY_TEXT, ERROR_MESSAGE } from '@functions/constants/messages'
 
 const renderApp = (qc: QueryClient) => {
   return render(
@@ -28,14 +29,14 @@ describe('App Component (MVP Bookmark List)', () => {
     })
   })
 
-  it('データ取得中に「読み込み中...」が表示されること', () => {
+  it(`データ取得中に「${DISPLAY_TEXT.LOADING}」が表示されること`, () => {
     // 応答を遅延させるダミーのfetchモック
     vi.spyOn(globalThis, 'fetch').mockImplementation(
       () => new Promise(() => {}),
     )
 
     renderApp(queryClient)
-    expect(screen.getByText('読み込み中...')).toBeInTheDocument()
+    expect(screen.getByText(DISPLAY_TEXT.LOADING)).toBeInTheDocument()
   })
 
   it('APIから取得したブックマーク一覧が正しく画面にレンダリングされること', async () => {
@@ -43,12 +44,10 @@ describe('App Component (MVP Bookmark List)', () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue({
       ok: true,
       status: 200,
-      json: async () => {
-        return {
-          success: true,
-          data: TestBookmarks,
-        }
-      },
+      json: async () => ({
+        success: true,
+        data: TestBookmarks,
+      }),
     } as Response)
 
     renderApp(queryClient)
@@ -68,6 +67,8 @@ describe('App Component (MVP Bookmark List)', () => {
 
   it('データが空の場合に適切なメッセージが表示されること', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      status: 200,
       json: async () => ({ success: true, data: [] }),
     } as Response)
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -75,23 +76,21 @@ describe('App Component (MVP Bookmark List)', () => {
     renderApp(queryClient)
 
     await waitFor(() => {
-      expect(
-        screen.getByText('サーバーエラーが発生しました'),
-      ).toBeInTheDocument()
-      expect(consoleSpy).toHaveBeenCalledWith('サーバーエラーが発生しました')
+      expect(screen.getByText(DISPLAY_TEXT.NO_BOOKMARKS)).toBeInTheDocument()
+      expect(consoleSpy).toHaveBeenCalledTimes(0)
     })
   })
 
   it('APIがエラーの場合にはエラーメッセージが返されること', async () => {
-    const fetchError = new TypeError('Failed to fetch')
+    const fetchError = new TypeError(ERROR_MESSAGE.API_ERROR)
     vi.spyOn(globalThis, 'fetch').mockRejectedValue(fetchError)
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
     renderApp(queryClient)
 
     await waitFor(() => {
-      expect(screen.getByText(fetchError.message)).toBeInTheDocument()
-      expect(consoleSpy).toHaveBeenCalledWith(fetchError.message)
+      expect(screen.getByText(ERROR_MESSAGE.API_ERROR)).toBeInTheDocument()
+      expect(consoleSpy).toHaveBeenCalledWith(ERROR_MESSAGE.API_ERROR)
     })
   })
 })

@@ -1,11 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
 import { hc } from 'hono/client'
 import type { AppType } from '@functions/[[path]]'
+import { DISPLAY_TEXT, ERROR_MESSAGE } from '@functions/constants/messages'
 
 const client = hc<AppType>('/')
 
 export default function App() {
-  // 💡 useQuery を使ってフェッチ、ローディング、エラーを一元管理！
   const {
     data: resJson,
     isLoading,
@@ -17,7 +17,7 @@ export default function App() {
 
       // 💡 1. サーバーエラー（400系、500系など）が起きた場合
       if (!res.ok) {
-        throw new Error('サーバーエラーが発生しました')
+        throw new Error(ERROR_MESSAGE.SERVER_ERROR)
       }
 
       // 💡 2. ここを通過した時点で、TypeScriptは json の形が
@@ -29,7 +29,8 @@ export default function App() {
   })
 
   // 💡 読み込み状態のハンドリング
-  if (isLoading) return <div style={{ padding: '20px' }}>読み込み中...</div>
+  if (isLoading)
+    return <div style={{ padding: '20px' }}>{DISPLAY_TEXT.LOADING}</div>
 
   // 💡 エラー発生時のハンドリング
   if (error) {
@@ -50,11 +51,11 @@ export default function App() {
       }}
     >
       <h1 style={{ fontSize: '24px', marginBottom: '20px' }}>
-        マイブックマーク
+        {DISPLAY_TEXT.MY_BOOKMARKS}
       </h1>
 
       {bookmarks.length === 0 ? (
-        <p>ブックマークがありません。</p>
+        <p>{DISPLAY_TEXT.NO_BOOKMARKS}</p>
       ) : (
         <ul style={{ listStyle: 'none', padding: 0 }}>
           {bookmarks.map((bookmark) => (
