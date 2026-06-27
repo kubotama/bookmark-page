@@ -1,13 +1,5 @@
 import { useEffect, useState } from "react"
-import { z } from "zod"
-
-// Zodで型を定義（バリデーションや安全なパース用）
-const BookmarkSchema = z.object({
-  id: z.string(),
-  title: z.string(),
-  url: z.string().url(),
-})
-type Bookmark = z.infer<typeof BookmarkSchema>
+import { Bookmark } from "@functions/schemas/bookmark"
 
 export default function App() {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([])
