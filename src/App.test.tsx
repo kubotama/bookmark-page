@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { render, screen, waitFor } from "@testing-library/react"
+import { TestBookmarks } from "@functions/test/fixtures"
 import App from "./App"
 
 describe("App Component (MVP Bookmark List)", () => {
@@ -22,10 +23,7 @@ describe("App Component (MVP Bookmark List)", () => {
     // 模擬的なAPIレスポンスを設定
     const mockData = {
       success: true,
-      data: [
-        { id: "1", title: "テスト駆動開発", url: "https://example.com/tdd" },
-        { id: "2", title: "Cloudflare D1", url: "https://example.com/d1" },
-      ],
+      data: TestBookmarks,
     }
 
     // fetchの戻り値をモック化
