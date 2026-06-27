@@ -2,11 +2,30 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import { TestBookmarks } from '@functions/test/fixtures'
 import App from './App'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+
+const renderApp = (qc: QueryClient) => {
+  return render(
+    <QueryClientProvider client={qc}>
+      <App />
+    </QueryClientProvider>,
+  )
+}
 
 describe('App Component (MVP Bookmark List)', () => {
+  let queryClient: QueryClient
+
   beforeEach(() => {
-    // 各テストの前に、fetchのモックをリセットする
     vi.restoreAllMocks()
+
+    // 💡 テストごとに毎回新しい QueryClient を作成してキャッシュをクリアする
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: {
+          retry: false, // テスト中にエラーが発生した際、自動で3回リトライするのを防ぐ（テストを高速化するため）
+        },
+      },
+    })
   })
 
   it('データ取得中に「読み込み中...」が表示されること', () => {
@@ -15,7 +34,7 @@ describe('App Component (MVP Bookmark List)', () => {
       () => new Promise(() => {}),
     )
 
-    render(<App />)
+    renderApp(queryClient)
     expect(screen.getByText('読み込み中...')).toBeInTheDocument()
   })
 
@@ -32,7 +51,7 @@ describe('App Component (MVP Bookmark List)', () => {
       },
     } as Response)
 
-    render(<App />)
+    renderApp(queryClient)
 
     // 非同期でデータが読み込まれ、タイトルが表示されるのを待つ
     await waitFor(() => {
@@ -51,11 +70,15 @@ describe('App Component (MVP Bookmark List)', () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue({
       json: async () => ({ success: true, data: [] }),
     } as Response)
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-    render(<App />)
+    renderApp(queryClient)
 
     await waitFor(() => {
-      expect(screen.getByText('ブックマークがありません。')).toBeInTheDocument()
+      expect(
+        screen.getByText('サーバーエラーが発生しました'),
+      ).toBeInTheDocument()
+      expect(consoleSpy).toHaveBeenCalledWith('サーバーエラーが発生しました')
     })
   })
 
@@ -64,9 +87,11 @@ describe('App Component (MVP Bookmark List)', () => {
     vi.spyOn(globalThis, 'fetch').mockRejectedValue(fetchError)
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-    render(<App />)
+    renderApp(queryClient)
+
     await waitFor(() => {
-      expect(consoleSpy).toHaveBeenCalledWith('データ取得失敗:', fetchError)
+      expect(screen.getByText(fetchError.message)).toBeInTheDocument()
+      expect(consoleSpy).toHaveBeenCalledWith(fetchError.message)
     })
   })
 })
