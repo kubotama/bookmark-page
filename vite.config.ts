@@ -1,14 +1,42 @@
-import build from "@hono/vite-build/cloudflare-pages";
-import devServer from "@hono/vite-dev-server";
-import adapter from "@hono/vite-dev-server/cloudflare";
-import { defineConfig } from "vite";
+import { defineConfig } from 'vitest/config'
+import react from '@vitejs/plugin-react'
+import { resolve } from 'path'
 
 export default defineConfig({
-  plugins: [
-    build(),
-    devServer({
-      adapter,
-      entry: "app/index.tsx",
-    }),
-  ],
-});
+  plugins: [react()],
+  root: './src', // Reactのソースコードの場所
+  resolve: {
+    alias: {
+      '@functions': resolve(__dirname, './functions'),
+      '@': resolve(__dirname, './src'),
+    },
+  },
+  server: {
+    port: 5173,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8788', // Wrangler Pagesのデフォルトポート
+        changeOrigin: true,
+      },
+    },
+  },
+  build: {
+    outDir: '../dist',
+    emptyOutDir: true,
+  },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: 'src/test/setup.ts',
+
+    root: resolve(__dirname, '.'),
+
+    include: ['src/**/*.test.{ts,tsx}', 'functions/**/*.test.{ts,tsx}'],
+
+    coverage: {
+      provider: 'v8',
+      include: ['src/**/*.{ts,tsx}', 'functions/**/*.{ts,tsx}'],
+      exclude: ['**/*.test.{ts,tsx}', 'src/main.tsx', 'src/test/setup.ts'],
+    },
+  },
+})
