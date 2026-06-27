@@ -5,6 +5,12 @@ import { resolve } from "path"
 export default defineConfig({
   plugins: [react()],
   root: "./src", // Reactのソースコードの場所
+  resolve: {
+    alias: {
+      "@functions": resolve(__dirname, "./functions"),
+      "@": resolve(__dirname, "./src"),
+    },
+  },
   server: {
     port: 5173,
     proxy: {
@@ -15,7 +21,7 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: "../dist", // ビルド成果物はルートの dist ディレクトリへ
+    outDir: "../dist",
     emptyOutDir: true,
   },
   test: {
@@ -25,12 +31,10 @@ export default defineConfig({
 
     root: resolve(__dirname, "."),
 
-    // 起点がルートに変わったため、テスト対象のパス指定をルート基準に修正します
     include: ["src/**/*.test.{ts,tsx}", "functions/**/*.test.{ts,tsx}"],
 
     coverage: {
       provider: "v8",
-      // プロジェクトルート基準のクリーンなパス指定
       include: ["src/**/*.{ts,tsx}", "functions/**/*.{ts,tsx}"],
       exclude: ["**/*.test.{ts,tsx}", "src/main.tsx", "src/test/setup.ts"],
     },

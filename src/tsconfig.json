@@ -6,6 +6,13 @@
     "module": "ESNext",
     "skipLibCheck": true,
 
+    "paths": {
+      // 💡 「@functions/*」という指定で、functionsディレクトリ直下を参照できるようにする
+      "@functions/*": ["../functions/*"],
+      // （参考）フロントエンド内のショートカット
+      "@/*": ["./*"]
+    },
+
     /* Bundler mode */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
