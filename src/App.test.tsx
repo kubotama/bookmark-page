@@ -69,5 +69,3 @@ describe("App Component (MVP Bookmark List)", () => {
     })
   })
 })
-
-// Todo: mockRejectedValueにどのような値を設定すべきなのか
