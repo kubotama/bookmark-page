@@ -9,7 +9,6 @@
       "binding": "BOOKMARK_PAGE_DB",
       "database_name": "bookmark-page-db",
       "database_id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-      "migrations_dir": "server/db/migrations",
     },
   ],
 }
