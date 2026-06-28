@@ -2,15 +2,17 @@ import { describe, it, expect, vi } from 'vitest'
 import { app } from './[[path]]'
 import type { D1Database } from '@cloudflare/workers-types'
 import { BOOKMARKS } from './constants/sql'
+import {
+  BookmarksTableData,
+  getExpectedText,
+  INVALID_STRING,
+} from './test/fixtures'
+import { CreateBookmarkSchema } from './schemas/bookmark'
+import { ERROR_MESSAGE } from './constants/messages'
 
 describe('Hono API - POST /api/bookmarks', () => {
   it('正常系: 有効なパラメータを送信したとき、ブックマークが登録され201を返すこと', async () => {
-    const firstSpy = vi.fn().mockResolvedValue({
-      id: '7488a6de-412d-4076-905e-8848d79cb6ee',
-      title: 'Vite 公式サイト',
-      url: 'https://vite.dev',
-      created_at: '2026-06-28 11:30:00',
-    })
+    const firstSpy = vi.fn().mockResolvedValue(BookmarksTableData)
     const bindSpy = vi.fn().mockReturnValue({ first: firstSpy })
     const prepareSpy = vi.fn().mockReturnValue({ bind: bindSpy })
 
@@ -21,8 +23,8 @@ describe('Hono API - POST /api/bookmarks', () => {
 
     // 💡 2. テスト対象の POST リクエストデータを用意
     const requestBody = {
-      title: 'Vite 公式サイト',
-      url: 'https://vite.dev',
+      title: BookmarksTableData.title,
+      url: BookmarksTableData.url,
     }
 
     // 💡 3. Hono にリクエストを投げる
@@ -36,7 +38,7 @@ describe('Hono API - POST /api/bookmarks', () => {
         body: JSON.stringify(requestBody),
       },
       {
-        BOOKMARK_PAGE_DB: mockD1Database as D1Database, // 適切なバインディング名で注入
+        BOOKMARK_PAGE_DB: mockD1Database as D1Database,
       },
     )
 
@@ -44,10 +46,104 @@ describe('Hono API - POST /api/bookmarks', () => {
 
     const json = await res.json()
     expect(json.success).toBe(true)
-    expect(json.data.title).toBe('Vite 公式サイト')
-    expect(json.data.url).toBe('https://vite.dev')
+    expect(json.data.title).toBe(BookmarksTableData.title)
+    expect(json.data.url).toBe(BookmarksTableData.url)
+    expect(json.data.created_at).toBeDefined()
     expect(json.data.id).toBeDefined()
 
     expect(prepareSpy).toHaveBeenCalledWith(BOOKMARKS.INSERT)
+  })
+
+  describe('Hono API - POST /api/bookmarks (異常系: バリデーション)', () => {
+    it.each([
+      {
+        name: 'タイトル',
+        invalidBody: {
+          title: '',
+          url: BookmarksTableData.url,
+        },
+        invalidName: 'title',
+      },
+      {
+        name: 'url',
+        invalidBody: {
+          title: BookmarksTableData.title,
+          url: INVALID_STRING.URL,
+        },
+        invalidName: 'url',
+      },
+    ])(
+      `異常系: $nameが空のとき、ステータス400を返すこと`,
+      async ({ invalidBody, invalidName }) => {
+        const mockD1Database: Partial<D1Database> = {
+          prepare: vi.fn() as unknown as D1Database['prepare'],
+        }
+
+        const expectedTitleError = getExpectedText(
+          CreateBookmarkSchema,
+          invalidBody,
+          invalidName,
+        )
+
+        const res = await app.request(
+          '/api/bookmarks',
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(invalidBody),
+          },
+          {
+            BOOKMARK_PAGE_DB: mockD1Database as D1Database,
+          },
+        )
+
+        // 💡 400 Bad Request が返ってくることを検証
+        expect(res.status).toBe(400)
+
+        const json = await res.json()
+        expect(json.success).toBe(false)
+        expect(json.error).toBe(expectedTitleError)
+      },
+    )
+  })
+
+  describe('Hono API - POST /api/bookmarks (異常系: データベース)', () => {
+    it('異常系: データベースへのインサート（または再取得）が失敗したとき、ステータス500を返すこと', async () => {
+      const firstSpy = vi
+        .fn()
+        .mockRejectedValue(new Error(ERROR_MESSAGE.DB_ERROR))
+
+      const bindSpy = vi.fn().mockReturnValue({ first: firstSpy })
+      const prepareSpy = vi.fn().mockReturnValue({ bind: bindSpy })
+
+      // 型安全なモックDBの作成
+      const mockD1Database: Partial<D1Database> = {
+        prepare: prepareSpy as D1Database['prepare'],
+      }
+
+      // パラメータ自体は「正常」なものを送る（バリデーションを通過させるため）
+      const validBody = {
+        title: BookmarksTableData.title,
+        url: BookmarksTableData.url,
+      }
+
+      const res = await app.request(
+        '/api/bookmarks',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(validBody),
+        },
+        {
+          BOOKMARK_PAGE_DB: mockD1Database as D1Database,
+        },
+      )
+
+      expect(res.status).toBe(500)
+
+      const json = await res.json()
+      expect(json.success).toBe(false)
+      expect(json.error).toBe(ERROR_MESSAGE.DB_ERROR)
+    })
   })
 })

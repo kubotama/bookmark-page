@@ -39,42 +39,68 @@ const routes = app
         {
           success: false,
           error: API_MESSAGE.FAILED_CONNECT_DATABASE,
-        },
+        } as const,
         500,
       )
     }
   })
-  .post('/bookmarks', zValidator('json', CreateBookmarkSchema), async (c) => {
-    const { title, url } = c.req.valid('json')
-    const id = uuidv7()
+  .post(
+    '/bookmarks',
+    zValidator('json', CreateBookmarkSchema, (result, c) => {
+      // 💡 バリデーションに失敗した場合のカスタム挙動を定義
+      if (!result.success) {
+        // Zodのエラー配列から最初のメッセージだけを抽出
+        const firstErrorMessage =
+          result.error.issues[0]?.message || '不正なリクエストです'
 
-    try {
-      const db = c.env.BOOKMARK_PAGE_DB
-      if (!db) {
-        throw new Error(ERROR_MESSAGE.DB_BINDING_ERROR(DATABASE_NAME))
-      }
-      const newBookmark = await db
-        .prepare(
-          'INSERT INTO bookmarks (id, title, url) VALUES (?, ?, ?) RETURNING *',
+        return c.json(
+          {
+            success: false,
+            error: firstErrorMessage, // 💡 シンプルな文字列として返す
+          } as const,
+          400,
         )
-        .bind(id, title, url)
-        .first<Bookmark>()
-
-      if (!newBookmark) {
-        throw new Error('Failed to insert and return bookmark')
       }
+    }),
+    async (c) => {
+      const { title, url } = c.req.valid('json')
+      const id = uuidv7()
 
-      return c.json(
-        {
-          success: true,
-          data: newBookmark,
-        } as const,
-        201,
-      )
-    } catch (error) {
-      return c.json({ success: false, error } as const, 500)
-    }
-  })
+      try {
+        const db = c.env.BOOKMARK_PAGE_DB
+        if (!db) {
+          throw new Error(ERROR_MESSAGE.DB_BINDING_ERROR(DATABASE_NAME))
+        }
+        const newBookmark = await db
+          .prepare(BOOKMARKS.INSERT)
+          .bind(id, title, url)
+          .first<Bookmark>()
+
+        if (!newBookmark) {
+          throw new Error(ERROR_MESSAGE.INSERT_BOOKMARK_ERROR)
+        }
+
+        return c.json(
+          {
+            success: true,
+            data: newBookmark,
+          } as const,
+          201,
+        )
+      } catch (error) {
+        return c.json(
+          {
+            success: false,
+            error:
+              error instanceof Error
+                ? error.message
+                : ERROR_MESSAGE.SERVER_ERROR,
+          } as const,
+          500,
+        )
+      }
+    },
+  )
 
 // Cloudflare Pagesのハンドラーとしてエクスポート
 export const onRequest = handle(app)
