@@ -9,6 +9,8 @@ CREATE TABLE bookmarks (
   created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 
+CREATE INDEX idx_bookmarks_created_at ON bookmarks (created_at DESC);
+
 -- MVP確認用に初期データを1件入れておく
 INSERT INTO bookmarks (id, title, url) VALUES ('018ed000-0001-7000-8000-000000000001', 'Hono', 'https://hono.dev/');
 INSERT INTO bookmarks (id, title, url) VALUES ('018ed000-0001-7000-8000-000000000002', 'Vite', 'https://vite.dev');
