@@ -5,7 +5,7 @@ import { D1Database } from '@cloudflare/workers-types'
 import { BOOKMARKS } from './constants/sql'
 import { API_MESSAGE, ERROR_MESSAGE } from './constants/messages'
 
-describe('Hono Backend API - app.request', () => {
+describe('ブックマークの取得: GET /api/bookmarks', () => {
   it('GET /api/bookmarks が正しいJSONを返すこと', async () => {
     const allSpy = vi.fn().mockResolvedValue({
       results: TestBookmarks,
