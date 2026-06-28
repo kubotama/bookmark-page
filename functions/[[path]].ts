@@ -2,6 +2,9 @@ import { Hono } from 'hono'
 import { handle } from 'hono/cloudflare-pages'
 import type { D1Database } from '@cloudflare/workers-types'
 import { API_PATH } from './constants/api'
+import { BOOKMARKS } from './constants/sql'
+import { API_MESSAGE, LOG_MESSAGE } from './constants/messages'
+import { Bookmark } from './schemas/bookmark'
 
 type Env = {
   Bindings: {
@@ -15,19 +18,19 @@ export const app = new Hono<Env>().basePath(API_PATH.ROOT)
 const routes = app.get(API_PATH.GET_BOOKMARKS, async (c) => {
   try {
     const { results } = await c.env.BOOKMARK_PAGE_DB.prepare(
-      'SELECT id, title, url FROM bookmarks ORDER BY created_at DESC',
-    ).all()
+      BOOKMARKS.SELECT_ALL,
+    ).all<Bookmark>()
 
     return c.json({
       success: true,
       data: results,
     })
   } catch (error) {
-    console.error('DBエラー:', error)
+    console.error(LOG_MESSAGE.DB_ERROR(error))
     return c.json(
       {
         success: false,
-        error: 'データベースの接続に失敗しました',
+        error: API_MESSAGE.FAILED_CONNECT_DATABASE,
       },
       500,
     )
