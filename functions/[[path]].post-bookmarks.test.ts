@@ -8,7 +8,7 @@ import {
   INVALID_STRING,
 } from './test/fixtures'
 import { CreateBookmarkSchema } from './schemas/bookmark'
-import { ERROR_MESSAGE } from './constants/messages'
+import { ERROR_MESSAGE, LOG_MESSAGE } from './constants/messages'
 
 describe('Hono API - POST /api/bookmarks', () => {
   it('正常系: 有効なパラメータを送信したとき、ブックマークが登録され201を返すこと', async () => {
@@ -109,9 +109,10 @@ describe('Hono API - POST /api/bookmarks', () => {
 
   describe('Hono API - POST /api/bookmarks (異常系: データベース)', () => {
     it('異常系: データベースへのインサート（または再取得）が失敗したとき、ステータス500を返すこと', async () => {
-      const firstSpy = vi
-        .fn()
-        .mockRejectedValue(new Error(ERROR_MESSAGE.DB_ERROR))
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const dbError = new Error(ERROR_MESSAGE.DB_ERROR)
+
+      const firstSpy = vi.fn().mockRejectedValue(dbError)
 
       const bindSpy = vi.fn().mockReturnValue({ first: firstSpy })
       const prepareSpy = vi.fn().mockReturnValue({ bind: bindSpy })
@@ -144,6 +145,7 @@ describe('Hono API - POST /api/bookmarks', () => {
       const json = await res.json()
       expect(json.success).toBe(false)
       expect(json.error).toBe(ERROR_MESSAGE.DB_ERROR)
+      expect(consoleSpy).toHaveBeenCalledWith(LOG_MESSAGE.DB_ERROR(dbError))
     })
   })
 })

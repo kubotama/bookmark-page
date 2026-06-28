@@ -88,13 +88,11 @@ const routes = app
           201,
         )
       } catch (error) {
+        console.error(LOG_MESSAGE.DB_ERROR(error))
         return c.json(
           {
             success: false,
-            error:
-              error instanceof Error
-                ? error.message
-                : ERROR_MESSAGE.SERVER_ERROR,
+            error: ERROR_MESSAGE.DB_ERROR,
           } as const,
           500,
         )
