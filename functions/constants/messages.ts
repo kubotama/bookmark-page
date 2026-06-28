@@ -2,6 +2,8 @@ export const ERROR_MESSAGE = {
   SERVER_ERROR: 'サーバーエラーが発生しました',
   API_ERROR: 'APIへのアクセスにエラーが発生しました',
   DB_ERROR: 'データベースにエラーが発生しました',
+  DB_BINDING_ERROR: (binding: string) =>
+    `Database binding ${binding} is not configured.`,
 } as const
 
 export const DISPLAY_TEXT = {

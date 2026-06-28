@@ -3,8 +3,10 @@ import { handle } from 'hono/cloudflare-pages'
 import type { D1Database } from '@cloudflare/workers-types'
 import { API_PATH } from './constants/api'
 import { BOOKMARKS } from './constants/sql'
-import { API_MESSAGE, LOG_MESSAGE } from './constants/messages'
+import { API_MESSAGE, ERROR_MESSAGE, LOG_MESSAGE } from './constants/messages'
 import { Bookmark } from './schemas/bookmark'
+
+const DATABASE_NAME = 'BOOKMARK_PAGE_DB'
 
 type Env = {
   Bindings: {
@@ -17,9 +19,11 @@ export const app = new Hono<Env>().basePath(API_PATH.ROOT)
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const routes = app.get(API_PATH.GET_BOOKMARKS, async (c) => {
   try {
-    const { results } = await c.env.BOOKMARK_PAGE_DB.prepare(
-      BOOKMARKS.SELECT_ALL,
-    ).all<Bookmark>()
+    const db = c.env.BOOKMARK_PAGE_DB
+    if (!db) {
+      throw new Error(ERROR_MESSAGE.DB_BINDING_ERROR(DATABASE_NAME))
+    }
+    const { results } = await db.prepare(BOOKMARKS.SELECT_ALL).all<Bookmark>()
 
     return c.json({
       success: true,
