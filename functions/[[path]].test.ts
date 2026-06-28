@@ -1,13 +1,32 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { app } from './[[path]]' // 💡 exportしたappをインポート
 import { TestBookmarks } from './test/fixtures'
+import { D1Database } from '@cloudflare/workers-types'
+import { BOOKMARKS } from './constants/sql'
+import { API_MESSAGE, ERROR_MESSAGE } from './constants/messages'
 
 describe('Hono Backend API - app.request', () => {
   it('GET /api/bookmarks が正しいJSONを返すこと', async () => {
-    // 💡 実際のURLではなく、パスを指定して直接リクエストを流し込む
-    const res = await app.request('/api/bookmarks')
+    const allSpy = vi.fn().mockResolvedValue({
+      results: TestBookmarks,
+    })
+    const prepareSpy = vi.fn().mockReturnValue({ all: allSpy })
 
-    // ステータスコードの検証
+    const mockD1Database: Partial<D1Database> = {
+      prepare: prepareSpy as D1Database['prepare'],
+    }
+
+    const res = await app.request(
+      '/api/bookmarks',
+      {},
+      {
+        BOOKMARK_PAGE_DB: mockD1Database as D1Database,
+      },
+    )
+    const expectedSQL = BOOKMARKS.SELECT_ALL
+
+    expect(prepareSpy).toHaveBeenCalledWith(expectedSQL)
+    expect(allSpy).toHaveBeenCalledOnce()
     expect(res.status).toBe(200)
 
     // レスポンスボディの検証
@@ -15,6 +34,31 @@ describe('Hono Backend API - app.request', () => {
     expect(body).toEqual({
       success: true,
       data: TestBookmarks,
+    })
+  })
+
+  it('GET /api/bookmarks - DB側で例外が発生した際、適切に500エラーを返すこと', async () => {
+    const allSpy = vi.fn().mockRejectedValue(new Error(ERROR_MESSAGE.DB_ERROR))
+    const prepareSpy = vi.fn().mockReturnValue({ all: allSpy })
+
+    const mockFailedDb: Partial<D1Database> = {
+      prepare: prepareSpy as D1Database['prepare'],
+    }
+
+    const res = await app.request(
+      '/api/bookmarks',
+      {},
+      {
+        BOOKMARK_PAGE_DB: mockFailedDb as D1Database,
+      },
+    )
+
+    expect(res.status).toBe(500)
+
+    const json = await res.json()
+    expect(json).toEqual({
+      success: false,
+      error: API_MESSAGE.FAILED_CONNECT_DATABASE,
     })
   })
 

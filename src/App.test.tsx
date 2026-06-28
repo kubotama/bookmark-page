@@ -69,7 +69,7 @@ describe('App Component (MVP Bookmark List)', () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue({
       ok: true,
       status: 200,
-      json: async () => ({ success: true, data: [] }),
+      json: async () => ({ success: true, data: undefined }),
     } as Response)
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
@@ -78,6 +78,21 @@ describe('App Component (MVP Bookmark List)', () => {
     await waitFor(() => {
       expect(screen.getByText(DISPLAY_TEXT.NO_BOOKMARKS)).toBeInTheDocument()
       expect(consoleSpy).toHaveBeenCalledTimes(0)
+    })
+  })
+
+  it('アプリケーションエラーの場合には適切なエラーメッセージが表示されること', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: false,
+      status: 500,
+    } as Response)
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    renderApp(queryClient)
+
+    await waitFor(() => {
+      expect(screen.getByText(ERROR_MESSAGE.SERVER_ERROR)).toBeInTheDocument()
+      expect(consoleSpy).toHaveBeenCalledWith(ERROR_MESSAGE.SERVER_ERROR)
     })
   })
 
