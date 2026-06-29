@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "Bookmark Page Extension",
+  "version": "0.1.0",
+  "description": "閲覧中のページをブックマークに追加します",
+  "permissions": ["activeTab"],
+  "host_permissions": ["http://localhost:8788/*"],
+  "action": {
+    "default_popup": "index.html"
+  }
+}
