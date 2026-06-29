@@ -10,7 +10,7 @@ const copyManifest = () => {
     name: 'copy-manifest',
     closeBundle() {
       try {
-        mkdirSync('dist', { recursive: true })
+        mkdirSync(resolve(__dirname, 'dist'), { recursive: true })
         const manifest = readFileSync(
           resolve(__dirname, 'manifest.json'),
           'utf-8',
