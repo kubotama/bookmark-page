@@ -42,7 +42,6 @@ export default defineConfig({
         'src/test/setup.ts',
         'functions/schemas/**',
         'functions/constants/**',
-        'functions/test/**',
       ],
     },
   },
