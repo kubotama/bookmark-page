@@ -4,6 +4,7 @@ export const ERROR_MESSAGE = {
   DB_ERROR: 'データベースにエラーが発生しました',
   DB_BINDING_ERROR: (binding: string) =>
     `Database binding ${binding} is not configured.`,
+  INSERT_BOOKMARK_ERROR: 'ブックマークの追加に失敗しました',
 } as const
 
 export const DISPLAY_TEXT = {

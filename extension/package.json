@@ -8,8 +8,11 @@
     "build": "tsc && vite build",
     "preview": "vite preview"
   },
+  "allowScripts": {
+    "esbuild": true
+  },
   "dependencies": {
-    "hono": "^4.0.0",
+    "hono": "^4.12.26",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
