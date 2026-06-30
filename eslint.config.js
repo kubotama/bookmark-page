@@ -7,7 +7,12 @@ export default [
   },
   {
     // 解析対象にするファイル
-    files: ['src/**/*.{ts,tsx}', 'functions/**/*.{ts,tsx}', 'vite.config.ts'],
+    files: [
+      'src/**/*.{ts,tsx}',
+      'functions/**/*.{ts,tsx}',
+      'vite.config.ts',
+      'extension/**/*.{ts,tsx}',
+    ],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
