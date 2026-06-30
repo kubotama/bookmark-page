@@ -3,7 +3,7 @@ import { app } from './[[path]]' // 💡 exportしたappをインポート
 import { TestBookmarks } from './test/fixtures'
 import { D1Database } from '@cloudflare/workers-types'
 import { BOOKMARKS } from './constants/sql'
-import { API_MESSAGE, ERROR_MESSAGE, LOG_MESSAGE } from './constants/messages'
+import { API_MESSAGE, ERROR_MESSAGE, LOG_MESSAGE } from './constants/string'
 
 describe('Hono Backend API - app.request', () => {
   it('GET /api/bookmarks が正しいJSONを返すこと', async () => {

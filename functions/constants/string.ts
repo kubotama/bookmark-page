@@ -9,6 +9,12 @@ export const ERROR_MESSAGE = {
 
 export const DISPLAY_TEXT = {
   LOADING: '読み込み中...',
+  SAVING: '保存中...',
+  SAVE: '保存する',
+  TITLE: 'タイトル',
+  URL: 'URL',
+  SAVED_BOOKMARK: 'ブックマークを保存しました！',
+  FALED_CONNECT_SERVER: 'サーバーとの通信に失敗しました。',
   MY_BOOKMARKS: 'マイブックマーク',
   NO_BOOKMARKS: 'ブックマークがありません。',
 } as const
@@ -20,4 +26,9 @@ export const LOG_MESSAGE = {
 
 export const API_MESSAGE = {
   FAILED_CONNECT_DATABASE: 'データベースの接続に失敗しました',
+} as const
+
+export const DEFAULT_TEXT = {
+  TITLE: '開発用テストタイトル',
+  URL: 'https://example.com',
 } as const

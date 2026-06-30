@@ -2,7 +2,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { resolve } from 'path'
 import { mkdirSync, writeFileSync, readFileSync } from 'fs'
-import { LOG_MESSAGE } from '../functions/constants/messages'
+import { LOG_MESSAGE } from '../functions/constants/string'
 
 // 💡 manifest.json を dist にコピーするシンプルなカスタムプラグイン
 const copyManifest = () => {

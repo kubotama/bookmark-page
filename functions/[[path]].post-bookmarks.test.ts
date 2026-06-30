@@ -8,7 +8,7 @@ import {
   INVALID_STRING,
 } from './test/fixtures'
 import { CreateBookmarkSchema } from './schemas/bookmark'
-import { ERROR_MESSAGE, LOG_MESSAGE } from './constants/messages'
+import { ERROR_MESSAGE, LOG_MESSAGE } from './constants/string'
 
 describe('Hono API - POST /api/bookmarks', () => {
   it('正常系: 有効なパラメータを送信したとき、ブックマークが登録され201を返すこと', async () => {

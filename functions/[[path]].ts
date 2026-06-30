@@ -5,7 +5,7 @@ import { handle } from 'hono/cloudflare-pages'
 import type { D1Database } from '@cloudflare/workers-types'
 import { API_PATH } from './constants/api'
 import { BOOKMARKS } from './constants/sql'
-import { API_MESSAGE, ERROR_MESSAGE, LOG_MESSAGE } from './constants/messages'
+import { API_MESSAGE, ERROR_MESSAGE, LOG_MESSAGE } from './constants/string'
 import { Bookmark, CreateBookmarkSchema } from './schemas/bookmark'
 import { uuidv7 } from 'uuidv7'
 
