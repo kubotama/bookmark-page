@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { client } from './lib/hono'
+import { DEFAULT_TEXT, DISPLAY_TEXT } from '../../functions/constants/string'
 
 export function Popup() {
   const [title, setTitle] = useState('')
@@ -22,8 +23,8 @@ export function Popup() {
       })
     } else {
       // ローカルブラウザでの通常開発（プレビュー）用のフォールバック
-      setTitle('開発用テストタイトル')
-      setUrl('https://example.com')
+      setTitle(DEFAULT_TEXT.TITLE)
+      setUrl(DEFAULT_TEXT.URL)
     }
   }, [])
 
@@ -43,13 +44,13 @@ export function Popup() {
       const data = await res.json()
 
       if (data.success) {
-        setMessage({ type: 'success', text: 'ブックマークを保存しました！' })
+        setMessage({ type: 'success', text: DISPLAY_TEXT.SAVED_BOOKMARK })
       } else {
         // バックエンド側で整えたバリデーションエラー等のメッセージを表示
         setMessage({ type: 'error', text: data.error })
       }
     } catch (err) {
-      setMessage({ type: 'error', text: 'サーバーとの通信に失敗しました。' })
+      setMessage({ type: 'error', text: DISPLAY_TEXT.FALED_CONNECT_SERVER })
     } finally {
       setLoading(false)
     }
@@ -74,7 +75,7 @@ export function Popup() {
               marginBottom: '4px',
             }}
           >
-            タイトル
+            {DISPLAY_TEXT.TITLE}
           </label>
           <input
             type="text"
@@ -93,7 +94,7 @@ export function Popup() {
               marginBottom: '4px',
             }}
           >
-            URL
+            {DISPLAY_TEXT.URL}
           </label>
           <input
             type="text"
@@ -115,7 +116,7 @@ export function Popup() {
             cursor: loading ? 'not-allowed' : 'pointer',
           }}
         >
-          {loading ? '保存中...' : '保存する'}
+          {loading ? DISPLAY_TEXT.SAVING : DISPLAY_TEXT.SAVE}
         </button>
       </form>
 
