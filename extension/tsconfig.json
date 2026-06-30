@@ -22,7 +22,7 @@
     "noFallthroughCasesInSwitch": true,
 
     // 💡 ここを追加（既存の types があれば配列の中に追加してください）
-    "types": ["chrome-types"]
+    "types": ["chrome-types", "@testing-library/jest-dom"]
   },
   "include": ["src"]
 }

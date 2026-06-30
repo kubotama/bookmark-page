@@ -29,7 +29,7 @@ export function Popup() {
   }, [])
 
   // 💡 フォーム送信（Hono RPC を使った POST リクエスト）
-  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
     setMessage(null)
