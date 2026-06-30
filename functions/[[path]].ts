@@ -47,20 +47,12 @@ const routes = app
   .post(
     '/bookmarks',
     zValidator('json', CreateBookmarkSchema, (result, c) => {
-      // 💡 バリデーションに失敗した場合のカスタム挙動を定義
-      if (!result.success) {
-        // Zodのエラー配列から最初のメッセージだけを抽出
-        const firstErrorMessage =
-          result.error.issues[0]?.message || '不正なリクエストです'
-
-        return c.json(
-          {
-            success: false,
-            error: firstErrorMessage, // 💡 シンプルな文字列として返す
-          } as const,
-          400,
-        )
-      }
+      return !result.success
+        ? c.json(
+            { success: result.success, error: result.error.issues[0].message },
+            400,
+          )
+        : undefined
     }),
     async (c) => {
       const { title, url } = c.req.valid('json')

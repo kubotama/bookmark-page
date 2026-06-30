@@ -7,7 +7,7 @@
     "noEmit": true,
     "skipLibCheck": true,
     "lib": ["ESNext", "dom"],
-    "types": ["vite/client"],
+    "types": ["vite/client", "chrome-types"],
     "jsx": "react-jsx",
     "jsxImportSource": "react"
   },
