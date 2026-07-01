@@ -2,6 +2,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import { Popup } from './Popup'
 import { client } from './lib/hono'
+import { TestBookmarks } from '../../functions/test/fixtures'
 
 // 💡 Hono RPC クライアントの通信部分をモック化
 vi.mock('./lib/hono', () => {
@@ -27,8 +28,8 @@ describe('Popup Component', () => {
     const titleInput = screen.getByLabelText('タイトル') as HTMLInputElement
     const urlInput = screen.getByLabelText('URL') as HTMLInputElement
 
-    expect(titleInput.value).toBe('テストページ')
-    expect(urlInput.value).toBe('https://test.com')
+    expect(titleInput.value).toBe(TestBookmarks[0].title)
+    expect(urlInput.value).toBe(TestBookmarks[0].url)
   })
 
   it('保存するボタンを押した際、Hono RPC APIが正しく呼び出されること', async () => {
@@ -47,8 +48,8 @@ describe('Popup Component', () => {
     // APIがどんな引数で呼ばれたかを検証
     expect(client.api.bookmarks.$post).toHaveBeenCalledWith({
       json: {
-        title: 'テストページ',
-        url: 'https://test.com',
+        title: TestBookmarks[0].title,
+        url: TestBookmarks[0].url,
       },
     })
   })
