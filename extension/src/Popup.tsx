@@ -13,14 +13,17 @@ export function Popup() {
 
   // 💡 ポップアップが開いた瞬間にアクティブタブの情報を取得する
   useEffect(() => {
-    if (typeof chrome !== 'undefined' && chrome.tabs) {
-      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        const activeTab = tabs[0]
-        if (activeTab) {
-          setTitle(activeTab.title || '')
-          setUrl(activeTab.url || '')
-        }
-      })
+    if (globalThis.chrome?.tabs) {
+      globalThis.chrome.tabs.query(
+        { active: true, currentWindow: true },
+        (tabs) => {
+          const activeTab = tabs[0]
+          if (activeTab) {
+            setTitle(activeTab.title || '')
+            setUrl(activeTab.url || '')
+          }
+        },
+      )
     } else {
       // ローカルブラウザでの通常開発（プレビュー）用のフォールバック
       setTitle(DEFAULT_TEXT.TITLE)
@@ -49,7 +52,7 @@ export function Popup() {
         // バックエンド側で整えたバリデーションエラー等のメッセージを表示
         setMessage({ type: 'error', text: data.error })
       }
-    } catch (err) {
+    } catch {
       setMessage({ type: 'error', text: DISPLAY_TEXT.FALED_CONNECT_SERVER })
     } finally {
       setLoading(false)
@@ -68,6 +71,7 @@ export function Popup() {
       >
         <div>
           <label
+            htmlFor="title-input"
             style={{
               display: 'block',
               fontSize: '12px',
@@ -78,6 +82,7 @@ export function Popup() {
             {DISPLAY_TEXT.TITLE}
           </label>
           <input
+            id="title-input"
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -87,6 +92,7 @@ export function Popup() {
 
         <div>
           <label
+            htmlFor="url-input"
             style={{
               display: 'block',
               fontSize: '12px',
@@ -97,6 +103,7 @@ export function Popup() {
             {DISPLAY_TEXT.URL}
           </label>
           <input
+            id="url-input"
             type="text"
             value={url}
             onChange={(e) => setUrl(e.target.value)}

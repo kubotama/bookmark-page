@@ -19,7 +19,7 @@ vi.mock('./lib/hono', () => {
   }
 })
 
-describe.skip('Popup Component', () => {
+describe('Popup Component', () => {
   it('起動時に chrome.tabs.query からタイトルとURLを取得して入力欄にセットすること', () => {
     render(<Popup />)
 
