@@ -32,3 +32,7 @@ export const DEFAULT_TEXT = {
   TITLE: '開発用テストタイトル',
   URL: 'https://example.com',
 } as const
+
+export const SCHEMA_MESSAGE = {
+  INVALID_URL: '不正なURL形式です',
+} as const

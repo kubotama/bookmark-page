@@ -25,6 +25,10 @@ export const INVALID_STRING = {
   URL: 'not-a-valid-url',
 } as const
 
+export const TEST_ERROR_MESSAGE = {
+  NETWORK_ERROR: 'ネットワークエラー',
+}
+
 export const getExpectedText = (
   schema: typeof CreateBookmarkSchema,
   body: { url: string; title: string },

@@ -1,9 +1,13 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
+import { userEvent } from '@testing-library/user-event'
 import { Popup } from './Popup'
 import { client } from './lib/hono'
-import { TestBookmarks } from '../../functions/test/fixtures'
-import { DISPLAY_TEXT } from '../../functions/constants/string'
+import {
+  TEST_ERROR_MESSAGE,
+  TestBookmarks,
+} from '../../functions/test/fixtures'
+import { DISPLAY_TEXT, SCHEMA_MESSAGE } from '../../functions/constants/string'
 
 // 💡 Hono RPC クライアントの通信部分をモック化
 vi.mock('./lib/hono', () => {
@@ -37,7 +41,8 @@ describe('Popup Component', () => {
     render(<Popup />)
 
     const submitButton = screen.getByRole('button', { name: '保存する' })
-    fireEvent.click(submitButton)
+    const user = userEvent.setup()
+    await user.click(submitButton)
 
     // 保存中の状態を経て、成功メッセージが出ることを検証
     await waitFor(() => {
@@ -67,9 +72,9 @@ describe('Popup Component', () => {
         status: 400,
         json: async () => ({
           success: false as const,
-          error: '無効なURL形式です',
+          error: SCHEMA_MESSAGE.INVALID_URL,
         }),
-      } as unknown as PostResponse // ✨ unknown を経由して Hono の正確なレスポンス型にキャスト
+      } as unknown as PostResponse
 
       vi.mocked(client.api.bookmarks.$post).mockResolvedValueOnce(mockResponse)
       render(<Popup />)
@@ -78,18 +83,19 @@ describe('Popup Component', () => {
       const submitButton = screen.getByRole('button', {
         name: DISPLAY_TEXT.SAVE,
       })
-      fireEvent.click(submitButton)
+      const user = userEvent.setup()
+      await user.click(submitButton)
 
       // 3. エラーテキストが画面に表示されることを検証
       await waitFor(() => {
-        expect(screen.getByText('無効なURL形式です')).toBeInTheDocument()
+        expect(screen.getByText(SCHEMA_MESSAGE.INVALID_URL)).toBeInTheDocument()
       })
     })
 
     it('ネットワーク通信自体が失敗（ネットワークエラー）した場合、通信エラーメッセージが表示されること', async () => {
       // 1. $post が例外（Reject）を投げるように設定
       vi.mocked(client.api.bookmarks.$post).mockRejectedValueOnce(
-        new Error('Network Error'),
+        new Error(TEST_ERROR_MESSAGE.NETWORK_ERROR),
       )
 
       render(<Popup />)
@@ -97,7 +103,8 @@ describe('Popup Component', () => {
       const submitButton = screen.getByRole('button', {
         name: DISPLAY_TEXT.SAVE,
       })
-      fireEvent.click(submitButton)
+      const user = userEvent.setup()
+      await user.click(submitButton)
 
       // 2. 「サーバーへの接続に失敗しました」の文言が表示されることを検証
       await waitFor(() => {
