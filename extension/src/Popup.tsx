@@ -87,6 +87,7 @@ export function Popup() {
           <input
             id="title-input"
             type="text"
+            required
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             style={{ width: '100%', padding: '6px', boxSizing: 'border-box' }}
