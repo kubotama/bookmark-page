@@ -17,7 +17,7 @@ export function Popup() {
       globalThis.chrome.tabs.query(
         { active: true, currentWindow: true },
         (tabs) => {
-          const activeTab = tabs[0]
+          const activeTab = tabs?.[0]
           if (activeTab) {
             setTitle(activeTab.title || '')
             setUrl(activeTab.url || '')
