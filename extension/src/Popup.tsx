@@ -107,7 +107,8 @@ export function Popup() {
           </label>
           <input
             id="url-input"
-            type="text"
+            type="url"
+            required
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             style={{ width: '100%', padding: '6px', boxSizing: 'border-box' }}
