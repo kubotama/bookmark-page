@@ -50,7 +50,10 @@ export function Popup() {
         setMessage({ type: 'success', text: DISPLAY_TEXT.SAVED_BOOKMARK })
       } else {
         // バックエンド側で整えたバリデーションエラー等のメッセージを表示
-        setMessage({ type: 'error', text: data.error })
+        setMessage({
+          type: 'error',
+          text: data.error || DISPLAY_TEXT.FALED_CONNECT_SERVER,
+        })
       }
     } catch {
       setMessage({ type: 'error', text: DISPLAY_TEXT.FALED_CONNECT_SERVER })
