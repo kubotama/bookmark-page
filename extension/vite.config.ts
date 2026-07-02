@@ -1,8 +1,8 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import { resolve } from 'path'
 import { mkdirSync, writeFileSync, readFileSync } from 'fs'
-import { LOG_MESSAGE } from '../functions/constants/messages'
+import { LOG_MESSAGE } from '../functions/constants/string'
 
 // 💡 manifest.json を dist にコピーするシンプルなカスタムプラグイン
 const copyManifest = () => {
@@ -35,4 +35,10 @@ export default defineConfig({
       },
     },
   },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: ['./src/test/setup.ts'],
+  },
+
 })

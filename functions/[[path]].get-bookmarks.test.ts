@@ -3,7 +3,7 @@ import { app } from './[[path]]' // 💡 exportしたappをインポート
 import { TestBookmarks } from './test/fixtures'
 import { D1Database } from '@cloudflare/workers-types'
 import { BOOKMARKS } from './constants/sql'
-import { API_MESSAGE, ERROR_MESSAGE } from './constants/messages'
+import { API_MESSAGE, ERROR_MESSAGE, LOG_MESSAGE } from './constants/string'
 
 describe('Hono Backend API - app.request', () => {
   it('GET /api/bookmarks が正しいJSONを返すこと', async () => {
@@ -38,7 +38,10 @@ describe('Hono Backend API - app.request', () => {
   })
 
   it('GET /api/bookmarks - DB側で例外が発生した際、適切に500エラーを返すこと', async () => {
-    const allSpy = vi.fn().mockRejectedValue(new Error(ERROR_MESSAGE.DB_ERROR))
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const dbError = new Error(ERROR_MESSAGE.DB_ERROR)
+
+    const allSpy = vi.fn().mockRejectedValue(dbError)
     const prepareSpy = vi.fn().mockReturnValue({ all: allSpy })
 
     const mockFailedDb: Partial<D1Database> = {
@@ -60,6 +63,7 @@ describe('Hono Backend API - app.request', () => {
       success: false,
       error: API_MESSAGE.FAILED_CONNECT_DATABASE,
     })
+    expect(consoleSpy).toHaveBeenCalledWith(LOG_MESSAGE.DB_ERROR(dbError))
   })
 
   it('存在しないパスにアクセスした場合は404になること', async () => {

@@ -27,21 +27,31 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
-    setupFiles: 'src/test/setup.ts',
+    setupFiles: ['src/test/setup.ts', 'extension/src/test/setup.ts'],
 
     root: resolve(__dirname, '.'),
 
-    include: ['src/**/*.test.{ts,tsx}', 'functions/**/*.test.{ts,tsx}'],
+    include: [
+      'src/**/*.test.{ts,tsx}',
+      'functions/**/*.test.{ts,tsx}',
+      'extension/**/*.test.{ts,tsx}',
+    ],
 
     coverage: {
       provider: 'v8',
-      include: ['src/**/*.{ts,tsx}', 'functions/**/*.{ts,tsx}'],
+      include: [
+        'src/**/*.{ts,tsx}',
+        'functions/**/*.{ts,tsx}',
+        'extension/**/*.{ts,tsx}',
+      ],
       exclude: [
         '**/*.test.{ts,tsx}',
         'src/main.tsx',
         'src/test/setup.ts',
         'functions/schemas/**',
         'functions/constants/**',
+        'functions/test/**',
+        'extension/src/lib/hono.ts',
       ],
     },
   },
