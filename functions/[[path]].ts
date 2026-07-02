@@ -48,10 +48,7 @@ const routes = app
     '/bookmarks',
     zValidator('json', CreateBookmarkSchema, (result, c) => {
       return !result.success
-        ? c.json(
-            { success: result.success, error: result.error.issues[0].message },
-            400,
-          )
+        ? c.json({ success: false, error: result.error.issues[0].message }, 400)
         : undefined
     }),
     async (c) => {
