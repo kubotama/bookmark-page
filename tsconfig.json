@@ -11,5 +11,5 @@
     "jsx": "react-jsx",
     "jsxImportSource": "react"
   },
-  "exclude": ["src/"]
+  "exclude": ["src/", "extension/"]
 }

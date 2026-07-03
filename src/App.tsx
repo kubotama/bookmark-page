@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { hc } from 'hono/client'
-import type { AppType } from '@functions/[[path]]'
+import type { AppType } from '@functions/api/[[route]]'
 import { DISPLAY_TEXT, ERROR_MESSAGE } from '@functions/constants/string'
 
 const client = hc<AppType>('/')

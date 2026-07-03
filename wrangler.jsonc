@@ -7,8 +7,8 @@
   "d1_databases": [
     {
       "binding": "BOOKMARK_PAGE_DB",
-      "database_name": "bookmark-page-db",
-      "database_id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+      "database_name": "BOOKMARK_PAGE_DB",
+      "database_id": "5e9231f1-f3cf-4e51-9adb-22f51b60ebe3",
     },
   ],
 }

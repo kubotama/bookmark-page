@@ -1,14 +1,14 @@
 import { describe, it, expect, vi } from 'vitest'
-import { app } from './[[path]]'
+import { app } from './[[route]]'
 import type { D1Database } from '@cloudflare/workers-types'
-import { BOOKMARKS } from './constants/sql'
+import { BOOKMARKS } from '../constants/sql'
 import {
   BookmarksTableData,
   getExpectedText,
   INVALID_STRING,
-} from './test/fixtures'
-import { CreateBookmarkSchema } from './schemas/bookmark'
-import { ERROR_MESSAGE, LOG_MESSAGE } from './constants/string'
+} from '../test/fixtures'
+import { CreateBookmarkSchema } from '../schemas/bookmark'
+import { ERROR_MESSAGE, LOG_MESSAGE } from '../constants/string'
 
 describe('Hono API - POST /api/bookmarks', () => {
   it('正常系: 有効なパラメータを送信したとき、ブックマークが登録され201を返すこと', async () => {
