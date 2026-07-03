@@ -8,6 +8,7 @@ import { BOOKMARKS } from './constants/sql'
 import { API_MESSAGE, ERROR_MESSAGE, LOG_MESSAGE } from './constants/string'
 import { Bookmark, CreateBookmarkSchema } from './schemas/bookmark'
 import { uuidv7 } from 'uuidv7'
+import { cors } from 'hono/cors'
 
 const DATABASE_NAME = 'BOOKMARK_PAGE_DB'
 
@@ -18,6 +19,33 @@ type Env = {
 }
 
 export const app = new Hono<Env>().basePath(API_PATH.ROOT)
+
+app.use(
+  '*',
+  cors({
+    origin: (origin) => {
+      if (!origin) {
+        return undefined
+      }
+      if (origin.startsWith('chrome-extension://')) {
+        return origin
+      }
+      try {
+        const url = new URL(origin)
+        const isLocalhost = url.hostname === 'localhost'
+        const isPagesDev = url.hostname.endsWith('.pages.dev')
+        if (isLocalhost || isPagesDev) {
+          return origin
+        }
+      } catch {
+        // ignore invalid URL
+      }
+      return undefined
+    },
+    allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowHeaders: ['Content-Type', 'Authorization'],
+  }),
+)
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const routes = app
