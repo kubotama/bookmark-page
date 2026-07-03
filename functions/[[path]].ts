@@ -24,15 +24,23 @@ app.use(
   '*',
   cors({
     origin: (origin) => {
-      // 拡張機能からのリクエスト（chrome-extension://...）なら無条件で許可
+      if (!origin) {
+        return undefined
+      }
       if (origin.startsWith('chrome-extension://')) {
         return origin
       }
-      // 通常のWebフロントエンド（同じドメイン内やローカル開発環境環境）からのアクセス用
-      if (origin.includes('localhost') || origin.includes('pages.dev')) {
-        return origin
+      try {
+        const url = new URL(origin)
+        const isLocalhost = url.hostname === 'localhost'
+        const isPagesDev = url.hostname.endsWith('.pages.dev')
+        if (isLocalhost || isPagesDev) {
+          return origin
+        }
+      } catch {
+        // ignore invalid URL
       }
-      return undefined // 許可しないオリジンは弾く
+      return undefined
     },
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowHeaders: ['Content-Type', 'Authorization'],
