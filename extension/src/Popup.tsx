@@ -5,6 +5,7 @@ import { DEFAULT_TEXT, DISPLAY_TEXT } from '../../functions/constants/string'
 export function Popup() {
   const [title, setTitle] = useState('')
   const [url, setUrl] = useState('')
+  const [apiUrl, setApiUrl] = useState('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<{
     type: 'success' | 'error'
@@ -129,6 +130,54 @@ export function Popup() {
           }}
         >
           {loading ? DISPLAY_TEXT.SAVING : DISPLAY_TEXT.SAVE}
+        </button>
+
+        <div>
+          <label
+            htmlFor="api-url-input"
+            style={{
+              display: 'block',
+              fontSize: '12px',
+              color: '#4b5563',
+              marginBottom: '4px',
+            }}
+          >
+            {DISPLAY_TEXT.API_URL}
+          </label>
+          <input
+            id="api-url-input"
+            type="url"
+            value={apiUrl}
+            onChange={(e) => setApiUrl(e.target.value)}
+            style={{ width: '100%', padding: '6px', boxSizing: 'border-box' }}
+          />
+        </div>
+
+        <button
+          type="submit"
+          style={{
+            padding: '8px',
+            backgroundColor: loading ? '#9ca3af' : '#2563eb',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: loading ? 'not-allowed' : 'pointer',
+          }}
+        >
+          {DISPLAY_TEXT.SAVE_API_URL}
+        </button>
+        <button
+          type="submit"
+          style={{
+            padding: '8px',
+            backgroundColor: loading ? '#9ca3af' : '#2563eb',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: loading ? 'not-allowed' : 'pointer',
+          }}
+        >
+          {DISPLAY_TEXT.VERIFY_API_URL}
         </button>
       </form>
 

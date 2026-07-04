@@ -30,8 +30,10 @@ describe('Popup Component', () => {
     render(<Popup />)
 
     // setup.ts で仕込んだモックデータが入っているか検証
-    const titleInput = screen.getByLabelText('タイトル') as HTMLInputElement
-    const urlInput = screen.getByLabelText('URL') as HTMLInputElement
+    const titleInput = screen.getByLabelText(
+      DISPLAY_TEXT.TITLE,
+    ) as HTMLInputElement
+    const urlInput = screen.getByLabelText(DISPLAY_TEXT.URL) as HTMLInputElement
 
     expect(titleInput.value).toBe(TestBookmarks[0].title)
     expect(urlInput.value).toBe(TestBookmarks[0].url)
@@ -113,5 +115,25 @@ describe('Popup Component', () => {
         ).toBeInTheDocument()
       })
     })
+  })
+})
+
+describe('APIのURLの保存', () => {
+  it('ポップアップ画面が開いたときにAPIのURL関係の項目が表示されること', () => {
+    render(<Popup />)
+
+    const apiUrlInput = screen.getByLabelText(
+      DISPLAY_TEXT.API_URL,
+    ) as HTMLInputElement
+    const apiUrlSaveButton = screen.getByRole('button', {
+      name: DISPLAY_TEXT.SAVE_API_URL,
+    })
+    const apiUrlVerifyButton = screen.getByRole('button', {
+      name: DISPLAY_TEXT.VERIFY_API_URL,
+    })
+
+    expect(apiUrlInput.value).toBe('')
+    expect(apiUrlSaveButton).toBeInTheDocument()
+    expect(apiUrlVerifyButton).toBeInTheDocument()
   })
 })
