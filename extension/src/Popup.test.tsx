@@ -133,7 +133,7 @@ describe('Popup Component', () => {
       // 2. 「サーバーへの接続に失敗しました」の文言が表示されることを検証
       await waitFor(() => {
         expect(
-          screen.getByText(DISPLAY_TEXT.FALED_CONNECT_SERVER),
+          screen.getByText(DISPLAY_TEXT.FAILED_CONNECT_SERVER),
         ).toBeInTheDocument()
       })
     })

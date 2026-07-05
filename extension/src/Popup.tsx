@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import { client } from './lib/hono'
-import { DEFAULT_TEXT, DISPLAY_TEXT } from '../../functions/constants/string'
+import {
+  DEFAULT_TEXT,
+  DISPLAY_TEXT,
+  ERROR_MESSAGE,
+} from '../../functions/constants/string'
 import { hc } from 'hono/client'
 // バックエンド（functions）のエントリーポイントから型定義（AppType）のみをインポート
 import type { AppType } from '../../functions/api/[[route]]'
@@ -56,11 +60,11 @@ export function Popup() {
         // バックエンド側で整えたバリデーションエラー等のメッセージを表示
         setMessage({
           type: 'error',
-          text: data.error || DISPLAY_TEXT.FALED_CONNECT_SERVER,
+          text: data.error || DISPLAY_TEXT.FAILED_CONNECT_SERVER,
         })
       }
     } catch {
-      setMessage({ type: 'error', text: DISPLAY_TEXT.FALED_CONNECT_SERVER })
+      setMessage({ type: 'error', text: DISPLAY_TEXT.FAILED_CONNECT_SERVER })
     } finally {
       setLoading(false)
     }
@@ -91,7 +95,7 @@ export function Popup() {
 
       // 3. 応答コードのチェック
       if (!response.ok) {
-        throw new Error(`ステータスコード: ${response.status}`)
+        throw new Error(ERROR_MESSAGE.STATUS_CODE(response.status))
       }
 
       // 4. JSONの解析（Zero Trustに阻まれてログインHTMLが返ってきた場合はここでパースエラーになる）
@@ -102,19 +106,16 @@ export function Popup() {
         text: DISPLAY_TEXT.REGISTERED_BOOKMARKS(data.data.length),
       })
     } catch (error) {
-      let errorMsg =
-        '接続に失敗しました。URLまたはサーバーの状態を確認してください。'
+      let errorMsg: string = DISPLAY_TEXT.FAILED_CONNECT_SERVER
 
       if (error instanceof Error) {
         if (error.name === 'AbortError') {
-          errorMsg =
-            '接続がタイムアウトしました。URLが正しいか確認してください。'
+          errorMsg = DISPLAY_TEXT.TIMEOUT_CONNECT_SERVER
         } else if (error instanceof SyntaxError) {
           // JSONのパースエラーが起きた＝HTML（Zero Trustのログイン画面）が返ってきた可能性大
-          errorMsg =
-            'APIから不正な応答（HTML）が返されました。Zero Trustのバイパス設定を確認してください。'
+          errorMsg = DISPLAY_TEXT.INVALID_RESPONSE
         } else if (error.message) {
-          errorMsg = `エラー: ${error.message}`
+          console.error(error.message)
         }
       }
       setMessage({ type: 'error', text: errorMsg })
