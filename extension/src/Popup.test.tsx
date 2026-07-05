@@ -53,23 +53,42 @@ describe('Popup Component', () => {
     vi.clearAllMocks()
   })
 
-  it('起動時に chrome.tabs.query からタイトルとURLを取得して入力欄にセットすること', () => {
+  const getElements = () => {
     render(<Popup />)
-
-    // setup.ts で仕込んだモックデータが入っているか検証
     const titleInput = screen.getByLabelText(
       DISPLAY_TEXT.TITLE,
     ) as HTMLInputElement
     const urlInput = screen.getByLabelText(DISPLAY_TEXT.URL) as HTMLInputElement
+    const submitButton = screen.getByRole('button', { name: '保存する' })
+    const apiUrlInput = screen.getByLabelText(
+      DISPLAY_TEXT.API_URL,
+    ) as HTMLInputElement
+    const apiUrlSaveButton = screen.getByRole('button', {
+      name: DISPLAY_TEXT.SAVE_API_URL,
+    })
+    const testConnectionButton = screen.getByRole('button', {
+      name: DISPLAY_TEXT.VERIFY_API_URL,
+    })
+
+    return {
+      titleInput,
+      urlInput,
+      submitButton,
+      apiUrlInput,
+      apiUrlSaveButton,
+      testConnectionButton,
+    }
+  }
+
+  it('起動時に chrome.tabs.query からタイトルとURLを取得して入力欄にセットすること', () => {
+    const { titleInput, urlInput } = getElements()
 
     expect(titleInput.value).toBe(TestBookmarks[0].title)
     expect(urlInput.value).toBe(TestBookmarks[0].url)
   })
 
   it('保存するボタンを押した際、Hono RPC APIが正しく呼び出されること', async () => {
-    render(<Popup />)
-
-    const submitButton = screen.getByRole('button', { name: '保存する' })
+    const { submitButton } = getElements()
     const user = userEvent.setup()
     await user.click(submitButton)
 
@@ -106,12 +125,8 @@ describe('Popup Component', () => {
       } as unknown as PostResponse
 
       vi.mocked(client.api.bookmarks.$post).mockResolvedValueOnce(mockResponse)
-      render(<Popup />)
 
-      // 2. 送信ボタンをクリック
-      const submitButton = screen.getByRole('button', {
-        name: DISPLAY_TEXT.SAVE,
-      })
+      const { submitButton } = getElements()
       const user = userEvent.setup()
       await user.click(submitButton)
 
@@ -127,11 +142,7 @@ describe('Popup Component', () => {
         new Error(TEST_ERROR_MESSAGE.NETWORK_ERROR),
       )
 
-      render(<Popup />)
-
-      const submitButton = screen.getByRole('button', {
-        name: DISPLAY_TEXT.SAVE,
-      })
+      const { submitButton } = getElements()
       const user = userEvent.setup()
       await user.click(submitButton)
 
@@ -146,32 +157,16 @@ describe('Popup Component', () => {
 
   describe('APIのURLの保存', () => {
     it('ポップアップ画面が開いたときにAPIのURL関係の項目が表示されること', () => {
-      render(<Popup />)
-
-      const apiUrlInput = screen.getByLabelText(
-        DISPLAY_TEXT.API_URL,
-      ) as HTMLInputElement
-      const apiUrlSaveButton = screen.getByRole('button', {
-        name: DISPLAY_TEXT.SAVE_API_URL,
-      })
-      const apiUrlVerifyButton = screen.getByRole('button', {
-        name: DISPLAY_TEXT.VERIFY_API_URL,
-      })
+      const { apiUrlInput, apiUrlSaveButton, testConnectionButton } =
+        getElements()
 
       expect(apiUrlInput.value).toBe('')
       expect(apiUrlSaveButton).toBeInTheDocument()
-      expect(apiUrlVerifyButton).toBeInTheDocument()
+      expect(testConnectionButton).toBeInTheDocument()
     })
 
     it('通信確認ボタンをクリックしたら、正しいurlを呼び出すこと', async () => {
-      render(<Popup />)
-
-      const apiUrlInput = screen.getByLabelText(
-        DISPLAY_TEXT.API_URL,
-      ) as HTMLInputElement
-      const testConnectionButton = screen.getByRole('button', {
-        name: DISPLAY_TEXT.VERIFY_API_URL,
-      })
+      const { apiUrlInput, testConnectionButton } = getElements()
 
       const user = userEvent.setup()
       await user.type(apiUrlInput, TEST_API_URL.LOCAL)
@@ -188,14 +183,7 @@ describe('Popup Component', () => {
     })
 
     it('APIのurlとして不正なurlを入力して通信確認ボタンをクリックしても、呼び出しが発生しないこと', async () => {
-      render(<Popup />)
-
-      const apiUrlInput = screen.getByLabelText(
-        DISPLAY_TEXT.API_URL,
-      ) as HTMLInputElement
-      const testConnectionButton = screen.getByRole('button', {
-        name: DISPLAY_TEXT.VERIFY_API_URL,
-      })
+      const { apiUrlInput, testConnectionButton } = getElements()
 
       const user = userEvent.setup()
       await user.type(apiUrlInput, INVALID_STRING.URL)
