@@ -1,10 +1,11 @@
 import { render, screen, waitFor } from '@testing-library/react'
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { userEvent } from '@testing-library/user-event'
 import { Popup } from './Popup'
 
 import { client } from './lib/hono'
 import {
+  INVALID_STRING,
   TEST_API_URL,
   TEST_ERROR_MESSAGE,
   TestBookmarks,
@@ -48,6 +49,10 @@ vi.mock('hono/client', () => {
 })
 
 describe('Popup Component', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
   it('起動時に chrome.tabs.query からタイトルとURLを取得して入力欄にセットすること', () => {
     render(<Popup />)
 
@@ -138,48 +143,70 @@ describe('Popup Component', () => {
       })
     })
   })
-})
 
-describe('APIのURLの保存', () => {
-  it('ポップアップ画面が開いたときにAPIのURL関係の項目が表示されること', () => {
-    render(<Popup />)
+  describe('APIのURLの保存', () => {
+    it('ポップアップ画面が開いたときにAPIのURL関係の項目が表示されること', () => {
+      render(<Popup />)
 
-    const apiUrlInput = screen.getByLabelText(
-      DISPLAY_TEXT.API_URL,
-    ) as HTMLInputElement
-    const apiUrlSaveButton = screen.getByRole('button', {
-      name: DISPLAY_TEXT.SAVE_API_URL,
-    })
-    const apiUrlVerifyButton = screen.getByRole('button', {
-      name: DISPLAY_TEXT.VERIFY_API_URL,
-    })
+      const apiUrlInput = screen.getByLabelText(
+        DISPLAY_TEXT.API_URL,
+      ) as HTMLInputElement
+      const apiUrlSaveButton = screen.getByRole('button', {
+        name: DISPLAY_TEXT.SAVE_API_URL,
+      })
+      const apiUrlVerifyButton = screen.getByRole('button', {
+        name: DISPLAY_TEXT.VERIFY_API_URL,
+      })
 
-    expect(apiUrlInput.value).toBe('')
-    expect(apiUrlSaveButton).toBeInTheDocument()
-    expect(apiUrlVerifyButton).toBeInTheDocument()
-  })
-
-  it('通信確認ボタンをクリックしたら、正しいurlを呼び出すこと', async () => {
-    render(<Popup />)
-
-    const apiUrlInput = screen.getByLabelText(
-      DISPLAY_TEXT.API_URL,
-    ) as HTMLInputElement
-    const testConnectionButton = screen.getByRole('button', {
-      name: DISPLAY_TEXT.VERIFY_API_URL,
+      expect(apiUrlInput.value).toBe('')
+      expect(apiUrlSaveButton).toBeInTheDocument()
+      expect(apiUrlVerifyButton).toBeInTheDocument()
     })
 
-    const user = userEvent.setup()
-    await user.type(apiUrlInput, TEST_API_URL.LOCAL)
-    await user.click(testConnectionButton)
+    it('通信確認ボタンをクリックしたら、正しいurlを呼び出すこと', async () => {
+      render(<Popup />)
 
-    await waitFor(() => {
-      expect(
-        screen.getByText(
-          DISPLAY_TEXT.REGISTERED_BOOKMARKS(TestBookmarks.length),
-        ),
-      ).toBeInTheDocument()
+      const apiUrlInput = screen.getByLabelText(
+        DISPLAY_TEXT.API_URL,
+      ) as HTMLInputElement
+      const testConnectionButton = screen.getByRole('button', {
+        name: DISPLAY_TEXT.VERIFY_API_URL,
+      })
+
+      const user = userEvent.setup()
+      await user.type(apiUrlInput, TEST_API_URL.LOCAL)
+      await user.click(testConnectionButton)
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(
+            DISPLAY_TEXT.REGISTERED_BOOKMARKS(TestBookmarks.length),
+          ),
+        ).toBeInTheDocument()
+      })
+      expect(hc).toHaveBeenCalledWith(TEST_API_URL.LOCAL, expect.any(Object))
     })
-    expect(hc).toHaveBeenCalledWith(TEST_API_URL.LOCAL, expect.any(Object))
+
+    it('APIのurlとして不正なurlを入力して通信確認ボタンをクリックしても、呼び出しが発生しないこと', async () => {
+      render(<Popup />)
+
+      const apiUrlInput = screen.getByLabelText(
+        DISPLAY_TEXT.API_URL,
+      ) as HTMLInputElement
+      const testConnectionButton = screen.getByRole('button', {
+        name: DISPLAY_TEXT.VERIFY_API_URL,
+      })
+
+      const user = userEvent.setup()
+      await user.type(apiUrlInput, INVALID_STRING.URL)
+      await user.click(testConnectionButton)
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(DISPLAY_TEXT.INVALID_URL_FORMAT),
+        ).toBeInTheDocument()
+      })
+      expect(hc).not.toHaveBeenCalled()
+    })
   })
 })

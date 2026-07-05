@@ -24,6 +24,7 @@ export const DISPLAY_TEXT = {
     '接続がタイムアウトしました。URLが正しいか確認してください。',
   INVALID_RESPONSE:
     'APIから不正な応答（HTML）が返されました。Zero Trustのバイパス設定を確認してください。',
+  INVALID_URL_FORMAT: 'URLが不正です。',
   MY_BOOKMARKS: 'マイブックマーク',
   NO_BOOKMARKS: 'ブックマークがありません。',
   REGISTERED_BOOKMARKS: (count: number) =>

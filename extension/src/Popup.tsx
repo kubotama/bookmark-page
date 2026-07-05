@@ -106,19 +106,21 @@ export function Popup() {
         text: DISPLAY_TEXT.REGISTERED_BOOKMARKS(data.data.length),
       })
     } catch (error) {
-      let errorMsg: string = DISPLAY_TEXT.FAILED_CONNECT_SERVER
+      let errorMessage: string = DISPLAY_TEXT.FAILED_CONNECT_SERVER
 
       if (error instanceof Error) {
         if (error.name === 'AbortError') {
-          errorMsg = DISPLAY_TEXT.TIMEOUT_CONNECT_SERVER
+          errorMessage = DISPLAY_TEXT.TIMEOUT_CONNECT_SERVER
+        } else if (error.name === 'TypeError') {
+          errorMessage = DISPLAY_TEXT.INVALID_URL_FORMAT
         } else if (error instanceof SyntaxError) {
           // JSONのパースエラーが起きた＝HTML（Zero Trustのログイン画面）が返ってきた可能性大
-          errorMsg = DISPLAY_TEXT.INVALID_RESPONSE
+          errorMessage = DISPLAY_TEXT.INVALID_RESPONSE
         } else if (error.message) {
           console.error(error.message)
         }
       }
-      setMessage({ type: 'error', text: errorMsg })
+      setMessage({ type: 'error', text: errorMessage })
     }
   }
 
