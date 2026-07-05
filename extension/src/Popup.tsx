@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { client } from './lib/hono'
 import { DEFAULT_TEXT, DISPLAY_TEXT } from '../../functions/constants/string'
+import { hc } from 'hono/client'
+// バックエンド（functions）のエントリーポイントから型定義（AppType）のみをインポート
+import type { AppType } from '../../functions/api/[[route]]'
 
 export function Popup() {
   const [title, setTitle] = useState('')
@@ -60,6 +63,61 @@ export function Popup() {
       setMessage({ type: 'error', text: DISPLAY_TEXT.FALED_CONNECT_SERVER })
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleTestConnection = async (
+    e: React.MouseEvent<HTMLButtonElement>,
+  ) => {
+    e.preventDefault()
+    setMessage(null)
+
+    try {
+      const validApiUrl = new URL(apiUrl)
+
+      // 1. 入力されたURLを使って、その場限りの検証用クライアントを生成
+      // タイムアウト設定（5秒）を第2引数の fetch オプションに滑り込ませる
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000)
+
+      const testClient = hc<AppType>(validApiUrl.origin, {
+        fetch: (input: URL | RequestInfo, init: RequestInit | undefined) =>
+          fetch(input, { ...init, signal: controller.signal }),
+      })
+
+      // 2. 実際に RPC で GET /api/bookmarks を叩く
+      const response = await testClient.api.bookmarks.$get()
+      clearTimeout(timeoutId)
+
+      // 3. 応答コードのチェック
+      if (!response.ok) {
+        throw new Error(`ステータスコード: ${response.status}`)
+      }
+
+      // 4. JSONの解析（Zero Trustに阻まれてログインHTMLが返ってきた場合はここでパースエラーになる）
+      const data = await response.json()
+
+      setMessage({
+        type: 'success',
+        text: DISPLAY_TEXT.REGISTERED_BOOKMARKS(data.data.length),
+      })
+    } catch (error) {
+      let errorMsg =
+        '接続に失敗しました。URLまたはサーバーの状態を確認してください。'
+
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          errorMsg =
+            '接続がタイムアウトしました。URLが正しいか確認してください。'
+        } else if (error instanceof SyntaxError) {
+          // JSONのパースエラーが起きた＝HTML（Zero Trustのログイン画面）が返ってきた可能性大
+          errorMsg =
+            'APIから不正な応答（HTML）が返されました。Zero Trustのバイパス設定を確認してください。'
+        } else if (error.message) {
+          errorMsg = `エラー: ${error.message}`
+        }
+      }
+      setMessage({ type: 'error', text: errorMsg })
     }
   }
 
@@ -154,7 +212,6 @@ export function Popup() {
         </div>
 
         <button
-          type="submit"
           style={{
             padding: '8px',
             backgroundColor: loading ? '#9ca3af' : '#2563eb',
@@ -167,7 +224,7 @@ export function Popup() {
           {DISPLAY_TEXT.SAVE_API_URL}
         </button>
         <button
-          type="submit"
+          onClick={handleTestConnection}
           style={{
             padding: '8px',
             backgroundColor: loading ? '#9ca3af' : '#2563eb',

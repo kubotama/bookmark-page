@@ -20,6 +20,8 @@ export const DISPLAY_TEXT = {
   FALED_CONNECT_SERVER: 'サーバーとの通信に失敗しました。',
   MY_BOOKMARKS: 'マイブックマーク',
   NO_BOOKMARKS: 'ブックマークがありません。',
+  REGISTERED_BOOKMARKS: (count: number) =>
+    `${count}件のブックマークが登録されています`,
 } as const
 
 export const LOG_MESSAGE = {

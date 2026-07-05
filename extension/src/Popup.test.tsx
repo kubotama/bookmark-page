@@ -2,12 +2,15 @@ import { render, screen, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import { userEvent } from '@testing-library/user-event'
 import { Popup } from './Popup'
+
 import { client } from './lib/hono'
 import {
+  TEST_API_URL,
   TEST_ERROR_MESSAGE,
   TestBookmarks,
 } from '../../functions/test/fixtures'
 import { DISPLAY_TEXT, SCHEMA_MESSAGE } from '../../functions/constants/string'
+import { hc } from 'hono/client'
 
 // 💡 Hono RPC クライアントの通信部分をモック化
 vi.mock('./lib/hono', () => {
@@ -19,9 +22,28 @@ vi.mock('./lib/hono', () => {
             ok: true,
             json: async () => ({ success: true }),
           })),
+          $get: vi.fn(() => ({
+            ok: true,
+            json: async () => ({ success: true, data: TestBookmarks }),
+          })),
         },
       },
     },
+  }
+})
+
+vi.mock('hono/client', () => {
+  return {
+    hc: vi.fn().mockReturnValue({
+      api: {
+        bookmarks: {
+          $get: vi.fn().mockResolvedValue({
+            ok: true,
+            json: async () => ({ success: true, data: TestBookmarks }),
+          }),
+        },
+      },
+    }),
   }
 })
 
@@ -135,5 +157,29 @@ describe('APIのURLの保存', () => {
     expect(apiUrlInput.value).toBe('')
     expect(apiUrlSaveButton).toBeInTheDocument()
     expect(apiUrlVerifyButton).toBeInTheDocument()
+  })
+
+  it('通信確認ボタンをクリックしたら、正しいurlを呼び出すこと', async () => {
+    render(<Popup />)
+
+    const apiUrlInput = screen.getByLabelText(
+      DISPLAY_TEXT.API_URL,
+    ) as HTMLInputElement
+    const testConnectionButton = screen.getByRole('button', {
+      name: DISPLAY_TEXT.VERIFY_API_URL,
+    })
+
+    const user = userEvent.setup()
+    await user.type(apiUrlInput, TEST_API_URL.LOCAL)
+    await user.click(testConnectionButton)
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(
+          DISPLAY_TEXT.REGISTERED_BOOKMARKS(TestBookmarks.length),
+        ),
+      ).toBeInTheDocument()
+    })
+    expect(hc).toHaveBeenCalledWith(TEST_API_URL.LOCAL, expect.any(Object))
   })
 })
