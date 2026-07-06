@@ -233,5 +233,16 @@ describe('Popup Component', () => {
       })
       expect(setSpy).not.toHaveBeenCalled()
     })
+
+    it('ポップアップ画面が開いたときに保存されているAPIのurlがテキストボックスに表示されること', async () => {
+      vi.spyOn(chrome.storage.local, 'get').mockImplementation(async () => ({
+        [STORAGE_KEY.API_URL]: TEST_API_URL.LOCAL,
+      }))
+
+      const { apiUrlInput } = getElements()
+      await waitFor(() => {
+        expect(apiUrlInput.value).toBe(TEST_API_URL.LOCAL)
+      })
+    })
   })
 })
