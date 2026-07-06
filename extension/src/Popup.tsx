@@ -8,6 +8,7 @@ import {
 import { hc } from 'hono/client'
 // バックエンド（functions）のエントリーポイントから型定義（AppType）のみをインポート
 import type { AppType } from '../../functions/api/[[route]]'
+import { STORAGE_KEY } from './constants/storage'
 
 export function Popup() {
   const [title, setTitle] = useState('')
@@ -36,6 +37,16 @@ export function Popup() {
       // ローカルブラウザでの通常開発（プレビュー）用のフォールバック
       setTitle(DEFAULT_TEXT.TITLE)
       setUrl(DEFAULT_TEXT.URL)
+    }
+
+    if (globalThis.chrome?.storage?.local) {
+      globalThis.chrome.storage.local
+        .get([STORAGE_KEY.API_URL])
+        .then((result) => {
+          if (result[STORAGE_KEY.API_URL]) {
+            setApiUrl(result[STORAGE_KEY.API_URL])
+          }
+        })
     }
   }, [])
 
@@ -68,6 +79,18 @@ export function Popup() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleSaveApiUrl = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+
+    if (globalThis.chrome?.storage?.local) {
+      await globalThis.chrome.storage.local.set({
+        [STORAGE_KEY.API_URL]: apiUrl,
+      })
+    }
+
+    setMessage({ type: 'success', text: DISPLAY_TEXT.SAVED_API_URL })
   }
 
   const handleTestConnection = async (
@@ -215,6 +238,7 @@ export function Popup() {
         </div>
 
         <button
+          onClick={handleSaveApiUrl}
           style={{
             padding: '8px',
             backgroundColor: loading ? '#9ca3af' : '#2563eb',

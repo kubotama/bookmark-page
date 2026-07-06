@@ -12,6 +12,7 @@ import {
 } from '../../functions/test/fixtures'
 import { DISPLAY_TEXT, SCHEMA_MESSAGE } from '../../functions/constants/string'
 import { hc } from 'hono/client'
+import { STORAGE_KEY } from './constants/storage'
 
 // 💡 Hono RPC クライアントの通信部分をモック化
 vi.mock('./lib/hono', () => {
@@ -195,6 +196,24 @@ describe('Popup Component', () => {
         ).toBeInTheDocument()
       })
       expect(hc).not.toHaveBeenCalled()
+    })
+
+    it('urlの保存ボタンをクリックしたら、正しいurlが保存されること', async () => {
+      const setSpy = vi
+        .spyOn(chrome.storage.local, 'set')
+        .mockResolvedValue(undefined)
+      const { apiUrlInput, apiUrlSaveButton } = getElements()
+
+      const user = userEvent.setup()
+      await user.type(apiUrlInput, TEST_API_URL.LOCAL)
+      await user.click(apiUrlSaveButton)
+
+      await waitFor(() => {
+        expect(screen.getByText(DISPLAY_TEXT.SAVED_API_URL)).toBeInTheDocument()
+      })
+      expect(setSpy).toHaveBeenCalledWith({
+        [STORAGE_KEY.API_URL]: TEST_API_URL.LOCAL,
+      })
     })
   })
 })

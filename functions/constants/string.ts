@@ -18,6 +18,7 @@ export const DISPLAY_TEXT = {
   URL: 'URL',
   API_URL: 'APIのURL',
   SAVED_BOOKMARK: 'ブックマークを保存しました！',
+  SAVED_API_URL: 'APIのURLを保存しました',
   FAILED_CONNECT_SERVER:
     '接続に失敗しました。URLまたはサーバーの状態を確認してください。',
   TIMEOUT_CONNECT_SERVER:

@@ -14,6 +14,13 @@ const chromeMock: Partial<ChromeType> = {
       }
     }),
   } as unknown as ChromeType['tabs'], // 内部の深い未実装プロパティを回避するための型安全なキャスト
+
+  storage: {
+    local: {
+      get: vi.fn().mockResolvedValue({}),
+      set: vi.fn().mockResolvedValue(undefined),
+    },
+  } as unknown as ChromeType['storage'],
 }
 
 // 💡 3. グローバルオブジェクトに安全に代入
