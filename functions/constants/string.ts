@@ -18,7 +18,8 @@ export const DISPLAY_TEXT = {
   URL: 'URL',
   API_URL: 'APIのURL',
   SAVED_BOOKMARK: 'ブックマークを保存しました！',
-  SAVED_API_URL: 'APIのURLを保存しました',
+  SAVED_API_URL: 'APIのURLを保存しました。',
+  FAILED_SAVE_API_URL: 'APIのURLの保存に失敗しました。',
   FAILED_CONNECT_SERVER:
     '接続に失敗しました。URLまたはサーバーの状態を確認してください。',
   TIMEOUT_CONNECT_SERVER:
@@ -29,7 +30,7 @@ export const DISPLAY_TEXT = {
   MY_BOOKMARKS: 'マイブックマーク',
   NO_BOOKMARKS: 'ブックマークがありません。',
   REGISTERED_BOOKMARKS: (count: number) =>
-    `${count}件のブックマークが登録されています`,
+    `${count}件のブックマークが登録されています。`,
 } as const
 
 export const LOG_MESSAGE = {

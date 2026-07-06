@@ -215,5 +215,23 @@ describe('Popup Component', () => {
         [STORAGE_KEY.API_URL]: TEST_API_URL.LOCAL,
       })
     })
+
+    it('APIのurlとして不正なurlを入力してurlの保存をクリックしても、保存の呼び出しが発生しないこと', async () => {
+      const setSpy = vi
+        .spyOn(chrome.storage.local, 'set')
+        .mockResolvedValue(undefined)
+      const { apiUrlInput, apiUrlSaveButton } = getElements()
+
+      const user = userEvent.setup()
+      await user.type(apiUrlInput, INVALID_STRING.URL)
+      await user.click(apiUrlSaveButton)
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(DISPLAY_TEXT.INVALID_URL_FORMAT),
+        ).toBeInTheDocument()
+      })
+      expect(setSpy).not.toHaveBeenCalled()
+    })
   })
 })

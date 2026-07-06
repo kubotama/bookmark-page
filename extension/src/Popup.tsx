@@ -84,13 +84,29 @@ export function Popup() {
   const handleSaveApiUrl = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
 
-    if (globalThis.chrome?.storage?.local) {
-      await globalThis.chrome.storage.local.set({
-        [STORAGE_KEY.API_URL]: apiUrl,
-      })
-    }
+    setMessage(null)
 
-    setMessage({ type: 'success', text: DISPLAY_TEXT.SAVED_API_URL })
+    try {
+      const validApiUrl = new URL(apiUrl)
+      if (globalThis.chrome?.storage?.local) {
+        await globalThis.chrome.storage.local.set({
+          [STORAGE_KEY.API_URL]: validApiUrl.origin,
+        })
+      }
+
+      setMessage({ type: 'success', text: DISPLAY_TEXT.SAVED_API_URL })
+    } catch (error) {
+      let errorMessage: string = DISPLAY_TEXT.FAILED_SAVE_API_URL
+
+      if (error instanceof Error) {
+        if (error.name === 'TypeError') {
+          errorMessage = DISPLAY_TEXT.INVALID_URL_FORMAT
+        } else if (error.message) {
+          console.error(error.message)
+        }
+      }
+      setMessage({ type: 'error', text: errorMessage })
+    }
   }
 
   const handleTestConnection = async (
