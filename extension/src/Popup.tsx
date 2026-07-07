@@ -82,35 +82,32 @@ export function Popup() {
     }
   }
 
-  const validateApiUrl = (apiUrl: string) => {
-    return new URL(apiUrl).toString().replace(/\/$/, '')
+  const validateUrl = (url: string) => {
+    try {
+      return new URL(url).toString().replace(/\/$/, '')
+    } catch {
+      setMessage({ type: 'error', text: DISPLAY_TEXT.INVALID_URL_FORMAT })
+      return undefined
+    }
   }
 
   const handleSaveApiUrl = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
-
     setMessage(null)
 
+    const validApiUrl = validateUrl(apiUrl)
+    if (!validApiUrl) return
+
     try {
-      const validApiUrl = new URL(apiUrl)
       if (globalThis.chrome?.storage?.local) {
         await globalThis.chrome.storage.local.set({
-          [STORAGE_KEY.API_URL]: validApiUrl.origin,
+          [STORAGE_KEY.API_URL]: validApiUrl,
         })
       }
-
       setMessage({ type: 'success', text: DISPLAY_TEXT.SAVED_API_URL })
     } catch (error) {
-      let errorMessage: string = DISPLAY_TEXT.FAILED_SAVE_API_URL
-
-      if (error instanceof Error) {
-        if (error.name === 'TypeError') {
-          errorMessage = DISPLAY_TEXT.INVALID_URL_FORMAT
-        } else if (error.message) {
-          console.error(error.message)
-        }
-      }
-      setMessage({ type: 'error', text: errorMessage })
+      console.error(error)
+      setMessage({ type: 'error', text: DISPLAY_TEXT.FAILED_SAVE_API_URL })
     }
   }
 
@@ -120,13 +117,8 @@ export function Popup() {
     e.preventDefault()
     setMessage(null)
 
-    let validApiUrl: string
-    try {
-      validApiUrl = validateApiUrl(apiUrl)
-    } catch {
-      setMessage({ type: 'error', text: DISPLAY_TEXT.INVALID_URL_FORMAT })
-      return
-    }
+    const validApiUrl = validateUrl(apiUrl)
+    if (!validApiUrl) return
 
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MILLISECOND)
