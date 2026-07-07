@@ -263,6 +263,8 @@ export function Popup() {
 
         <button
           onClick={handleSaveApiUrl}
+          type="button"
+          disabled={loading}
           style={{
             padding: '8px',
             backgroundColor: loading ? '#9ca3af' : '#2563eb',
@@ -276,6 +278,8 @@ export function Popup() {
         </button>
         <button
           onClick={handleTestConnection}
+          type="button"
+          disabled={loading}
           style={{
             padding: '8px',
             backgroundColor: loading ? '#9ca3af' : '#2563eb',
