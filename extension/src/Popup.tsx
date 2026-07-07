@@ -9,6 +9,7 @@ import { hc } from 'hono/client'
 // バックエンド（functions）のエントリーポイントから型定義（AppType）のみをインポート
 import type { AppType } from '../../functions/api/[[route]]'
 import { STORAGE_KEY } from './constants/storage'
+import { TIMEOUT_MILLISECOND } from '../../functions/constants/api'
 
 export function Popup() {
   const [title, setTitle] = useState('')
@@ -81,6 +82,10 @@ export function Popup() {
     }
   }
 
+  const validateApiUrl = (apiUrl: string) => {
+    return new URL(apiUrl).toString().replace(/\/$/, '')
+  }
+
   const handleSaveApiUrl = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
 
@@ -115,30 +120,34 @@ export function Popup() {
     e.preventDefault()
     setMessage(null)
 
+    let validApiUrl: string
     try {
-      const validApiUrl = new URL(apiUrl)
+      validApiUrl = validateApiUrl(apiUrl)
+    } catch {
+      setMessage({ type: 'error', text: DISPLAY_TEXT.INVALID_URL_FORMAT })
+      return
+    }
 
-      // 1. 入力されたURLを使って、その場限りの検証用クライアントを生成
-      // タイムアウト設定（5秒）を第2引数の fetch オプションに滑り込ませる
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 5000)
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MILLISECOND)
 
-      const testClient = hc<AppType>(validApiUrl.origin, {
+    try {
+      const testClient = hc<AppType>(validApiUrl, {
         fetch: (input: URL | RequestInfo, init: RequestInit | undefined) =>
           fetch(input, { ...init, signal: controller.signal }),
       })
 
-      // 2. 実際に RPC で GET /api/bookmarks を叩く
       const response = await testClient.api.bookmarks.$get()
-      clearTimeout(timeoutId)
 
-      // 3. 応答コードのチェック
       if (!response.ok) {
         throw new Error(ERROR_MESSAGE.STATUS_CODE(response.status))
       }
 
-      // 4. JSONの解析（Zero Trustに阻まれてログインHTMLが返ってきた場合はここでパースエラーになる）
       const data = await response.json()
+
+      if (!data || !data.success || !Array.isArray(data.data)) {
+        throw new SyntaxError('Invalid JSON structure')
+      }
 
       setMessage({
         type: 'success',
@@ -150,16 +159,15 @@ export function Popup() {
       if (error instanceof Error) {
         if (error.name === 'AbortError') {
           errorMessage = DISPLAY_TEXT.TIMEOUT_CONNECT_SERVER
-        } else if (error.name === 'TypeError') {
-          errorMessage = DISPLAY_TEXT.INVALID_URL_FORMAT
         } else if (error instanceof SyntaxError) {
-          // JSONのパースエラーが起きた＝HTML（Zero Trustのログイン画面）が返ってきた可能性大
           errorMessage = DISPLAY_TEXT.INVALID_RESPONSE
-        } else if (error.message) {
+        } else {
           console.error(error.message)
         }
       }
       setMessage({ type: 'error', text: errorMessage })
+    } finally {
+      clearTimeout(timeoutId)
     }
   }
 
