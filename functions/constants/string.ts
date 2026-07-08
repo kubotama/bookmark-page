@@ -2,6 +2,7 @@ export const ERROR_MESSAGE = {
   SERVER_ERROR: 'サーバーエラーが発生しました',
   API_ERROR: 'APIへのアクセスにエラーが発生しました',
   DB_ERROR: 'データベースにエラーが発生しました',
+  AUTH_ERROR: '認証エラー',
   DB_BINDING_ERROR: (binding: string) =>
     `Database binding ${binding} is not configured.`,
   INSERT_BOOKMARK_ERROR: 'ブックマークの追加に失敗しました',
@@ -27,6 +28,8 @@ export const DISPLAY_TEXT = {
   INVALID_RESPONSE:
     'APIから不正な応答（HTML）が返されました。Zero Trustのバイパス設定を確認してください。',
   INVALID_URL_FORMAT: 'URLが不正です。',
+  ZERO_TRUST_AUTH_ERROR:
+    'Zero Trust のログインセッションが見つかりません。先にブラウザでWEB画面を開いてログインしてください。',
   MY_BOOKMARKS: 'マイブックマーク',
   NO_BOOKMARKS: 'ブックマークがありません。',
   REGISTERED_BOOKMARKS: (count: number) =>

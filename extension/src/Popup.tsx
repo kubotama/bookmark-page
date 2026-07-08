@@ -126,12 +126,19 @@ export function Popup() {
     try {
       const testClient = hc<AppType>(validApiUrl, {
         fetch: (input: URL | RequestInfo, init: RequestInit | undefined) =>
-          fetch(input, { ...init, signal: controller.signal }),
+          fetch(input, {
+            ...init,
+            signal: controller.signal,
+            credentials: 'include',
+          }),
       })
 
       const response = await testClient.api.bookmarks.$get()
 
       if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
+          throw new Error(ERROR_MESSAGE.AUTH_ERROR)
+        }
         throw new Error(ERROR_MESSAGE.STATUS_CODE(response.status))
       }
 
@@ -153,6 +160,8 @@ export function Popup() {
           errorMessage = DISPLAY_TEXT.TIMEOUT_CONNECT_SERVER
         } else if (error instanceof SyntaxError) {
           errorMessage = DISPLAY_TEXT.INVALID_RESPONSE
+        } else if (error.message === ERROR_MESSAGE.AUTH_ERROR) {
+          errorMessage = DISPLAY_TEXT.ZERO_TRUST_AUTH_ERROR
         } else {
           console.error(error.message)
         }
