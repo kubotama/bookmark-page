@@ -126,12 +126,17 @@ export function Popup() {
     try {
       const testClient = hc<AppType>(validApiUrl, {
         fetch: (input: URL | RequestInfo, init: RequestInit | undefined) =>
-          fetch(input, { ...init, signal: controller.signal }),
+          fetch(input, {
+            ...init,
+            signal: controller.signal,
+            credentials: 'include',
+          }),
       })
 
       const response = await testClient.api.bookmarks.$get()
 
       if (!response.ok) {
+        console.error(response.status)
         throw new Error(ERROR_MESSAGE.STATUS_CODE(response.status))
       }
 

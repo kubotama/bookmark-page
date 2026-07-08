@@ -17,7 +17,10 @@ export const client = hc<AppType>(DEFAULT_API_URL, {
     if (apiUrl) {
       const urlStr = typeof input === 'string' ? input : input.toString()
       const newUrl = urlStr.replace(DEFAULT_API_URL, apiUrl)
-      return fetch(newUrl, init)
+      return fetch(newUrl, {
+        ...init,
+        credentials: 'include',
+      })
     }
 
     return fetch(input, init)
