@@ -2,22 +2,25 @@ import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import { resolve } from 'path'
 import { mkdirSync, writeFileSync, readFileSync } from 'fs'
-import { LOG_MESSAGE } from '../functions/constants/string'
 
-// 💡 manifest.json を dist にコピーするシンプルなカスタムプラグイン
 const copyManifest = () => {
   return {
     name: 'copy-manifest',
     closeBundle() {
       try {
-        mkdirSync(resolve(__dirname, 'dist'), { recursive: true })
+        mkdirSync(resolve(__dirname, 'extension/dist-extension'), {
+          recursive: true,
+        })
         const manifest = readFileSync(
-          resolve(__dirname, 'manifest.json'),
+          resolve(__dirname, 'extension/manifest.json'),
           'utf-8',
         )
-        writeFileSync(resolve(__dirname, 'dist/manifest.json'), manifest)
+        writeFileSync(
+          resolve(__dirname, 'extension/dist-extension/manifest.json'),
+          manifest,
+        )
       } catch (e) {
-        console.error(LOG_MESSAGE.MANIFEST_COPY_ERROR(e))
+        console.error(`Manifest copy failed: ${e}`)
       }
     },
   }
@@ -25,13 +28,13 @@ const copyManifest = () => {
 
 export default defineConfig({
   plugins: [react(), copyManifest()],
-  root: resolve(__dirname),
+  root: resolve(__dirname, 'extension'), // 💡 ルートからの相対パスに指定
   build: {
-    outDir: resolve(__dirname, 'dist'),
+    outDir: resolve(__dirname, 'extension/dist-extension'), // 出力先
     emptyOutDir: true,
     rollupOptions: {
       input: {
-        popup: resolve(__dirname, 'index.html'),
+        popup: resolve(__dirname, 'extension/index.html'),
       },
     },
   },
@@ -40,5 +43,4 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
   },
-
 })
