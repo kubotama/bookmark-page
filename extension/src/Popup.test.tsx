@@ -1,13 +1,18 @@
 import { render, screen, waitFor } from '@testing-library/react'
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { userEvent } from '@testing-library/user-event'
 import { Popup } from './Popup'
+
 import { client } from './lib/hono'
 import {
+  INVALID_STRING,
+  TEST_API_URL,
   TEST_ERROR_MESSAGE,
   TestBookmarks,
 } from '../../functions/test/fixtures'
 import { DISPLAY_TEXT, SCHEMA_MESSAGE } from '../../functions/constants/string'
+import { hc } from 'hono/client'
+import { STORAGE_KEY } from './constants/storage'
 
 // 💡 Hono RPC クライアントの通信部分をモック化
 vi.mock('./lib/hono', () => {
@@ -19,28 +24,72 @@ vi.mock('./lib/hono', () => {
             ok: true,
             json: async () => ({ success: true }),
           })),
+          $get: vi.fn(() => ({
+            ok: true,
+            json: async () => ({ success: true, data: TestBookmarks }),
+          })),
         },
       },
     },
   }
 })
 
-describe('Popup Component', () => {
-  it('起動時に chrome.tabs.query からタイトルとURLを取得して入力欄にセットすること', () => {
-    render(<Popup />)
+vi.mock('hono/client', () => {
+  return {
+    hc: vi.fn().mockReturnValue({
+      api: {
+        bookmarks: {
+          $get: vi.fn().mockResolvedValue({
+            ok: true,
+            json: async () => ({ success: true, data: TestBookmarks }),
+          }),
+        },
+      },
+    }),
+  }
+})
 
-    // setup.ts で仕込んだモックデータが入っているか検証
-    const titleInput = screen.getByLabelText('タイトル') as HTMLInputElement
-    const urlInput = screen.getByLabelText('URL') as HTMLInputElement
+describe('Popup Component', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  const getElements = () => {
+    render(<Popup />)
+    const titleInput = screen.getByLabelText(
+      DISPLAY_TEXT.TITLE,
+    ) as HTMLInputElement
+    const urlInput = screen.getByLabelText(DISPLAY_TEXT.URL) as HTMLInputElement
+    const submitButton = screen.getByRole('button', { name: '保存する' })
+    const apiUrlInput = screen.getByLabelText(
+      DISPLAY_TEXT.API_URL,
+    ) as HTMLInputElement
+    const apiUrlSaveButton = screen.getByRole('button', {
+      name: DISPLAY_TEXT.SAVE_API_URL,
+    })
+    const testConnectionButton = screen.getByRole('button', {
+      name: DISPLAY_TEXT.VERIFY_API_URL,
+    })
+
+    return {
+      titleInput,
+      urlInput,
+      submitButton,
+      apiUrlInput,
+      apiUrlSaveButton,
+      testConnectionButton,
+    }
+  }
+
+  it('起動時に chrome.tabs.query からタイトルとURLを取得して入力欄にセットすること', () => {
+    const { titleInput, urlInput } = getElements()
 
     expect(titleInput.value).toBe(TestBookmarks[0].title)
     expect(urlInput.value).toBe(TestBookmarks[0].url)
   })
 
   it('保存するボタンを押した際、Hono RPC APIが正しく呼び出されること', async () => {
-    render(<Popup />)
-
-    const submitButton = screen.getByRole('button', { name: '保存する' })
+    const { submitButton } = getElements()
     const user = userEvent.setup()
     await user.click(submitButton)
 
@@ -77,12 +126,8 @@ describe('Popup Component', () => {
       } as unknown as PostResponse
 
       vi.mocked(client.api.bookmarks.$post).mockResolvedValueOnce(mockResponse)
-      render(<Popup />)
 
-      // 2. 送信ボタンをクリック
-      const submitButton = screen.getByRole('button', {
-        name: DISPLAY_TEXT.SAVE,
-      })
+      const { submitButton } = getElements()
       const user = userEvent.setup()
       await user.click(submitButton)
 
@@ -98,19 +143,105 @@ describe('Popup Component', () => {
         new Error(TEST_ERROR_MESSAGE.NETWORK_ERROR),
       )
 
-      render(<Popup />)
-
-      const submitButton = screen.getByRole('button', {
-        name: DISPLAY_TEXT.SAVE,
-      })
+      const { submitButton } = getElements()
       const user = userEvent.setup()
       await user.click(submitButton)
 
       // 2. 「サーバーへの接続に失敗しました」の文言が表示されることを検証
       await waitFor(() => {
         expect(
-          screen.getByText(DISPLAY_TEXT.FALED_CONNECT_SERVER),
+          screen.getByText(DISPLAY_TEXT.FAILED_CONNECT_SERVER),
         ).toBeInTheDocument()
+      })
+    })
+  })
+
+  describe('APIのURLの保存', () => {
+    it('ポップアップ画面が開いたときにAPIのURL関係の項目が表示されること', () => {
+      const { apiUrlInput, apiUrlSaveButton, testConnectionButton } =
+        getElements()
+
+      expect(apiUrlInput.value).toBe('')
+      expect(apiUrlSaveButton).toBeInTheDocument()
+      expect(testConnectionButton).toBeInTheDocument()
+    })
+
+    it('通信確認ボタンをクリックしたら、正しいurlを呼び出すこと', async () => {
+      const { apiUrlInput, testConnectionButton } = getElements()
+
+      const user = userEvent.setup()
+      await user.type(apiUrlInput, TEST_API_URL.LOCAL)
+      await user.click(testConnectionButton)
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(
+            DISPLAY_TEXT.REGISTERED_BOOKMARKS(TestBookmarks.length),
+          ),
+        ).toBeInTheDocument()
+      })
+      expect(hc).toHaveBeenCalledWith(TEST_API_URL.LOCAL, expect.any(Object))
+    })
+
+    it('APIのurlとして不正なurlを入力して通信確認ボタンをクリックしても、呼び出しが発生しないこと', async () => {
+      const { apiUrlInput, testConnectionButton } = getElements()
+
+      const user = userEvent.setup()
+      await user.type(apiUrlInput, INVALID_STRING.URL)
+      await user.click(testConnectionButton)
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(DISPLAY_TEXT.INVALID_URL_FORMAT),
+        ).toBeInTheDocument()
+      })
+      expect(hc).not.toHaveBeenCalled()
+    })
+
+    it('urlの保存ボタンをクリックしたら、正しいurlが保存されること', async () => {
+      const setSpy = vi
+        .spyOn(chrome.storage.local, 'set')
+        .mockResolvedValue(undefined)
+      const { apiUrlInput, apiUrlSaveButton } = getElements()
+
+      const user = userEvent.setup()
+      await user.type(apiUrlInput, TEST_API_URL.LOCAL)
+      await user.click(apiUrlSaveButton)
+
+      await waitFor(() => {
+        expect(screen.getByText(DISPLAY_TEXT.SAVED_API_URL)).toBeInTheDocument()
+      })
+      expect(setSpy).toHaveBeenCalledWith({
+        [STORAGE_KEY.API_URL]: TEST_API_URL.LOCAL,
+      })
+    })
+
+    it('APIのurlとして不正なurlを入力してurlの保存をクリックしても、保存の呼び出しが発生しないこと', async () => {
+      const setSpy = vi
+        .spyOn(chrome.storage.local, 'set')
+        .mockResolvedValue(undefined)
+      const { apiUrlInput, apiUrlSaveButton } = getElements()
+
+      const user = userEvent.setup()
+      await user.type(apiUrlInput, INVALID_STRING.URL)
+      await user.click(apiUrlSaveButton)
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(DISPLAY_TEXT.INVALID_URL_FORMAT),
+        ).toBeInTheDocument()
+      })
+      expect(setSpy).not.toHaveBeenCalled()
+    })
+
+    it('ポップアップ画面が開いたときに保存されているAPIのurlがテキストボックスに表示されること', async () => {
+      vi.spyOn(chrome.storage.local, 'get').mockImplementation(async () => ({
+        [STORAGE_KEY.API_URL]: TEST_API_URL.LOCAL,
+      }))
+
+      const { apiUrlInput } = getElements()
+      await waitFor(() => {
+        expect(apiUrlInput.value).toBe(TEST_API_URL.LOCAL)
       })
     })
   })

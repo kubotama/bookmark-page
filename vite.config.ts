@@ -51,7 +51,7 @@ export default defineConfig({
         'functions/schemas/**',
         'functions/constants/**',
         'functions/test/**',
-        'extension/src/lib/hono.ts',
+        'extension/src/constants/**',
       ],
     },
   },

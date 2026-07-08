@@ -27,7 +27,11 @@ export const INVALID_STRING = {
 
 export const TEST_ERROR_MESSAGE = {
   NETWORK_ERROR: 'ネットワークエラー',
-}
+} as const
+
+export const TEST_API_URL = {
+  LOCAL: 'http://localhost:54321',
+} as const
 
 export const getExpectedText = (
   schema: typeof CreateBookmarkSchema,

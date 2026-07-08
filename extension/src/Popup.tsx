@@ -1,10 +1,20 @@
 import React, { useEffect, useState } from 'react'
 import { client } from './lib/hono'
-import { DEFAULT_TEXT, DISPLAY_TEXT } from '../../functions/constants/string'
+import {
+  DEFAULT_TEXT,
+  DISPLAY_TEXT,
+  ERROR_MESSAGE,
+} from '../../functions/constants/string'
+import { hc } from 'hono/client'
+// バックエンド（functions）のエントリーポイントから型定義（AppType）のみをインポート
+import type { AppType } from '../../functions/api/[[route]]'
+import { STORAGE_KEY } from './constants/storage'
+import { TIMEOUT_MILLISECOND } from '../../functions/constants/api'
 
 export function Popup() {
   const [title, setTitle] = useState('')
   const [url, setUrl] = useState('')
+  const [apiUrl, setApiUrl] = useState('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<{
     type: 'success' | 'error'
@@ -29,6 +39,16 @@ export function Popup() {
       setTitle(DEFAULT_TEXT.TITLE)
       setUrl(DEFAULT_TEXT.URL)
     }
+
+    if (globalThis.chrome?.storage?.local) {
+      globalThis.chrome.storage.local
+        .get([STORAGE_KEY.API_URL])
+        .then((result) => {
+          if (result[STORAGE_KEY.API_URL]) {
+            setApiUrl(result[STORAGE_KEY.API_URL])
+          }
+        })
+    }
   }, [])
 
   // 💡 フォーム送信（Hono RPC を使った POST リクエスト）
@@ -52,13 +72,94 @@ export function Popup() {
         // バックエンド側で整えたバリデーションエラー等のメッセージを表示
         setMessage({
           type: 'error',
-          text: data.error || DISPLAY_TEXT.FALED_CONNECT_SERVER,
+          text: data.error || DISPLAY_TEXT.FAILED_CONNECT_SERVER,
         })
       }
     } catch {
-      setMessage({ type: 'error', text: DISPLAY_TEXT.FALED_CONNECT_SERVER })
+      setMessage({ type: 'error', text: DISPLAY_TEXT.FAILED_CONNECT_SERVER })
     } finally {
       setLoading(false)
+    }
+  }
+
+  const validateUrl = (url: string) => {
+    try {
+      return new URL(url).toString().replace(/\/$/, '')
+    } catch {
+      setMessage({ type: 'error', text: DISPLAY_TEXT.INVALID_URL_FORMAT })
+      return undefined
+    }
+  }
+
+  const handleSaveApiUrl = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+    setMessage(null)
+
+    const validApiUrl = validateUrl(apiUrl)
+    if (!validApiUrl) return
+
+    try {
+      if (globalThis.chrome?.storage?.local) {
+        await globalThis.chrome.storage.local.set({
+          [STORAGE_KEY.API_URL]: validApiUrl,
+        })
+      }
+      setMessage({ type: 'success', text: DISPLAY_TEXT.SAVED_API_URL })
+    } catch (error) {
+      console.error(error)
+      setMessage({ type: 'error', text: DISPLAY_TEXT.FAILED_SAVE_API_URL })
+    }
+  }
+
+  const handleTestConnection = async (
+    e: React.MouseEvent<HTMLButtonElement>,
+  ) => {
+    e.preventDefault()
+    setMessage(null)
+
+    const validApiUrl = validateUrl(apiUrl)
+    if (!validApiUrl) return
+
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MILLISECOND)
+
+    try {
+      const testClient = hc<AppType>(validApiUrl, {
+        fetch: (input: URL | RequestInfo, init: RequestInit | undefined) =>
+          fetch(input, { ...init, signal: controller.signal }),
+      })
+
+      const response = await testClient.api.bookmarks.$get()
+
+      if (!response.ok) {
+        throw new Error(ERROR_MESSAGE.STATUS_CODE(response.status))
+      }
+
+      const data = await response.json()
+
+      if (!data || !data.success || !Array.isArray(data.data)) {
+        throw new SyntaxError('Invalid JSON structure')
+      }
+
+      setMessage({
+        type: 'success',
+        text: DISPLAY_TEXT.REGISTERED_BOOKMARKS(data.data.length),
+      })
+    } catch (error) {
+      let errorMessage: string = DISPLAY_TEXT.FAILED_CONNECT_SERVER
+
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          errorMessage = DISPLAY_TEXT.TIMEOUT_CONNECT_SERVER
+        } else if (error instanceof SyntaxError) {
+          errorMessage = DISPLAY_TEXT.INVALID_RESPONSE
+        } else {
+          console.error(error.message)
+        }
+      }
+      setMessage({ type: 'error', text: errorMessage })
+    } finally {
+      clearTimeout(timeoutId)
     }
   }
 
@@ -129,6 +230,58 @@ export function Popup() {
           }}
         >
           {loading ? DISPLAY_TEXT.SAVING : DISPLAY_TEXT.SAVE}
+        </button>
+
+        <div>
+          <label
+            htmlFor="api-url-input"
+            style={{
+              display: 'block',
+              fontSize: '12px',
+              color: '#4b5563',
+              marginBottom: '4px',
+            }}
+          >
+            {DISPLAY_TEXT.API_URL}
+          </label>
+          <input
+            id="api-url-input"
+            type="url"
+            value={apiUrl}
+            onChange={(e) => setApiUrl(e.target.value)}
+            style={{ width: '100%', padding: '6px', boxSizing: 'border-box' }}
+          />
+        </div>
+
+        <button
+          onClick={handleSaveApiUrl}
+          type="button"
+          disabled={loading}
+          style={{
+            padding: '8px',
+            backgroundColor: loading ? '#9ca3af' : '#2563eb',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: loading ? 'not-allowed' : 'pointer',
+          }}
+        >
+          {DISPLAY_TEXT.SAVE_API_URL}
+        </button>
+        <button
+          onClick={handleTestConnection}
+          type="button"
+          disabled={loading}
+          style={{
+            padding: '8px',
+            backgroundColor: loading ? '#9ca3af' : '#2563eb',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: loading ? 'not-allowed' : 'pointer',
+          }}
+        >
+          {DISPLAY_TEXT.VERIFY_API_URL}
         </button>
       </form>
 
