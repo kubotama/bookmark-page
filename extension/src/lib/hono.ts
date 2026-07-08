@@ -23,6 +23,9 @@ export const client = hc<AppType>(DEFAULT_API_URL, {
       })
     }
 
-    return fetch(input, init)
+    return fetch(input, {
+      ...init,
+      credentials: 'include',
+    })
   },
 })
