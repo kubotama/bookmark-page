@@ -1,6 +1,8 @@
 {
   "name": "bookmark-page",
   "type": "module",
+  "private": true,
+  "version": "0.1.1",
   "scripts": {
     "dev:frontend": "vite",
     "dev:backend": "wrangler pages dev ./dist",
