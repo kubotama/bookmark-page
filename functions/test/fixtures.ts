@@ -26,7 +26,9 @@ export const INVALID_STRING = {
 } as const
 
 export const TEST_ERROR_MESSAGE = {
-  NETWORK_ERROR: 'ネットワークエラー',
+  API_ERROR: 'APIへのアクセスにエラーが発生しました',
+  NETWORK_ERROR: 'ネットワークにエラーが発生しました',
+  DB_ERROR: 'データベースにエラーが発生しました',
 } as const
 
 export const TEST_API_URL = {

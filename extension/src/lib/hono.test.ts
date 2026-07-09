@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { client } from './hono'
-import { STORAGE_KEY } from '../constants/storage'
+import { STORAGE_KEY } from '../../constants/storage'
 import { TEST_API_URL } from '../../../functions/test/fixtures'
-import { DEFAULT_API_URL } from '../../../functions/constants/api'
+import { DEFAULT_API_URL } from '../../../shared/constants/api'
 
 describe('Hono RPC Client', () => {
   beforeEach(() => {

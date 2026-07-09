@@ -3,12 +3,13 @@ import { zValidator } from '@hono/zod-validator'
 
 import { handle } from 'hono/cloudflare-pages'
 import type { D1Database } from '@cloudflare/workers-types'
-import { API_PATH } from '../constants/api'
-import { BOOKMARKS } from '../constants/sql'
-import { API_MESSAGE, ERROR_MESSAGE, LOG_MESSAGE } from '../constants/string'
+import { API_MESSAGE, API_PATH } from '../../shared/constants/api'
+import { BOOKMARKS } from '../constants/db'
+import { ERROR_MESSAGE } from '../../shared/constants/uiMessages'
 import { Bookmark, CreateBookmarkSchema } from '../schemas/bookmark'
 import { uuidv7 } from 'uuidv7'
 import { cors } from 'hono/cors'
+import { LOG_MESSAGE } from '../constants/logMessage'
 
 const DATABASE_NAME = 'BOOKMARK_PAGE_DB'
 
@@ -110,7 +111,7 @@ const routes = app
         return c.json(
           {
             success: false,
-            error: ERROR_MESSAGE.DB_ERROR,
+            error: API_MESSAGE.DB_ERROR,
           } as const,
           500,
         )
