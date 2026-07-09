@@ -1,7 +1,7 @@
 import { hc } from 'hono/client'
 // バックエンド（functions）のエントリーポイントから型定義（AppType）のみをインポート
 import type { AppType } from '../../../functions/api/[[route]]'
-import { DEFAULT_API_URL } from '../../../functions/constants/api'
+import { DEFAULT_API_URL } from '../../../shared/constants/api'
 import { STORAGE_KEY } from '../../constants/storage'
 
 // 型安全な RPC クライアントを生成してエクスポート

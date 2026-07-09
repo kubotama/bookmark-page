@@ -9,7 +9,7 @@ import { hc } from 'hono/client'
 // バックエンド（functions）のエントリーポイントから型定義（AppType）のみをインポート
 import type { AppType } from '../../functions/api/[[route]]'
 import { STORAGE_KEY } from '../constants/storage'
-import { TIMEOUT_MILLISECOND } from '../../functions/constants/api'
+import { TIMEOUT_MILLISECOND } from '../../shared/constants/api'
 
 export function Popup() {
   const [title, setTitle] = useState('')
