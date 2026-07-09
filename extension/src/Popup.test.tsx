@@ -10,7 +10,8 @@ import {
   TEST_ERROR_MESSAGE,
   TestBookmarks,
 } from '../../functions/test/fixtures'
-import { DISPLAY_TEXT, SCHEMA_MESSAGE } from '../../functions/constants/string'
+import { UI_LABELS, UI_MESSAGES } from '../../shared/constants/uiMessages'
+import { SCHEMA_MESSAGE } from '../../shared/constants/validation'
 import { hc } from 'hono/client'
 import { STORAGE_KEY } from '../constants/storage'
 
@@ -57,18 +58,20 @@ describe('Popup Component', () => {
   const getElements = () => {
     render(<Popup />)
     const titleInput = screen.getByLabelText(
-      DISPLAY_TEXT.TITLE,
+      UI_LABELS.FIELDS.TITLE,
     ) as HTMLInputElement
-    const urlInput = screen.getByLabelText(DISPLAY_TEXT.URL) as HTMLInputElement
+    const urlInput = screen.getByLabelText(
+      UI_LABELS.FIELDS.URL,
+    ) as HTMLInputElement
     const submitButton = screen.getByRole('button', { name: '保存する' })
     const apiUrlInput = screen.getByLabelText(
-      DISPLAY_TEXT.API_URL,
+      UI_LABELS.FIELDS.API_URL,
     ) as HTMLInputElement
     const apiUrlSaveButton = screen.getByRole('button', {
-      name: DISPLAY_TEXT.SAVE_API_URL,
+      name: UI_LABELS.ACTIONS.SAVE_API_URL,
     })
     const testConnectionButton = screen.getByRole('button', {
-      name: DISPLAY_TEXT.VERIFY_API_URL,
+      name: UI_LABELS.ACTIONS.VERIFY_API_URL,
     })
 
     return {
@@ -150,7 +153,7 @@ describe('Popup Component', () => {
       // 2. 「サーバーへの接続に失敗しました」の文言が表示されることを検証
       await waitFor(() => {
         expect(
-          screen.getByText(DISPLAY_TEXT.FAILED_CONNECT_SERVER),
+          screen.getByText(UI_MESSAGES.API.FAILED_CONNECT_SERVER),
         ).toBeInTheDocument()
       })
     })
@@ -176,7 +179,7 @@ describe('Popup Component', () => {
       await waitFor(() => {
         expect(
           screen.getByText(
-            DISPLAY_TEXT.REGISTERED_BOOKMARKS(TestBookmarks.length),
+            UI_MESSAGES.BOOKMARKS.REGISTERED_BOOKMARKS(TestBookmarks.length),
           ),
         ).toBeInTheDocument()
       })
@@ -191,9 +194,7 @@ describe('Popup Component', () => {
       await user.click(testConnectionButton)
 
       await waitFor(() => {
-        expect(
-          screen.getByText(DISPLAY_TEXT.INVALID_URL_FORMAT),
-        ).toBeInTheDocument()
+        expect(screen.getByText(SCHEMA_MESSAGE.INVALID_URL)).toBeInTheDocument()
       })
       expect(hc).not.toHaveBeenCalled()
     })
@@ -209,7 +210,9 @@ describe('Popup Component', () => {
       await user.click(apiUrlSaveButton)
 
       await waitFor(() => {
-        expect(screen.getByText(DISPLAY_TEXT.SAVED_API_URL)).toBeInTheDocument()
+        expect(
+          screen.getByText(UI_MESSAGES.API.SAVED_API_URL),
+        ).toBeInTheDocument()
       })
       expect(setSpy).toHaveBeenCalledWith({
         [STORAGE_KEY.API_URL]: TEST_API_URL.LOCAL,
@@ -227,9 +230,7 @@ describe('Popup Component', () => {
       await user.click(apiUrlSaveButton)
 
       await waitFor(() => {
-        expect(
-          screen.getByText(DISPLAY_TEXT.INVALID_URL_FORMAT),
-        ).toBeInTheDocument()
+        expect(screen.getByText(SCHEMA_MESSAGE.INVALID_URL)).toBeInTheDocument()
       })
       expect(setSpy).not.toHaveBeenCalled()
     })

@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from 'react'
 import { client } from './lib/hono'
 import {
-  DEFAULT_TEXT,
-  DISPLAY_TEXT,
   ERROR_MESSAGE,
-} from '../../functions/constants/string'
+  UI_LABELS,
+  UI_MESSAGES,
+} from '../../shared/constants/uiMessages'
 import { hc } from 'hono/client'
 // バックエンド（functions）のエントリーポイントから型定義（AppType）のみをインポート
 import type { AppType } from '../../functions/api/[[route]]'
 import { STORAGE_KEY } from '../constants/storage'
 import { TIMEOUT_MILLISECOND } from '../../shared/constants/api'
+import { SCHEMA_MESSAGE } from '../../shared/constants/validation'
 
 export function Popup() {
   const [title, setTitle] = useState('')
@@ -34,10 +35,6 @@ export function Popup() {
           }
         },
       )
-    } else {
-      // ローカルブラウザでの通常開発（プレビュー）用のフォールバック
-      setTitle(DEFAULT_TEXT.TITLE)
-      setUrl(DEFAULT_TEXT.URL)
     }
 
     if (globalThis.chrome?.storage?.local) {
@@ -67,16 +64,19 @@ export function Popup() {
       const data = await res.json()
 
       if (data.success) {
-        setMessage({ type: 'success', text: DISPLAY_TEXT.SAVED_BOOKMARK })
+        setMessage({
+          type: 'success',
+          text: UI_MESSAGES.BOOKMARKS.SAVED_BOOKMARK,
+        })
       } else {
         // バックエンド側で整えたバリデーションエラー等のメッセージを表示
         setMessage({
           type: 'error',
-          text: data.error || DISPLAY_TEXT.FAILED_CONNECT_SERVER,
+          text: data.error || UI_MESSAGES.API.FAILED_CONNECT_SERVER,
         })
       }
     } catch {
-      setMessage({ type: 'error', text: DISPLAY_TEXT.FAILED_CONNECT_SERVER })
+      setMessage({ type: 'error', text: UI_MESSAGES.API.FAILED_CONNECT_SERVER })
     } finally {
       setLoading(false)
     }
@@ -86,7 +86,7 @@ export function Popup() {
     try {
       return new URL(url).toString().replace(/\/$/, '')
     } catch {
-      setMessage({ type: 'error', text: DISPLAY_TEXT.INVALID_URL_FORMAT })
+      setMessage({ type: 'error', text: SCHEMA_MESSAGE.INVALID_URL })
       return undefined
     }
   }
@@ -104,10 +104,10 @@ export function Popup() {
           [STORAGE_KEY.API_URL]: validApiUrl,
         })
       }
-      setMessage({ type: 'success', text: DISPLAY_TEXT.SAVED_API_URL })
+      setMessage({ type: 'success', text: UI_MESSAGES.API.SAVED_API_URL })
     } catch (error) {
       console.error(error)
-      setMessage({ type: 'error', text: DISPLAY_TEXT.FAILED_SAVE_API_URL })
+      setMessage({ type: 'error', text: UI_MESSAGES.API.FAILED_SAVE_API_URL })
     }
   }
 
@@ -150,18 +150,18 @@ export function Popup() {
 
       setMessage({
         type: 'success',
-        text: DISPLAY_TEXT.REGISTERED_BOOKMARKS(data.data.length),
+        text: UI_MESSAGES.BOOKMARKS.REGISTERED_BOOKMARKS(data.data.length),
       })
     } catch (error) {
-      let errorMessage: string = DISPLAY_TEXT.FAILED_CONNECT_SERVER
+      let errorMessage: string = UI_MESSAGES.API.FAILED_CONNECT_SERVER
 
       if (error instanceof Error) {
         if (error.name === 'AbortError') {
-          errorMessage = DISPLAY_TEXT.TIMEOUT_CONNECT_SERVER
+          errorMessage = UI_MESSAGES.API.TIMEOUT_CONNECT_SERVER
         } else if (error instanceof SyntaxError) {
-          errorMessage = DISPLAY_TEXT.INVALID_RESPONSE
+          errorMessage = UI_MESSAGES.AUTH.INVALID_RESPONSE
         } else if (error.message === ERROR_MESSAGE.AUTH_ERROR) {
-          errorMessage = DISPLAY_TEXT.ZERO_TRUST_AUTH_ERROR
+          errorMessage = UI_MESSAGES.AUTH.ZERO_TRUST_AUTH_ERROR
         } else {
           console.error(error.message)
         }
@@ -192,7 +192,7 @@ export function Popup() {
               marginBottom: '4px',
             }}
           >
-            {DISPLAY_TEXT.TITLE}
+            {UI_LABELS.FIELDS.TITLE}
           </label>
           <input
             id="title-input"
@@ -214,7 +214,7 @@ export function Popup() {
               marginBottom: '4px',
             }}
           >
-            {DISPLAY_TEXT.URL}
+            {UI_LABELS.FIELDS.URL}
           </label>
           <input
             id="url-input"
@@ -238,7 +238,7 @@ export function Popup() {
             cursor: loading ? 'not-allowed' : 'pointer',
           }}
         >
-          {loading ? DISPLAY_TEXT.SAVING : DISPLAY_TEXT.SAVE}
+          {loading ? UI_LABELS.ACTIONS.SAVING : UI_LABELS.ACTIONS.SAVE}
         </button>
 
         <div>
@@ -251,7 +251,7 @@ export function Popup() {
               marginBottom: '4px',
             }}
           >
-            {DISPLAY_TEXT.API_URL}
+            {UI_LABELS.FIELDS.API_URL}
           </label>
           <input
             id="api-url-input"
@@ -275,7 +275,7 @@ export function Popup() {
             cursor: loading ? 'not-allowed' : 'pointer',
           }}
         >
-          {DISPLAY_TEXT.SAVE_API_URL}
+          {UI_LABELS.ACTIONS.SAVE_API_URL}
         </button>
         <button
           onClick={handleTestConnection}
@@ -290,7 +290,7 @@ export function Popup() {
             cursor: loading ? 'not-allowed' : 'pointer',
           }}
         >
-          {DISPLAY_TEXT.VERIFY_API_URL}
+          {UI_LABELS.ACTIONS.VERIFY_API_URL}
         </button>
       </form>
 

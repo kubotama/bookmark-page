@@ -1,9 +1,10 @@
 import { describe, it, expect, vi } from 'vitest'
 import { app } from './[[route]]' // 💡 exportしたappをインポート
-import { TestBookmarks } from '../test/fixtures'
+import { TEST_ERROR_MESSAGE, TestBookmarks } from '../test/fixtures'
 import { D1Database } from '@cloudflare/workers-types'
 import { BOOKMARKS } from '../constants/db'
-import { API_MESSAGE, ERROR_MESSAGE, LOG_MESSAGE } from '../constants/string'
+import { LOG_MESSAGE } from '../constants/logMessage'
+import { API_MESSAGE } from '../../shared/constants/api'
 
 describe('Hono Backend API - app.request', () => {
   it('GET /api/bookmarks が正しいJSONを返すこと', async () => {
@@ -39,7 +40,7 @@ describe('Hono Backend API - app.request', () => {
 
   it('GET /api/bookmarks - DB側で例外が発生した際、適切に500エラーを返すこと', async () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-    const dbError = new Error(ERROR_MESSAGE.DB_ERROR)
+    const dbError = new Error(TEST_ERROR_MESSAGE.DB_ERROR)
 
     const allSpy = vi.fn().mockRejectedValue(dbError)
     const prepareSpy = vi.fn().mockReturnValue({ all: allSpy })

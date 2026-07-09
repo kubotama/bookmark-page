@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { hc } from 'hono/client'
 import type { AppType } from '../functions/api/[[route]]'
-import { DISPLAY_TEXT, ERROR_MESSAGE } from '../functions/constants/string'
+import { ERROR_MESSAGE, UI_LABELS } from '../shared/constants/uiMessages'
 
 const client = hc<AppType>('/')
 
@@ -30,7 +30,7 @@ export default function App() {
 
   // 💡 読み込み状態のハンドリング
   if (isLoading)
-    return <div style={{ padding: '20px' }}>{DISPLAY_TEXT.LOADING}</div>
+    return <div style={{ padding: '20px' }}>{UI_LABELS.ACTIONS.LOADING}</div>
 
   // 💡 エラー発生時のハンドリング
   if (error) {
@@ -43,10 +43,10 @@ export default function App() {
 
   return (
     <div>
-      <h1>{DISPLAY_TEXT.MY_BOOKMARKS}</h1>
+      <h1>{UI_LABELS.HEADER.MY_BOOKMARKS}</h1>
 
       {bookmarks.length === 0 ? (
-        <p>{DISPLAY_TEXT.NO_BOOKMARKS}</p>
+        <p>{UI_LABELS.HEADER.NO_BOOKMARKS}</p>
       ) : (
         <ul>
           {bookmarks.map((bookmark) => (
