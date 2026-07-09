@@ -46,4 +46,4 @@ export const UI_MESSAGES = {
     TIMEOUT_CONNECT_SERVER:
       '接続がタイムアウトしました。URLが正しいか確認してください。',
   },
-}
+} as const
