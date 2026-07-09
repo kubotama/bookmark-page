@@ -12,7 +12,7 @@ import {
 } from '../../functions/test/fixtures'
 import { DISPLAY_TEXT, SCHEMA_MESSAGE } from '../../functions/constants/string'
 import { hc } from 'hono/client'
-import { STORAGE_KEY } from './constants/storage'
+import { STORAGE_KEY } from '../constants/storage'
 
 // 💡 Hono RPC クライアントの通信部分をモック化
 vi.mock('./lib/hono', () => {
