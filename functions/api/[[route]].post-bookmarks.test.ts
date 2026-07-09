@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { app } from './[[route]]'
 import type { D1Database } from '@cloudflare/workers-types'
-import { BOOKMARKS } from '../constants/sql'
+import { BOOKMARKS } from '../constants/db'
 import {
   BookmarksTableData,
   getExpectedText,
