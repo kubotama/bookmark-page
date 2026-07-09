@@ -1,4 +1,8 @@
 import { z } from 'zod'
+import {
+  LENGTH_LIMITATION,
+  SCHEMA_MESSAGE,
+} from '../../shared/constants/validation'
 
 // Zodで型を定義（バリデーションや安全なパース用）
 export const BookmarkSchema = z.object({
@@ -13,19 +17,19 @@ export type Bookmark = z.infer<typeof BookmarkSchema>
  */
 export const CreateBookmarkSchema = z.object({
   title: z
-    .string({ message: 'タイトルは必須です' })
+    .string({ message: SCHEMA_MESSAGE.TITLE_REQUIRED })
     .trim()
-    .min(1, 'タイトルは1文字以上で入力してください')
-    .max(255, 'タイトルは255文字以内で入力してください'),
+    .min(LENGTH_LIMITATION.TITLE.MIN, SCHEMA_MESSAGE.MIN_LENGTH_TITLE)
+    .max(LENGTH_LIMITATION.TITLE.MAX, SCHEMA_MESSAGE.MAX_LENGTH_TITLE),
 
   url: z
     // 💡 ステップ1: まずはただの文字列として「必須」と「文字数」をチェック
     .string()
     .trim()
-    .min(1, 'URLは必須です') // 空文字を弾くための明示的なガード
-    .max(2048, 'URLは2048文字以内で入力してください')
+    .min(1, SCHEMA_MESSAGE.URL_REQUIRED) // 空文字を弾くための明示的なガード
+    .max(LENGTH_LIMITATION.URL.MAX, SCHEMA_MESSAGE.MAX_LENGTH_URL)
     // 🎯 ステップ2: 合格した文字列を、Zod v4 推奨の z.url() スキーマに流し込む（バリデーションの結合）
-    .pipe(z.url({ message: '不正なURL形式です' })),
+    .pipe(z.url({ message: SCHEMA_MESSAGE.INVALID_URL })),
 })
 
 export type CreateBookmarkInput = z.infer<typeof CreateBookmarkSchema>
