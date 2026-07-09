@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
-import { TestBookmarks } from '@functions/test/fixtures'
+import { TestBookmarks } from '../functions/test/fixtures'
 import App from './App'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { DISPLAY_TEXT, ERROR_MESSAGE } from '@functions/constants/string'
+import { DISPLAY_TEXT, ERROR_MESSAGE } from '../functions/constants/string'
 
 const renderApp = (qc: QueryClient) => {
   return render(

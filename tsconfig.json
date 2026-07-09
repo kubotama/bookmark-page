@@ -3,13 +3,18 @@
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "strict": true,
     "noEmit": true,
     "skipLibCheck": true,
     "lib": ["ESNext", "dom"],
     "types": ["vite/client", "chrome-types"],
     "jsx": "react-jsx",
-    "jsxImportSource": "react"
-  },
-  "exclude": ["src/", "extension/"]
+    "jsxImportSource": "react",
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true
+  }
 }
