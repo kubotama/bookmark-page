@@ -1,7 +1,7 @@
 export const LENGTH_LIMITATION = {
   URL: { MAX: 2048 },
   TITLE: { MIN: 1, MAX: 255 },
-}
+} as const
 
 export const SCHEMA_MESSAGE = {
   URL_REQUIRED: 'URLは必須です',
