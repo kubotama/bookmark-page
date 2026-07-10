@@ -175,7 +175,9 @@ export function Popup() {
 
   return (
     <div style={{ padding: '16px' }}>
-      <h1 className="text-gray-500 text-xl">{UI_LABELS.HEADER.ADD_BOOKMARK}</h1>
+      <h1 className="text-gray-900 text-base mb-3">
+        {UI_LABELS.HEADER.ADD_BOOKMARK}
+      </h1>
 
       <form
         onSubmit={handleSubmit}
