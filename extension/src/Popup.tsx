@@ -11,6 +11,7 @@ import type { AppType } from '../../functions/api/[[route]]'
 import { STORAGE_KEY } from '../constants/storage'
 import { TIMEOUT_MILLISECOND } from '../../shared/constants/api'
 import { SCHEMA_MESSAGE } from '../../shared/constants/validation'
+import '../extension.css'
 
 export function Popup() {
   const [title, setTitle] = useState('')
@@ -174,9 +175,7 @@ export function Popup() {
 
   return (
     <div style={{ padding: '16px' }}>
-      <h1 style={{ fontSize: '16px', margin: '0 0 12px 0', color: '#111827' }}>
-        Add Bookmark
-      </h1>
+      <h1 className="text-gray-500 text-xl">{UI_LABELS.HEADER.ADD_BOOKMARK}</h1>
 
       <form
         onSubmit={handleSubmit}
@@ -200,6 +199,7 @@ export function Popup() {
             required
             value={title}
             onChange={(e) => setTitle(e.target.value)}
+            className="border"
             style={{ width: '100%', padding: '6px', boxSizing: 'border-box' }}
           />
         </div>
@@ -222,6 +222,7 @@ export function Popup() {
             required
             value={url}
             onChange={(e) => setUrl(e.target.value)}
+            className="border"
             style={{ width: '100%', padding: '6px', boxSizing: 'border-box' }}
           />
         </div>
@@ -258,6 +259,7 @@ export function Popup() {
             type="url"
             value={apiUrl}
             onChange={(e) => setApiUrl(e.target.value)}
+            className="border"
             style={{ width: '100%', padding: '6px', boxSizing: 'border-box' }}
           />
         </div>

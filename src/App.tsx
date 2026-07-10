@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { hc } from 'hono/client'
 import type { AppType } from '../functions/api/[[route]]'
 import { ERROR_MESSAGE, UI_LABELS } from '../shared/constants/uiMessages'
+import './index.css'
 
 const client = hc<AppType>('/')
 
@@ -43,7 +44,9 @@ export default function App() {
 
   return (
     <div>
-      <h1>{UI_LABELS.HEADER.MY_BOOKMARKS}</h1>
+      <h1 className="text-gray-900 bg-gray-200 w-full text-center text-xl p-3">
+        {UI_LABELS.HEADER.PAGE_HEADER}
+      </h1>
 
       {bookmarks.length === 0 ? (
         <p>{UI_LABELS.HEADER.NO_BOOKMARKS}</p>

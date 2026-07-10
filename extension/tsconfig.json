@@ -3,7 +3,7 @@
   "compilerOptions": {
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
 
-    "types": ["chrome-types", "@testing-library/jest-dom"]
+    "types": ["chrome-types", "@testing-library/jest-dom", "vite/client"]
   },
   "include": ["src"]
 }

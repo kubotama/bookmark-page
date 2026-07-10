@@ -2,6 +2,7 @@ import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import { resolve } from 'path'
 import { mkdirSync, writeFileSync, readFileSync } from 'fs'
+import tailwindcss from '@tailwindcss/vite' // 追加
 
 const copyManifest = () => {
   return {
@@ -27,7 +28,7 @@ const copyManifest = () => {
 }
 
 export default defineConfig({
-  plugins: [react(), copyManifest()],
+  plugins: [react(), tailwindcss(), copyManifest()],
   root: resolve(__dirname, 'extension'), // 💡 ルートからの相対パスに指定
   build: {
     outDir: resolve(__dirname, 'extension/dist-extension'), // 出力先
