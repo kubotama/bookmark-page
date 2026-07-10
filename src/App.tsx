@@ -44,7 +44,7 @@ export default function App() {
 
   return (
     <div>
-      <h1 className="text-gray-900 bg-gray-200 w-full text-center text-xl p-3">
+      <h1 className="text-gray-500 w-full text-center text-xl p-3">
         {UI_LABELS.HEADER.PAGE_HEADER}
       </h1>
 
