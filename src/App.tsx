@@ -44,23 +44,35 @@ export default function App() {
 
   return (
     <div>
-      <h1 className="text-gray-500 w-full text-center text-xl p-3">
+      <h1 className="text-slate-200 bg-slate-700 font-bold w-1/2 m-auto text-center text-xl p-3 mb-2 mt-2">
         {UI_LABELS.HEADER.PAGE_HEADER}
       </h1>
-
       {bookmarks.length === 0 ? (
         <p>{UI_LABELS.HEADER.NO_BOOKMARKS}</p>
       ) : (
-        <ul>
-          {bookmarks.map((bookmark) => (
-            <li key={bookmark.id}>
-              <a href={bookmark.url} target="_blank" rel="noopener noreferrer">
-                {bookmark.title}
-              </a>
-              <div>{bookmark.url}</div>
-            </li>
-          ))}
-        </ul>
+        <div className="w-1/2 m-auto bg-slate-50 border border-slate-300 transition cursor-pointer ">
+          <div className="flex flex-col items-start">
+            {bookmarks.map((bookmark) => (
+              <div
+                key={bookmark.id}
+                className={`w-full p-2 
+                  text-slate-700 bg-slate-200
+                  border border-slate-300
+                  hover:bg-indigo-300 has-[a:hover]:bg-indigo-700`}
+              >
+                <a
+                  href={bookmark.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="hover:text-slate-100 hover:font-semibold"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {bookmark.title}
+                </a>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
     </div>
   )
