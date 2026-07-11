@@ -21,8 +21,9 @@ export const UI_LABELS = {
     API_URL: 'APIのURL',
   },
   HEADER: {
-    MY_BOOKMARKS: 'マイブックマーク',
+    PAGE_HEADER: 'Bookmark Page',
     NO_BOOKMARKS: 'ブックマークがありません。',
+    ADD_BOOKMARK: 'ブックマークの追加',
   },
 } as const
 

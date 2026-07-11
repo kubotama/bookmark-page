@@ -1,9 +1,10 @@
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import { resolve } from 'path'
+import tailwindcss from '@tailwindcss/vite' // 追加
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), tailwindcss()],
   root: './src', // Reactのソースコードの場所
   resolve: {
     alias: {
