@@ -108,7 +108,7 @@ describe('Index Page (Bookmark List)', () => {
     // リンクの href 属性が正しく設定されているか検証
     expect(firstBookmark.closest('a')).toHaveAttribute(
       'href',
-      'https://google.com',
+      `/bookmark/${mockBookmarksData.data[0].id}`,
     )
   })
 
