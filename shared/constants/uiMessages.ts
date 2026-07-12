@@ -12,6 +12,7 @@ export const UI_LABELS = {
     LOADING: '読み込み中...',
     SAVING: '保存中...',
     SAVE: '保存する',
+    OPEN: '開く',
     SAVE_API_URL: 'APIのURLを保存',
     VERIFY_API_URL: 'APIのURLを検証',
   },

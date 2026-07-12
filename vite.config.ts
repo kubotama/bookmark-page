@@ -2,9 +2,19 @@ import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import { resolve } from 'path'
 import tailwindcss from '@tailwindcss/vite' // 追加
+import { tanstackRouter } from '@tanstack/router-plugin/vite'
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    tanstackRouter({
+      // 💡 2. __dirname（このファイルがある場所）を基準に、絶対パスに変換する
+      routesDirectory: resolve(__dirname, './src/routes'),
+      generatedRouteTree: resolve(__dirname, './src/routeTree.gen.ts'),
+      routeFileIgnorePattern: '((\\.|/)(test|spec))|\\.stories\\.',
+    }),
+    react(),
+    tailwindcss(),
+  ],
   root: './src', // Reactのソースコードの場所
   resolve: {
     alias: {
@@ -49,6 +59,7 @@ export default defineConfig({
         '**/*.test.{ts,tsx}',
         'src/main.tsx',
         'src/test/setup.ts',
+        'src/routeTree.gen.ts',
         'functions/schemas/**',
         'functions/constants/**',
         'functions/test/**',
