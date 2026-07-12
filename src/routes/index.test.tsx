@@ -1,12 +1,8 @@
-// src/routes/index.test.tsx
-// import React from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { act, render, screen } from '@testing-library/react'
 import { createRouter, RouterProvider } from '@tanstack/react-router'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-// import { Route as IndexRoute } from './index'
 import { UI_LABELS } from '../../shared/constants/uiMessages'
-// 💡 自動生成されたルートツリーをインポートして重複エラーを解消
 import { routeTree } from '../routeTree.gen'
 
 window.scrollTo = vi.fn()
