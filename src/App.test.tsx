@@ -110,4 +110,28 @@ describe('App Component (MVP Bookmark List)', () => {
       expect(consoleSpy).toHaveBeenCalledWith(TEST_ERROR_MESSAGE.API_ERROR)
     })
   })
+
+  it('ブックマークのリンクをクリックしたら、window.openが正しいURLで呼び出されること', async () => {
+    // 1. fetch のモック（ブックマークデータを返す）
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        success: true,
+        data: TestBookmarks,
+      }),
+    } as Response)
+
+    renderApp(queryClient)
+
+    await waitFor(() => {
+      expect(screen.getByText(TestBookmarks[0].title)).toBeInTheDocument()
+    })
+
+    const linkElement = screen.getByText(TestBookmarks[0].title)
+
+    expect(linkElement.getAttribute('href')).toBe(TestBookmarks[0].url)
+    expect(linkElement.getAttribute('target')).toBe('_blank')
+    expect(linkElement.getAttribute('rel')).toBe('noreferrer')
+  })
 })
