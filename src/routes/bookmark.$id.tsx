@@ -1,12 +1,11 @@
-import { createFileRoute, useParams, Link } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/bookmark/$id')({
   component: BookmarkDetailComponent,
 })
 
 function BookmarkDetailComponent() {
-  // useParams を使うだけで、id が文字列として型安全に取得できる
-  const { id } = useParams({ from: '/bookmark/$id' })
+  const { id } = Route.useParams()
 
   return (
     <div className="space-y-4 bg-white p-6 rounded-xl border border-slate-200">
