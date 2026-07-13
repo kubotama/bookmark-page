@@ -14,6 +14,11 @@ export const TestBookmarks: Bookmark[] = [
   },
 ]
 
+export const mockBookmarksData = {
+  success: true,
+  data: TestBookmarks,
+}
+
 export const BookmarksTableData = {
   id: '7488a6de-412d-4076-905e-8848d79cb6ee',
   title: 'Vite 公式サイト',
@@ -23,6 +28,7 @@ export const BookmarksTableData = {
 
 export const INVALID_STRING = {
   URL: 'not-a-valid-url',
+  ID: 'not-found-id',
 } as const
 
 export const TEST_ERROR_MESSAGE = {

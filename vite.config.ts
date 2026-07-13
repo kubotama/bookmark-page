@@ -50,6 +50,8 @@ export default defineConfig({
 
     coverage: {
       provider: 'v8',
+      clean: true,
+      reporter: ['text', 'json', 'html'],
       include: [
         'src/**/*.{ts,tsx}',
         'functions/**/*.{ts,tsx}',

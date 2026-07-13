@@ -14,6 +14,10 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
+
+      // 💡 追加：取得したデータを5分間は「新鮮（fresh）」とみなす
+      // この5分間は、画面を何度行き来しても裏でのAPIアクセス（再フェッチ）が完全に止まります
+      staleTime: 5 * 60 * 1000,
     },
   },
 })

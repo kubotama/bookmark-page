@@ -2,30 +2,15 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { act, render, screen } from '@testing-library/react'
 import { createRouter, RouterProvider } from '@tanstack/react-router'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { UI_LABELS } from '../../shared/constants/uiMessages'
+import { ERROR_MESSAGE, UI_LABELS } from '../../shared/constants/uiMessages'
 import { routeTree } from '../routeTree.gen'
+import { mockBookmarksData, TestBookmarks } from '../../functions/test/fixtures'
 
 window.scrollTo = vi.fn()
 
 // ==========================================
 // 1. Hono クライアントのモック化
 // ==========================================
-const mockBookmarksData = {
-  success: true,
-  data: [
-    {
-      id: '0190a618-9a7c-7000-8000-000000000001',
-      title: 'テストGoogle',
-      url: 'https://google.com',
-    },
-    {
-      id: '0190a618-9a7c-7000-8000-000000000002',
-      title: 'テストGitHub',
-      url: 'https://github.com',
-    },
-  ],
-}
-
 const mockGet = vi.fn()
 
 vi.mock('hono/client', () => ({
@@ -95,8 +80,8 @@ describe('Index Page (Bookmark List)', () => {
     })
 
     // 非同期データ取得と描画の完了を待つため findByText を使用
-    const firstBookmark = await screen.findByText('テストGoogle')
-    const secondBookmark = await screen.findByText('テストGitHub')
+    const firstBookmark = await screen.findByText(TestBookmarks[0].title)
+    const secondBookmark = await screen.findByText(TestBookmarks[1].title)
 
     expect(firstBookmark).toBeInTheDocument()
     expect(secondBookmark).toBeInTheDocument()
@@ -139,7 +124,7 @@ describe('Index Page (Bookmark List)', () => {
 
     // エラーハンドリングによって表示される要素を検証
     // ※ index.tsx 内の `throw new Error(ERROR_MESSAGE.SERVER_ERROR)` に基づくテキスト
-    const errorText = await screen.findByText(/エラー/i)
+    const errorText = await screen.findByText(ERROR_MESSAGE.SERVER_ERROR)
     expect(errorText).toBeInTheDocument()
 
     consoleSpy.mockRestore()

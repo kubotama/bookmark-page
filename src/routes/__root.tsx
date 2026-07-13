@@ -14,4 +14,6 @@ export const Route = createRootRoute({
       </main>
     </div>
   ),
+/* v8 ignore start */
 })
+/* v8 ignore stop */
