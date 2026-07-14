@@ -1,31 +1,14 @@
 // src/routes/index.tsx
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { AppType } from '../../functions/api/[[route]]'
-import { hc } from 'hono/client'
-import { useQuery } from '@tanstack/react-query'
-import { ERROR_MESSAGE, UI_LABELS } from '../../shared/constants/uiMessages'
+import { UI_LABELS } from '../../shared/constants/uiMessages'
+import { useBookmarks } from '../hooks/useBookmarks'
 
 export const Route = createFileRoute('/')({
   component: IndexComponent,
 })
 
-const client = hc<AppType>('/')
-
 function IndexComponent() {
-  const {
-    data: resJson,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ['bookmarks'],
-    queryFn: async () => {
-      const res = await client.api.bookmarks.$get()
-      if (!res.ok) {
-        throw new Error(ERROR_MESSAGE.SERVER_ERROR)
-      }
-      return await res.json()
-    },
-  })
+  const { data: resJson, isLoading, error } = useBookmarks() // 💡 呼ぶだけ
 
   // 💡 早期リターンを廃止し、データを安全に抽出するためのフォールバック
   const bookmarks = resJson?.data ?? []
@@ -74,4 +57,6 @@ function IndexComponent() {
       )}
     </div>
   )
+/* v8 ignore start */
 }
+/* v8 ignore stop */

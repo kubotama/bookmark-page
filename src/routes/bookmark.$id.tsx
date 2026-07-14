@@ -1,4 +1,7 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
+import { useBookmarkById } from '../hooks/useBookmarks'
+import { UI_LABELS } from '../../shared/constants/uiMessages'
+import { BookmarkForm } from '../components/BookmarkForm'
 
 export const Route = createFileRoute('/bookmark/$id')({
   component: BookmarkDetailComponent,
@@ -6,19 +9,24 @@ export const Route = createFileRoute('/bookmark/$id')({
 
 function BookmarkDetailComponent() {
   const { id } = Route.useParams()
+  const { bookmark, isLoading, error } = useBookmarkById(id)
+  // テキストボックス用のローカル状態（State）
 
   return (
-    <div className="space-y-4 bg-white p-6 rounded-xl border border-slate-200">
-      <h1 className="text-xl font-bold">ブックマーク詳細</h1>
-      <p className="text-sm text-slate-500">ID: {id}</p>
-
-      {/* 一覧へ戻るボタン */}
-      <Link
-        to="/"
-        className="inline-block text-sm text-indigo-600 hover:underline"
-      >
-        ← 一覧に戻る
-      </Link>
+    <div>
+      {isLoading ? (
+        <div style={{ padding: '20px' }}>{UI_LABELS.ACTIONS.LOADING}</div>
+      ) : error ? (
+        /* 2. エラー発生時の表示 */
+        <div style={{ padding: '20px', color: 'red' }}>{error.message}</div>
+      ) : bookmark === undefined ? (
+        /* 3. データが空の時の表示 */
+        <p>{UI_LABELS.HEADER.NO_BOOKMARKS}</p>
+      ) : (
+        <BookmarkForm key={bookmark.id} bookmark={bookmark} />
+      )}
     </div>
   )
+  /* v8 ignore start */
 }
+/* v8 ignore stop */

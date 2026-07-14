@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import {
   createRoute,
@@ -6,6 +6,9 @@ import {
   RouterProvider,
 } from '@tanstack/react-router'
 import { Route as RootRoute } from './__root'
+import { UI_LABELS } from '../../shared/constants/uiMessages'
+
+window.scrollTo = vi.fn()
 
 describe('Root Layout', () => {
   it('共通レイアウトの中に子ルート（Outlet）が正常にレンダリングされること', async () => {
@@ -30,5 +33,8 @@ describe('Root Layout', () => {
 
     // Outletを通じて子要素の内容が表示されているか
     expect(screen.getByTestId('child-content')).toBeInTheDocument()
+
+    // ヘッダが表示されているか
+    expect(screen.getByText(UI_LABELS.HEADER.PAGE_HEADER)).toBeInTheDocument()
   })
 })
