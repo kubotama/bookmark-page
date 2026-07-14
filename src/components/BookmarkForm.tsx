@@ -26,7 +26,8 @@ export const BookmarkForm = ({ bookmark }: BookmarkFormProps) => {
 
   const isSubmitDisable = !isValidateUrl()
 
-  const handleSubmit = () => {
+  const handleSubmit = (e: React.ChangeEvent<HTMLFormElement>) => {
+    e.preventDefault()
     window.open(url, '_blank', 'noreferrer')
   }
 
