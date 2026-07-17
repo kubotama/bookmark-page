@@ -1,6 +1,7 @@
 export const API_PATH = {
   ROOT: '/api',
   GET_BOOKMARKS: '/bookmarks',
+  DELETE_BOOKMARK: `/bookmarks/:id`,
 } as const
 
 // フォールバック用のデフォルトURL（未設定時の挙動対策）

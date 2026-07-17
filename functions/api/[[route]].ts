@@ -4,14 +4,16 @@ import { zValidator } from '@hono/zod-validator'
 import { handle } from 'hono/cloudflare-pages'
 import type { D1Database } from '@cloudflare/workers-types'
 import { API_MESSAGE, API_PATH } from '../../shared/constants/api'
-import { BOOKMARKS } from '../constants/db'
-import { ERROR_MESSAGE } from '../../shared/constants/uiMessages'
-import { Bookmark, CreateBookmarkSchema } from '../schemas/bookmark'
+import { BOOKMARKS, DATABASE_NAME } from '../constants/db'
+import { ERROR_MESSAGE, UI_MESSAGES } from '../../shared/constants/uiMessages'
+import {
+  Bookmark,
+  BookmarkIdSchema,
+  CreateBookmarkSchema,
+} from '../schemas/bookmark'
 import { uuidv7 } from 'uuidv7'
 import { cors } from 'hono/cors'
 import { LOG_MESSAGE } from '../constants/logMessage'
-
-const DATABASE_NAME = 'BOOKMARK_PAGE_DB'
 
 type Env = {
   Bindings: {
@@ -106,6 +108,58 @@ const routes = app
           } as const,
           201,
         )
+      } catch (error) {
+        console.error(LOG_MESSAGE.DB_ERROR(error))
+        return c.json(
+          {
+            success: false,
+            error: API_MESSAGE.DB_ERROR,
+          } as const,
+          500,
+        )
+      }
+    },
+  )
+
+  .delete(
+    API_PATH.DELETE_BOOKMARK,
+    zValidator('param', BookmarkIdSchema, (result, c) => {
+      return !result.success
+        ? c.json({ success: false, error: result.error.issues[0].message }, 400)
+        : undefined
+    }),
+    async (c) => {
+      // 💡 バリデーション済みの安全なパラメータを取得
+      const { id } = c.req.valid('param')
+
+      try {
+        const db = c.env.BOOKMARK_PAGE_DB
+        if (!db) {
+          throw new Error(ERROR_MESSAGE.DB_BINDING_ERROR(DATABASE_NAME))
+        }
+
+        // 1. 存在確認
+        const existing = await db.prepare(BOOKMARKS.SELECT_ID).bind(id).first()
+
+        if (!existing) {
+          return c.json(
+            {
+              success: false,
+              error: UI_MESSAGES.API.NOT_FOUND_BOOKMARK,
+            } as const,
+            404,
+          )
+        }
+
+        // 2. 削除クエリを実行
+        const { success } = await db.prepare(BOOKMARKS.DELETE).bind(id).run()
+
+        if (!success) {
+          throw new Error(ERROR_MESSAGE.FAILED_DELETE_BOOKMARK)
+        }
+
+        // 3. 204 No Content を返す
+        return c.body(null, 204)
       } catch (error) {
         console.error(LOG_MESSAGE.DB_ERROR(error))
         return c.json(

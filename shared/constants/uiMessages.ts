@@ -5,6 +5,7 @@ export const ERROR_MESSAGE = {
     `データベース ${binding} のバインディングが設定されていません`,
   INSERT_BOOKMARK_ERROR: 'ブックマークの追加に失敗しました',
   STATUS_CODE: (code: number) => `ステータスコード: ${code}`,
+  FAILED_DELETE_BOOKMARK: 'ブックマークの削除に失敗しました。',
 } as const
 
 export const UI_LABELS = {
@@ -50,5 +51,6 @@ export const UI_MESSAGES = {
       '接続に失敗しました。URLまたはサーバーの状態を確認してください。',
     TIMEOUT_CONNECT_SERVER:
       '接続がタイムアウトしました。URLが正しいか確認してください。',
+    NOT_FOUND_BOOKMARK: '指定されたブックマークが見つかりません。',
   },
 } as const
