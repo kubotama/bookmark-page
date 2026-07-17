@@ -1,9 +1,19 @@
 import { render, screen } from '@testing-library/react'
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { BookmarkForm } from './BookmarkForm'
 import { INVALID_STRING, TestBookmarks } from '../../functions/test/fixtures'
 import { UI_LABELS } from '../../shared/constants/uiMessages'
 import { userEvent } from '@testing-library/user-event'
+
+const mockBack = vi.fn()
+
+vi.mock('@tanstack/react-router', () => ({
+  useRouter: () => ({
+    history: {
+      back: mockBack,
+    },
+  }),
+}))
 
 describe('BookmarkForm', () => {
   it('該当するブックマークのurlとタイトルが正しく表示されること', async () => {
@@ -20,7 +30,7 @@ describe('BookmarkForm', () => {
     expect(urlElement).toHaveValue(targetBookmark.url)
   })
 
-  describe('開くボタン', () => {
+  describe('開くボタンの動作', () => {
     it('開くボタンをクリックしたときに、正しいURLと属性で window.open が呼び出されること', async () => {
       const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null)
 
@@ -93,6 +103,30 @@ describe('BookmarkForm', () => {
       })
 
       expect(openButton).toBeDisabled()
+    })
+  })
+
+  describe('戻るボタンの動作', () => {
+    beforeEach(() => {
+      vi.resetAllMocks()
+    })
+
+    it('戻るボタンをクリックしたときに、router.history.back が呼び出されること', async () => {
+      const user = userEvent.setup()
+      const testBookmark = TestBookmarks[0]
+
+      render(<BookmarkForm bookmark={testBookmark} />)
+
+      // 💡 2. UI_LABELS.ACTIONS.BACK (戻る) のボタンを取得
+      const backButton = screen.getByRole('button', {
+        name: UI_LABELS.ACTIONS.BACK,
+      })
+
+      // ボタンをクリック
+      await user.click(backButton)
+
+      // 💡 3. モック関数が1回呼び出されたかを検証
+      expect(mockBack).toHaveBeenCalledTimes(1)
     })
   })
 })

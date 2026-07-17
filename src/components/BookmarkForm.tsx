@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { UI_LABELS } from '../../shared/constants/uiMessages'
+import { useRouter } from '@tanstack/react-router'
 
 interface BookmarkFormProps {
   bookmark: {
@@ -12,6 +13,7 @@ interface BookmarkFormProps {
 export const BookmarkForm = ({ bookmark }: BookmarkFormProps) => {
   const [title, setTitle] = useState(bookmark.title)
   const [url, setUrl] = useState(bookmark.url)
+  const router = useRouter()
 
   const isValidateUrl = () => {
     try {
@@ -81,6 +83,7 @@ export const BookmarkForm = ({ bookmark }: BookmarkFormProps) => {
           </button>
           <button
             type="button"
+            onClick={() => router.history.back()}
             className="border border-slate-300 text-slate-700 bg-indigo-200 rounded px-2 py-1 cursor-pointer hover:text-slate-200 hover:bg-indigo-700 hover:font-semibold"
           >
             {UI_LABELS.ACTIONS.BACK}
