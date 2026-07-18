@@ -53,3 +53,8 @@ export const getExpectedText = (
     ? ''
     : schemaResult.error.issues.find((issue) => issue.path[0] === name)?.message
 }
+
+export const REQUEST_API_PATH = {
+  GET_BOOKMARKS: '/api/bookmarks',
+  DELETE_BOOKMARK: (id: string) => `/api/bookmarks/${id}`,
+} as const

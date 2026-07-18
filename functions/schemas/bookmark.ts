@@ -33,3 +33,8 @@ export const CreateBookmarkSchema = z.object({
 })
 
 export type CreateBookmarkInput = z.infer<typeof CreateBookmarkSchema>
+
+// 💡 ID（UUID v7形式など）を検証するスキーマ
+export const BookmarkIdSchema = z.object({
+  id: z.uuid({ message: SCHEMA_MESSAGE.INVALID_ID_FORMAT }),
+})
