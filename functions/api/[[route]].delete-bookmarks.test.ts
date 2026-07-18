@@ -8,7 +8,7 @@ import {
   REQUEST_API_PATH,
   TEST_ERROR_MESSAGE,
 } from '../test/fixtures'
-import { ERROR_MESSAGE, UI_MESSAGES } from '../../shared/constants/uiMessages'
+import { ERROR_MESSAGE } from '../../shared/constants/uiMessages'
 import { API_MESSAGE } from '../../shared/constants/api'
 import { LOG_MESSAGE } from '../constants/logMessage'
 import { DATABASE_NAME } from '../constants/db'
@@ -16,7 +16,6 @@ import { DATABASE_NAME } from '../constants/db'
 // D1 データベースの準備（モック用）
 const mockPrepare = vi.fn()
 const mockBind = vi.fn()
-const mockFirst = vi.fn()
 const mockRun = vi.fn()
 
 const mockDb = {
@@ -29,7 +28,6 @@ describe('DELETE /api/bookmarks/:id', () => {
     vi.resetAllMocks()
     mockPrepare.mockReturnValue({ bind: mockBind })
     mockBind.mockReturnValue({
-      first: mockFirst,
       run: mockRun,
     })
   })
@@ -41,7 +39,6 @@ describe('DELETE /api/bookmarks/:id', () => {
   // -------------------------------------------------------------
   it('正常なIDが指定された場合、削除に成功して204を返すこと', async () => {
     // 存在確認でデータを返すよう設定
-    mockFirst.mockResolvedValueOnce({ id: validId })
     // 削除実行で成功（{ success: true }）を返すよう設定
     mockRun.mockResolvedValueOnce({ success: true })
 
@@ -82,11 +79,11 @@ describe('DELETE /api/bookmarks/:id', () => {
     })
 
     // -------------------------------------------------------------
-    // 3. 指定されたIDのブックマークが存在しない場合 (404)
+    // 3. 指定されたIDのブックマークが存在しない場合 (204)
     // -------------------------------------------------------------
-    it('存在しないIDが指定された場合、404を返すこと', async () => {
-      // 存在確認で null を返すよう設定
-      mockFirst.mockResolvedValueOnce(null)
+    it('存在しないIDが指定された場合も、削除に成功して204を返すこと（冪等性の担保）', async () => {
+      // 削除実行で成功（{ success: true }）を返すよう設定
+      mockRun.mockResolvedValueOnce({ success: true })
 
       const res = await app.request(
         REQUEST_API_PATH.DELETE_BOOKMARK(validId),
@@ -94,12 +91,8 @@ describe('DELETE /api/bookmarks/:id', () => {
         { BOOKMARK_PAGE_DB: mockDb as unknown as D1Database },
       )
 
-      expect(res.status).toBe(404)
-      const body = await res.json()
-      expect(body).toEqual({
-        success: false,
-        error: UI_MESSAGES.API.NOT_FOUND_BOOKMARK,
-      })
+      expect(res.status).toBe(204)
+      expect(res.body).toBeNull()
     })
 
     it('IDを指定せずにDELETEを呼び出した場合、Hono標準の404を返すこと', async () => {
@@ -113,7 +106,6 @@ describe('DELETE /api/bookmarks/:id', () => {
     })
 
     it('データベースの削除処理中に例外が発生した場合、500を返すこと', async () => {
-      mockFirst.mockResolvedValueOnce({ id: validId })
       // 削除処理の段階で例外エラーをスローさせる
       const dbError = new Error(TEST_ERROR_MESSAGE.DB_ERROR)
 
@@ -135,7 +127,6 @@ describe('DELETE /api/bookmarks/:id', () => {
     })
 
     it('データベースの削除処理中にエラーが発生した場合、500を返すこと', async () => {
-      mockFirst.mockResolvedValueOnce({ id: validId })
       // 削除処理の段階で例外エラーをスローさせる
       mockRun.mockResolvedValueOnce({ success: false })
 

@@ -5,7 +5,7 @@ import { handle } from 'hono/cloudflare-pages'
 import type { D1Database } from '@cloudflare/workers-types'
 import { API_MESSAGE, API_PATH } from '../../shared/constants/api'
 import { BOOKMARKS, DATABASE_NAME } from '../constants/db'
-import { ERROR_MESSAGE, UI_MESSAGES } from '../../shared/constants/uiMessages'
+import { ERROR_MESSAGE } from '../../shared/constants/uiMessages'
 import {
   Bookmark,
   BookmarkIdSchema,
@@ -138,27 +138,12 @@ const routes = app
           throw new Error(ERROR_MESSAGE.DB_BINDING_ERROR(DATABASE_NAME))
         }
 
-        // 1. 存在確認
-        const existing = await db.prepare(BOOKMARKS.SELECT_ID).bind(id).first()
-
-        if (!existing) {
-          return c.json(
-            {
-              success: false,
-              error: UI_MESSAGES.API.NOT_FOUND_BOOKMARK,
-            } as const,
-            404,
-          )
-        }
-
-        // 2. 削除クエリを実行
         const { success } = await db.prepare(BOOKMARKS.DELETE).bind(id).run()
 
         if (!success) {
           throw new Error(ERROR_MESSAGE.FAILED_DELETE_BOOKMARK)
         }
 
-        // 3. 204 No Content を返す
         return c.body(null, 204)
       } catch (error) {
         console.error(LOG_MESSAGE.DB_ERROR(error))
