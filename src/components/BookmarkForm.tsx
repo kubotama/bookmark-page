@@ -1,19 +1,18 @@
 import { useState } from 'react'
-import { UI_LABELS } from '../../shared/constants/uiMessages'
+import { UI_LABELS, UI_MESSAGES } from '../../shared/constants/uiMessages'
 import { useRouter } from '@tanstack/react-router'
+import { useDeleteBookmark } from '../hooks/useDeleteBookmark'
+import { Bookmark } from '../../functions/schemas/bookmark'
 
 interface BookmarkFormProps {
-  bookmark: {
-    id?: string
-    title: string
-    url: string
-  }
+  bookmark: Bookmark
 }
 
 export const BookmarkForm = ({ bookmark }: BookmarkFormProps) => {
   const [title, setTitle] = useState(bookmark.title)
   const [url, setUrl] = useState(bookmark.url)
   const router = useRouter()
+  const { mutate: deleteBookmark, isPending } = useDeleteBookmark()
 
   const isValidateUrl = () => {
     try {
@@ -38,6 +37,18 @@ export const BookmarkForm = ({ bookmark }: BookmarkFormProps) => {
       router.history.back()
     } else {
       router.navigate({ to: '/' })
+    }
+  }
+
+  const handleDelete = () => {
+    // ユーザーへの最終確認（誤操作防止）
+    const isConfirmed = window.confirm(
+      UI_MESSAGES.BOOKMARKS.CONFIRM_DELETE(bookmark.title),
+    )
+
+    if (isConfirmed) {
+      // バリデーション済みのIDを渡してAPI実行をトリガー
+      deleteBookmark(bookmark.id)
     }
   }
 
@@ -85,6 +96,8 @@ export const BookmarkForm = ({ bookmark }: BookmarkFormProps) => {
           </button>
           <button
             type="button"
+            onClick={handleDelete}
+            disabled={isPending} // 削除中は連打できないように無効化
             className="border border-slate-300 text-slate-700 bg-indigo-200 rounded px-2 py-1 cursor-pointer hover:text-slate-200 hover:bg-indigo-700 hover:font-semibold"
           >
             {UI_LABELS.ACTIONS.DELETE}
