@@ -43,6 +43,8 @@ export const UI_MESSAGES = {
     SAVED_BOOKMARK: 'ブックマークを保存しました！',
     REGISTERED_BOOKMARKS: (count: number) =>
       `${count}件のブックマークが登録されています。`,
+    CONFIRM_DELETE: (title: string) =>
+      `「${title}」を削除してもよろしいですか？`,
   },
   API: {
     SAVED_API_URL: 'APIのURLを保存しました。',
@@ -52,5 +54,8 @@ export const UI_MESSAGES = {
     TIMEOUT_CONNECT_SERVER:
       '接続がタイムアウトしました。URLが正しいか確認してください。',
     NOT_FOUND_BOOKMARK: '指定されたブックマークが見つかりません。',
+  },
+  OTHER: {
+    UNEXPECTED_ERROR: '予期せぬエラーが発生しました。',
   },
 } as const
