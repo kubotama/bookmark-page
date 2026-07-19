@@ -112,8 +112,12 @@ describe('useDeleteBookmark', () => {
 
     result.current.mutate(validId)
 
-    await waitFor(() => expect(result.current.isError).toBe(true))
+    await waitFor(() => {
+      expect(result.current.isError).toBe(true)
 
-    expect(alertSpy).toHaveBeenCalledWith(ERROR_MESSAGE.FAILED_DELETE_BOOKMARK)
+      expect(alertSpy).toHaveBeenCalledWith(
+        ERROR_MESSAGE.FAILED_DELETE_BOOKMARK,
+      )
+    })
   })
 })
