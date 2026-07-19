@@ -82,16 +82,17 @@ describe('useDeleteBookmark', () => {
     result.current.mutate(validId)
 
     // 非同期処理（onSuccess）が完了するまで待機して検証
-    await waitFor(() => expect(result.current.isSuccess).toBe(true))
-
-    // 検証: 正しいIDでAPIが呼ばれたか
-    expect(mockDelete).toHaveBeenCalledWith({ param: { id: validId } })
-    // 検証: キャッシュ更新(invalidate)が走ったか
-    expect(mockInvalidateQueries).toHaveBeenCalledWith({
-      queryKey: ['bookmarks'],
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true)
+      // 検証: 正しいIDでAPIが呼ばれたか
+      expect(mockDelete).toHaveBeenCalledWith({ param: { id: validId } })
+      // 検証: キャッシュ更新(invalidate)が走ったか
+      expect(mockInvalidateQueries).toHaveBeenCalledWith({
+        queryKey: ['bookmarks'],
+      })
+      // 検証: 画面遷移したか
+      expect(mockNavigate).toHaveBeenCalledWith({ to: '/' })
     })
-    // 検証: 画面遷移したか
-    expect(mockNavigate).toHaveBeenCalledWith({ to: '/' })
   })
 
   // -------------------------------------------------------------
