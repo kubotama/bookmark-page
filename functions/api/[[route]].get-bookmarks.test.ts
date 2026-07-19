@@ -4,7 +4,7 @@ import { TEST_ERROR_MESSAGE, TestBookmarks } from '../test/fixtures'
 import { D1Database } from '@cloudflare/workers-types'
 import { BOOKMARKS } from '../constants/db'
 import { LOG_MESSAGE } from '../constants/logMessage'
-import { API_MESSAGE } from '../../shared/constants/api'
+import { UI_MESSAGES } from '../../shared/constants/uiMessages'
 
 describe('Hono Backend API - app.request', () => {
   it('GET /api/bookmarks が正しいJSONを返すこと', async () => {
@@ -62,7 +62,7 @@ describe('Hono Backend API - app.request', () => {
     const json = await res.json()
     expect(json).toEqual({
       success: false,
-      error: API_MESSAGE.FAILED_CONNECT_DATABASE,
+      error: UI_MESSAGES.API.FAILED_CONNECT_DATABASE,
     })
     expect(consoleSpy).toHaveBeenCalledWith(LOG_MESSAGE.DB_ERROR(dbError))
   })
