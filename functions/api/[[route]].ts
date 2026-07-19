@@ -8,7 +8,7 @@ import { BOOKMARKS, DATABASE_NAME } from '../constants/db'
 import { ERROR_MESSAGE } from '../../shared/constants/uiMessages'
 import {
   Bookmark,
-  BookmarkIdSchema,
+  BookmarkIdParamSchema,
   CreateBookmarkSchema,
 } from '../schemas/bookmark'
 import { uuidv7 } from 'uuidv7'
@@ -123,7 +123,7 @@ const routes = app
 
   .delete(
     API_PATH.DELETE_BOOKMARK,
-    zValidator('param', BookmarkIdSchema, (result, c) => {
+    zValidator('param', BookmarkIdParamSchema, (result, c) => {
       return !result.success
         ? c.json({ success: false, error: result.error.issues[0].message }, 400)
         : undefined
