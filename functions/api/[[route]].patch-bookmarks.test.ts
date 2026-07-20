@@ -9,6 +9,7 @@ import { D1Database } from '@cloudflare/workers-types'
 import { BOOKMARKS, DATABASE_NAME } from '../constants/db'
 import { SCHEMA_MESSAGE } from '../../shared/constants/validation'
 import { ERROR_MESSAGE, UI_MESSAGES } from '../../shared/constants/uiMessages'
+import { LOG_MESSAGE } from '../constants/logMessage'
 
 // D1 データベースの準備（モック用）
 
@@ -193,9 +194,8 @@ describe('Hono API - PATCH /api/bookmarks/:id', () => {
     })
 
     it('データベースの更新エラーの場合', async () => {
-      mockFirst.mockRejectedValueOnce(
-        new Error(ERROR_MESSAGE.FAILED_UPDATE_BOOKMARK),
-      )
+      const dbError = new Error(ERROR_MESSAGE.FAILED_UPDATE_BOOKMARK)
+      mockFirst.mockRejectedValueOnce(dbError)
 
       const mockD1Database: Partial<D1Database> = {
         prepare: mockPrepare as D1Database['prepare'],
@@ -222,9 +222,7 @@ describe('Hono API - PATCH /api/bookmarks/:id', () => {
         success: false,
         error: UI_MESSAGES.API.DB_ERROR,
       })
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining(ERROR_MESSAGE.FAILED_UPDATE_BOOKMARK),
-      )
+      expect(consoleSpy).toHaveBeenCalledWith(LOG_MESSAGE.DB_ERROR(dbError))
     })
   })
 })
