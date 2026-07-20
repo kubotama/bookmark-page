@@ -180,16 +180,11 @@ const routes = app
           throw new Error(ERROR_MESSAGE.DB_BINDING_ERROR(DATABASE_NAME))
         }
 
-        const { success, meta } = await db
+        const updatedBookmark = await db
           .prepare(BOOKMARKS.UPDATE)
           .bind(updates.title, updates.url, id)
-          .run()
-
-        if (!success) {
-          throw new Error(ERROR_MESSAGE.FAILED_UPDATE_BOOKMARK)
-        }
-
-        if (meta.changes === 0) {
+          .first<Bookmark>()
+        if (!updatedBookmark) {
           return c.json(
             {
               success: false,
@@ -198,10 +193,9 @@ const routes = app
             404,
           )
         }
-
         return c.json({
           success: true,
-          data: { id, title: updates.title, url: updates.url },
+          data: updatedBookmark,
         } as const)
       } catch (error) {
         console.error(LOG_MESSAGE.DB_ERROR(error))

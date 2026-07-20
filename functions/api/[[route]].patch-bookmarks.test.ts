@@ -15,7 +15,7 @@ import { ERROR_MESSAGE, UI_MESSAGES } from '../../shared/constants/uiMessages'
 describe('Hono API - PATCH /api/bookmarks/:id', () => {
   const mockPrepare = vi.fn()
   const mockBind = vi.fn()
-  const mockRun = vi.fn()
+  const mockFirst = vi.fn()
   const updateBookmark = TestBookmarks[0]
   const requestBody = {
     title: updateBookmark.title,
@@ -26,12 +26,12 @@ describe('Hono API - PATCH /api/bookmarks/:id', () => {
     vi.resetAllMocks()
     mockPrepare.mockReturnValue({ bind: mockBind })
     mockBind.mockReturnValue({
-      run: mockRun,
+      first: mockFirst,
     })
   })
 
   it('正常系: 有効なパラメータを送信したとき、ブックマークが更新されて200を返すこと', async () => {
-    mockRun.mockResolvedValueOnce({ success: true, meta: { changes: 1 } })
+    mockFirst.mockResolvedValueOnce(updateBookmark)
 
     const mockD1Database: Partial<D1Database> = {
       prepare: mockPrepare as D1Database['prepare'],
@@ -131,7 +131,7 @@ describe('Hono API - PATCH /api/bookmarks/:id', () => {
 
   describe('異常系(404): ', () => {
     it('データベースの更新結果が0件の場合', async () => {
-      mockRun.mockResolvedValueOnce({ success: true, meta: { changes: 0 } })
+      mockFirst.mockResolvedValueOnce(null)
 
       const mockD1Database: Partial<D1Database> = {
         prepare: mockPrepare as D1Database['prepare'],
@@ -193,7 +193,9 @@ describe('Hono API - PATCH /api/bookmarks/:id', () => {
     })
 
     it('データベースの更新エラーの場合', async () => {
-      mockRun.mockResolvedValueOnce({ success: false })
+      mockFirst.mockRejectedValueOnce(
+        new Error(ERROR_MESSAGE.FAILED_UPDATE_BOOKMARK),
+      )
 
       const mockD1Database: Partial<D1Database> = {
         prepare: mockPrepare as D1Database['prepare'],
