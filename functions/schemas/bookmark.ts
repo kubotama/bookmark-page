@@ -17,7 +17,7 @@ export const BookmarkTitleSchema = z
 
 export const BookmarkUrlSchema = z
   // 💡 ステップ1: まずはただの文字列として「必須」と「文字数」をチェック
-  .string()
+  .string({ message: SCHEMA_MESSAGE.URL_REQUIRED })
   .trim()
   .min(1, SCHEMA_MESSAGE.URL_REQUIRED) // 空文字を弾くための明示的なガード
   .max(LENGTH_LIMITATION.URL.MAX, SCHEMA_MESSAGE.MAX_LENGTH_URL)

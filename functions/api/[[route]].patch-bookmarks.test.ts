@@ -1,8 +1,14 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, Mock, vi } from 'vitest'
 import { app } from './[[route]]' // appのインポートパスは環境に合わせて調整してください
-import { REQUEST_API_PATH, TestBookmarks } from '../test/fixtures'
+import {
+  INVALID_STRING,
+  REQUEST_API_PATH,
+  TestBookmarks,
+} from '../test/fixtures'
 import { D1Database } from '@cloudflare/workers-types'
-import { BOOKMARKS } from '../constants/db'
+import { BOOKMARKS, DATABASE_NAME } from '../constants/db'
+import { SCHEMA_MESSAGE } from '../../shared/constants/validation'
+import { ERROR_MESSAGE, UI_MESSAGES } from '../../shared/constants/uiMessages'
 
 // D1 データベースの準備（モック用）
 
@@ -58,5 +64,165 @@ describe('Hono API - PATCH /api/bookmarks/:id', () => {
       requestBody.url,
       updateBookmark.id,
     )
+  })
+
+  describe('異常系(400): ', () => {
+    it.each([
+      {
+        description: 'IDが不正な形式',
+        id: INVALID_STRING.ID,
+        invalidBody: { title: updateBookmark.title, url: updateBookmark.url },
+        expectedError: SCHEMA_MESSAGE.INVALID_ID_FORMAT,
+      },
+      {
+        description: 'タイトルが不足',
+        id: updateBookmark.id,
+        invalidBody: { url: updateBookmark.url },
+        expectedError: SCHEMA_MESSAGE.TITLE_REQUIRED,
+      },
+      {
+        description: 'urlが不足',
+        id: updateBookmark.id,
+        invalidBody: { title: updateBookmark.title },
+        expectedError: SCHEMA_MESSAGE.URL_REQUIRED,
+      },
+    ])(`$description`, async ({ invalidBody, expectedError, id }) => {
+      const mockD1Database: Partial<D1Database> = {
+        prepare: mockPrepare as D1Database['prepare'],
+      }
+
+      const res = await app.request(
+        REQUEST_API_PATH.UPDATE_BOOKMARK(id),
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(invalidBody),
+        },
+        {
+          BOOKMARK_PAGE_DB: mockD1Database as D1Database,
+        },
+      )
+
+      expect(res.status).toBe(400)
+      const json = await res.json()
+      expect(json.success).toBe(false)
+      expect(json.error).toBe(expectedError)
+
+      expect(mockPrepare).not.toHaveBeenCalled()
+    })
+
+    it('IDを指定せずにUPDATEを呼び出した場合、Hono標準の404を返すこと', async () => {
+      const mockD1Database: Partial<D1Database> = {
+        prepare: mockPrepare as D1Database['prepare'],
+      }
+
+      const res = await app.request(
+        REQUEST_API_PATH.UPDATE_BOOKMARK(''),
+        { method: 'PATCH' },
+        { BOOKMARK_PAGE_DB: mockD1Database as D1Database },
+      )
+
+      expect(res.status).toBe(404)
+      expect(res.statusText).toBe('')
+    })
+  })
+
+  describe('異常系(404): ', () => {
+    it('データベースの更新結果が0件の場合', async () => {
+      mockRun.mockResolvedValueOnce({ success: true, meta: { changes: 0 } })
+
+      const mockD1Database: Partial<D1Database> = {
+        prepare: mockPrepare as D1Database['prepare'],
+      }
+
+      const res = await app.request(
+        REQUEST_API_PATH.UPDATE_BOOKMARK(updateBookmark.id),
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestBody),
+        },
+        {
+          BOOKMARK_PAGE_DB: mockD1Database as D1Database,
+        },
+      )
+
+      expect(res.status).toBe(404)
+
+      const body = await res.json()
+      expect(body).toEqual({
+        success: false,
+        error: UI_MESSAGES.API.NOT_FOUND_BOOKMARK,
+      })
+    })
+  })
+
+  describe('異常系(500): ', () => {
+    let consoleSpy: Mock<(...data: unknown[]) => void>
+    beforeEach(() => {
+      consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    })
+
+    it('データベースのバインディング（BOOKMARK_PAGE_DB）が未設定の場合、500を返すこと', async () => {
+      const res = await app.request(
+        REQUEST_API_PATH.UPDATE_BOOKMARK(updateBookmark.id),
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestBody),
+        },
+        {},
+      )
+
+      expect(res.status).toBe(500)
+
+      const body = await res.json()
+      expect(body).toEqual({
+        success: false,
+        error: UI_MESSAGES.API.DB_ERROR,
+      })
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining(ERROR_MESSAGE.DB_BINDING_ERROR(DATABASE_NAME)),
+      )
+    })
+
+    it('データベースの更新エラーの場合', async () => {
+      mockRun.mockResolvedValueOnce({ success: false })
+
+      const mockD1Database: Partial<D1Database> = {
+        prepare: mockPrepare as D1Database['prepare'],
+      }
+
+      const res = await app.request(
+        REQUEST_API_PATH.UPDATE_BOOKMARK(updateBookmark.id),
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestBody),
+        },
+        {
+          BOOKMARK_PAGE_DB: mockD1Database as D1Database,
+        },
+      )
+
+      expect(res.status).toBe(500)
+
+      const body = await res.json()
+      expect(body).toEqual({
+        success: false,
+        error: UI_MESSAGES.API.DB_ERROR,
+      })
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining(ERROR_MESSAGE.FAILED_UPDATE_BOOKMARK),
+      )
+    })
   })
 })
