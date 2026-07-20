@@ -6,6 +6,7 @@ export const ERROR_MESSAGE = {
   INSERT_BOOKMARK_ERROR: 'ブックマークの追加に失敗しました',
   STATUS_CODE: (code: number) => `ステータスコード: ${code}`,
   FAILED_DELETE_BOOKMARK: 'ブックマークの削除に失敗しました。',
+  FAILED_UPDATE_BOOKMARK: 'ブックマークの更新に失敗しました。',
 } as const
 
 export const UI_LABELS = {
@@ -47,6 +48,8 @@ export const UI_MESSAGES = {
       `「${title}」を削除してもよろしいですか？`,
   },
   API: {
+    DB_ERROR: 'データベースにエラーが発生しました',
+    FAILED_CONNECT_DATABASE: 'データベースの接続に失敗しました',
     SAVED_API_URL: 'APIのURLを保存しました。',
     FAILED_SAVE_API_URL: 'APIのURLの保存に失敗しました。',
     FAILED_CONNECT_SERVER:

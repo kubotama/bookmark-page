@@ -8,8 +8,7 @@ import {
   REQUEST_API_PATH,
   TEST_ERROR_MESSAGE,
 } from '../test/fixtures'
-import { ERROR_MESSAGE } from '../../shared/constants/uiMessages'
-import { API_MESSAGE } from '../../shared/constants/api'
+import { ERROR_MESSAGE, UI_MESSAGES } from '../../shared/constants/uiMessages'
 import { LOG_MESSAGE } from '../constants/logMessage'
 import { DATABASE_NAME } from '../constants/db'
 
@@ -159,7 +158,7 @@ describe('DELETE /api/bookmarks/:id', () => {
       const body = await res.json()
       expect(body).toEqual({
         success: false,
-        error: API_MESSAGE.DB_ERROR,
+        error: UI_MESSAGES.API.DB_ERROR,
       })
       expect(consoleSpy).toHaveBeenCalledWith(
         expect.stringContaining(ERROR_MESSAGE.DB_BINDING_ERROR(DATABASE_NAME)),

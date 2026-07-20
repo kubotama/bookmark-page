@@ -57,4 +57,5 @@ export const getExpectedText = (
 export const REQUEST_API_PATH = {
   GET_BOOKMARKS: '/api/bookmarks',
   DELETE_BOOKMARK: (id: string) => `/api/bookmarks/${id}`,
+  UPDATE_BOOKMARK: (id: string) => `/api/bookmarks/${id}`,
 } as const

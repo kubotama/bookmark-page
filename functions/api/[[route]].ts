@@ -3,13 +3,14 @@ import { zValidator } from '@hono/zod-validator'
 
 import { handle } from 'hono/cloudflare-pages'
 import type { D1Database } from '@cloudflare/workers-types'
-import { API_MESSAGE, API_PATH } from '../../shared/constants/api'
+import { API_PATH } from '../../shared/constants/api'
 import { BOOKMARKS, DATABASE_NAME } from '../constants/db'
-import { ERROR_MESSAGE } from '../../shared/constants/uiMessages'
+import { ERROR_MESSAGE, UI_MESSAGES } from '../../shared/constants/uiMessages'
 import {
   Bookmark,
-  BookmarkIdSchema,
+  BookmarkIdParamSchema,
   CreateBookmarkSchema,
+  UpdateBookmarkSchema,
 } from '../schemas/bookmark'
 import { uuidv7 } from 'uuidv7'
 import { cors } from 'hono/cors'
@@ -45,7 +46,7 @@ app.use(
       }
       return undefined
     },
-    allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
   }),
@@ -70,7 +71,7 @@ const routes = app
       return c.json(
         {
           success: false,
-          error: API_MESSAGE.FAILED_CONNECT_DATABASE,
+          error: UI_MESSAGES.API.FAILED_CONNECT_DATABASE,
         } as const,
         500,
       )
@@ -113,7 +114,7 @@ const routes = app
         return c.json(
           {
             success: false,
-            error: API_MESSAGE.DB_ERROR,
+            error: UI_MESSAGES.API.DB_ERROR,
           } as const,
           500,
         )
@@ -123,7 +124,7 @@ const routes = app
 
   .delete(
     API_PATH.DELETE_BOOKMARK,
-    zValidator('param', BookmarkIdSchema, (result, c) => {
+    zValidator('param', BookmarkIdParamSchema, (result, c) => {
       return !result.success
         ? c.json({ success: false, error: result.error.issues[0].message }, 400)
         : undefined
@@ -150,7 +151,58 @@ const routes = app
         return c.json(
           {
             success: false,
-            error: API_MESSAGE.DB_ERROR,
+            error: UI_MESSAGES.API.DB_ERROR,
+          } as const,
+          500,
+        )
+      }
+    },
+  )
+  .patch(
+    API_PATH.UPDATE_BOOKMARK,
+    zValidator('param', BookmarkIdParamSchema, (result, c) => {
+      return !result.success
+        ? c.json({ success: false, error: result.error.issues[0].message }, 400)
+        : undefined
+    }),
+    zValidator('json', UpdateBookmarkSchema, (result, c) => {
+      return !result.success
+        ? c.json({ success: false, error: result.error.issues[0].message }, 400)
+        : undefined
+    }),
+    async (c) => {
+      const { id } = c.req.valid('param')
+      const updates = c.req.valid('json')
+
+      try {
+        const db = c.env.BOOKMARK_PAGE_DB
+        if (!db) {
+          throw new Error(ERROR_MESSAGE.DB_BINDING_ERROR(DATABASE_NAME))
+        }
+
+        const updatedBookmark = await db
+          .prepare(BOOKMARKS.UPDATE)
+          .bind(updates.title, updates.url, id)
+          .first<Bookmark>()
+        if (!updatedBookmark) {
+          return c.json(
+            {
+              success: false,
+              error: UI_MESSAGES.API.NOT_FOUND_BOOKMARK,
+            } as const,
+            404,
+          )
+        }
+        return c.json({
+          success: true,
+          data: updatedBookmark,
+        } as const)
+      } catch (error) {
+        console.error(LOG_MESSAGE.DB_ERROR(error))
+        return c.json(
+          {
+            success: false,
+            error: UI_MESSAGES.API.DB_ERROR,
           } as const,
           500,
         )
