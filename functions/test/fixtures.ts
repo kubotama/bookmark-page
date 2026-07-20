@@ -35,6 +35,7 @@ export const TEST_ERROR_MESSAGE = {
   API_ERROR: 'APIへのアクセスにエラーが発生しました',
   NETWORK_ERROR: 'ネットワークにエラーが発生しました',
   DB_ERROR: 'データベースにエラーが発生しました',
+  CONSTRAINT_ERROR: 'UNIQUE constraint failed: bookmarks.url',
 } as const
 
 export const TEST_API_URL = {
@@ -56,6 +57,7 @@ export const getExpectedText = (
 
 export const REQUEST_API_PATH = {
   GET_BOOKMARKS: '/api/bookmarks',
+  ADD_BOOKMARK: '/api/bookmarks',
   DELETE_BOOKMARK: (id: string) => `/api/bookmarks/${id}`,
   UPDATE_BOOKMARK: (id: string) => `/api/bookmarks/${id}`,
 } as const

@@ -1,12 +1,22 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach, Mock } from 'vitest'
 import { app } from './[[route]]' // 💡 exportしたappをインポート
-import { TEST_ERROR_MESSAGE, TestBookmarks } from '../test/fixtures'
+import {
+  REQUEST_API_PATH,
+  TEST_ERROR_MESSAGE,
+  TestBookmarks,
+} from '../test/fixtures'
 import { D1Database } from '@cloudflare/workers-types'
-import { BOOKMARKS } from '../constants/db'
+import { BOOKMARKS, DATABASE_NAME } from '../constants/db'
 import { LOG_MESSAGE } from '../constants/logMessage'
-import { UI_MESSAGES } from '../../shared/constants/uiMessages'
+import { ERROR_MESSAGE, UI_MESSAGES } from '../../shared/constants/uiMessages'
 
 describe('Hono Backend API - app.request', () => {
+  let consoleSpy: Mock<(...data: unknown[]) => void>
+  beforeEach(() => {
+    vi.resetAllMocks()
+    consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+  })
+
   it('GET /api/bookmarks が正しいJSONを返すこと', async () => {
     const allSpy = vi.fn().mockResolvedValue({
       results: TestBookmarks,
@@ -18,7 +28,7 @@ describe('Hono Backend API - app.request', () => {
     }
 
     const res = await app.request(
-      '/api/bookmarks',
+      REQUEST_API_PATH.GET_BOOKMARKS,
       {},
       {
         BOOKMARK_PAGE_DB: mockD1Database as D1Database,
@@ -50,7 +60,7 @@ describe('Hono Backend API - app.request', () => {
     }
 
     const res = await app.request(
-      '/api/bookmarks',
+      REQUEST_API_PATH.GET_BOOKMARKS,
       {},
       {
         BOOKMARK_PAGE_DB: mockFailedDb as D1Database,
@@ -62,7 +72,7 @@ describe('Hono Backend API - app.request', () => {
     const json = await res.json()
     expect(json).toEqual({
       success: false,
-      error: UI_MESSAGES.API.FAILED_CONNECT_DATABASE,
+      error: UI_MESSAGES.API.DB_ERROR,
     })
     expect(consoleSpy).toHaveBeenCalledWith(LOG_MESSAGE.DB_ERROR(dbError))
   })
@@ -70,5 +80,29 @@ describe('Hono Backend API - app.request', () => {
   it('存在しないパスにアクセスした場合は404になること', async () => {
     const res = await app.request('/api/unknown-route')
     expect(res.status).toBe(404)
+  })
+
+  it('データベースのバインディング（BOOKMARK_PAGE_DB）が未設定の場合、500を返すこと', async () => {
+    const res = await app.request(
+      REQUEST_API_PATH.GET_BOOKMARKS,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      },
+      {},
+    )
+
+    expect(res.status).toBe(500)
+
+    const body = await res.json()
+    expect(body).toEqual({
+      success: false,
+      error: UI_MESSAGES.API.DB_ERROR,
+    })
+    expect(consoleSpy).toHaveBeenCalledWith(
+      expect.stringContaining(ERROR_MESSAGE.DB_BINDING_ERROR(DATABASE_NAME)),
+    )
   })
 })

@@ -3,6 +3,7 @@ import { app } from './[[route]]' // appのインポートパスは環境に合�
 import {
   INVALID_STRING,
   REQUEST_API_PATH,
+  TEST_ERROR_MESSAGE,
   TestBookmarks,
 } from '../test/fixtures'
 import { D1Database } from '@cloudflare/workers-types'
@@ -223,6 +224,43 @@ describe('Hono API - PATCH /api/bookmarks/:id', () => {
         error: UI_MESSAGES.API.DB_ERROR,
       })
       expect(consoleSpy).toHaveBeenCalledWith(LOG_MESSAGE.DB_ERROR(dbError))
+    })
+
+    it('登録済みのurlを指定した場合にステータス409を返すこと', async () => {
+      // 💡 D1 (SQLite) が UNIQUE 制約違反エラーを投げた状況をシミュレート
+      const firstSpy = vi
+        .fn()
+        .mockRejectedValue(new Error(TEST_ERROR_MESSAGE.CONSTRAINT_ERROR))
+      const bindSpy = vi.fn().mockReturnValue({ first: firstSpy })
+      const prepareSpy = vi.fn().mockReturnValue({ bind: bindSpy })
+
+      const mockD1Database: Partial<D1Database> = {
+        prepare: prepareSpy as D1Database['prepare'],
+      }
+
+      const res = await app.request(
+        REQUEST_API_PATH.UPDATE_BOOKMARK(updateBookmark.id),
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestBody),
+        },
+        {
+          BOOKMARK_PAGE_DB: mockD1Database as D1Database,
+        },
+      )
+
+      // 💡 409 Conflict の検証
+      expect(res.status).toBe(409)
+
+      const body = await res.json()
+      expect(body).toEqual({
+        success: false,
+        error: UI_MESSAGES.API.DUPLICATE_URL,
+      })
+      expect(consoleSpy).not.toHaveBeenCalled()
     })
   })
 })
