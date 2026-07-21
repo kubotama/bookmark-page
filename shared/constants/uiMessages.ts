@@ -49,7 +49,6 @@ export const UI_MESSAGES = {
   },
   API: {
     DB_ERROR: 'データベースにエラーが発生しました',
-    FAILED_CONNECT_DATABASE: 'データベースの接続に失敗しました',
     SAVED_API_URL: 'APIのURLを保存しました。',
     FAILED_SAVE_API_URL: 'APIのURLの保存に失敗しました。',
     FAILED_CONNECT_SERVER:
@@ -57,6 +56,7 @@ export const UI_MESSAGES = {
     TIMEOUT_CONNECT_SERVER:
       '接続がタイムアウトしました。URLが正しいか確認してください。',
     NOT_FOUND_BOOKMARK: '指定されたブックマークが見つかりません。',
+    DUPLICATE_URL: 'このURLは既に登録されています。',
   },
   OTHER: {
     UNEXPECTED_ERROR: '予期せぬエラーが発生しました。',

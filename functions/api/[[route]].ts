@@ -1,4 +1,4 @@
-import { Hono } from 'hono'
+import { Context, Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 
 import { handle } from 'hono/cloudflare-pages'
@@ -20,6 +20,32 @@ type Env = {
   Bindings: {
     BOOKMARK_PAGE_DB: D1Database
   }
+}
+
+const handleDbError = (error: unknown, c: Context) => {
+  // 💡 SQLite (D1) の UNIQUE 制約違反エラーを判定
+  if (
+    error instanceof Error &&
+    error.message.includes('UNIQUE constraint failed')
+  ) {
+    return c.json(
+      {
+        success: false,
+        error: UI_MESSAGES.API.DUPLICATE_URL,
+      } as const,
+      409,
+    )
+  }
+
+  // 💡 それ以外の予期せぬデータベースエラー
+  console.error(LOG_MESSAGE.DB_ERROR(error))
+  return c.json(
+    {
+      success: false,
+      error: UI_MESSAGES.API.DB_ERROR,
+    } as const,
+    500,
+  )
 }
 
 export const app = new Hono<Env>().basePath(API_PATH.ROOT)
@@ -67,14 +93,7 @@ const routes = app
         data: results,
       })
     } catch (error) {
-      console.error(LOG_MESSAGE.DB_ERROR(error))
-      return c.json(
-        {
-          success: false,
-          error: UI_MESSAGES.API.FAILED_CONNECT_DATABASE,
-        } as const,
-        500,
-      )
+      return handleDbError(error, c)
     }
   })
   .post(
@@ -110,14 +129,7 @@ const routes = app
           201,
         )
       } catch (error) {
-        console.error(LOG_MESSAGE.DB_ERROR(error))
-        return c.json(
-          {
-            success: false,
-            error: UI_MESSAGES.API.DB_ERROR,
-          } as const,
-          500,
-        )
+        return handleDbError(error, c)
       }
     },
   )
@@ -147,14 +159,7 @@ const routes = app
 
         return c.body(null, 204)
       } catch (error) {
-        console.error(LOG_MESSAGE.DB_ERROR(error))
-        return c.json(
-          {
-            success: false,
-            error: UI_MESSAGES.API.DB_ERROR,
-          } as const,
-          500,
-        )
+        return handleDbError(error, c)
       }
     },
   )
@@ -198,14 +203,7 @@ const routes = app
           data: updatedBookmark,
         } as const)
       } catch (error) {
-        console.error(LOG_MESSAGE.DB_ERROR(error))
-        return c.json(
-          {
-            success: false,
-            error: UI_MESSAGES.API.DB_ERROR,
-          } as const,
-          500,
-        )
+        return handleDbError(error, c)
       }
     },
   )

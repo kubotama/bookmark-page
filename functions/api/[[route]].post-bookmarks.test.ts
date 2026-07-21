@@ -1,17 +1,32 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach, Mock } from 'vitest'
 import { app } from './[[route]]'
 import type { D1Database } from '@cloudflare/workers-types'
-import { BOOKMARKS } from '../constants/db'
+import { BOOKMARKS, DATABASE_NAME } from '../constants/db'
 import {
   BookmarksTableData,
   getExpectedText,
   INVALID_STRING,
+  REQUEST_API_PATH,
   TEST_ERROR_MESSAGE,
+  TestBookmarks,
 } from '../test/fixtures'
 import { CreateBookmarkSchema } from '../schemas/bookmark'
 import { LOG_MESSAGE } from '../constants/logMessage'
+import { ERROR_MESSAGE, UI_MESSAGES } from '../../shared/constants/uiMessages'
 
 describe('Hono API - POST /api/bookmarks', () => {
+  let consoleSpy: Mock<(...data: unknown[]) => void>
+  beforeEach(() => {
+    vi.resetAllMocks()
+    consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+  })
+
+  const updateBookmark = TestBookmarks[0]
+  const requestBody = {
+    title: updateBookmark.title,
+    url: updateBookmark.url,
+  }
+
   it('正常系: 有効なパラメータを送信したとき、ブックマークが登録され201を返すこと', async () => {
     const firstSpy = vi.fn().mockResolvedValue(BookmarksTableData)
     const bindSpy = vi.fn().mockReturnValue({ first: firstSpy })
@@ -22,15 +37,8 @@ describe('Hono API - POST /api/bookmarks', () => {
       prepare: prepareSpy as D1Database['prepare'],
     }
 
-    // 💡 2. テスト対象の POST リクエストデータを用意
-    const requestBody = {
-      title: BookmarksTableData.title,
-      url: BookmarksTableData.url,
-    }
-
-    // 💡 3. Hono にリクエストを投げる
     const res = await app.request(
-      '/api/bookmarks',
+      REQUEST_API_PATH.ADD_BOOKMARK,
       {
         method: 'POST',
         headers: {
@@ -87,7 +95,7 @@ describe('Hono API - POST /api/bookmarks', () => {
         )
 
         const res = await app.request(
-          '/api/bookmarks',
+          REQUEST_API_PATH.ADD_BOOKMARK,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -109,8 +117,7 @@ describe('Hono API - POST /api/bookmarks', () => {
   })
 
   describe('Hono API - POST /api/bookmarks (異常系: データベース)', () => {
-    it('異常系: データベースへのインサート（または再取得）が失敗したとき、ステータス500を返すこと', async () => {
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    it('異常系: データベースへのインサート（または再取得）で例外が発生したとき、ステータス500を返すこと', async () => {
       const dbError = new Error(TEST_ERROR_MESSAGE.DB_ERROR)
 
       const firstSpy = vi.fn().mockRejectedValue(dbError)
@@ -130,7 +137,7 @@ describe('Hono API - POST /api/bookmarks', () => {
       }
 
       const res = await app.request(
-        '/api/bookmarks',
+        REQUEST_API_PATH.ADD_BOOKMARK,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -147,6 +154,106 @@ describe('Hono API - POST /api/bookmarks', () => {
       expect(json.success).toBe(false)
       expect(json.error).toBe(TEST_ERROR_MESSAGE.DB_ERROR)
       expect(consoleSpy).toHaveBeenCalledWith(LOG_MESSAGE.DB_ERROR(dbError))
+    })
+
+    it('異常系: データベースへのインサートで再取得できなかったとき、ステータス500を返すこと', async () => {
+      const firstSpy = vi.fn().mockResolvedValue(null)
+      const bindSpy = vi.fn().mockReturnValue({ first: firstSpy })
+      const prepareSpy = vi.fn().mockReturnValue({ bind: bindSpy })
+
+      // 型安全なモックDBの作成
+      const mockD1Database: Partial<D1Database> = {
+        prepare: prepareSpy as D1Database['prepare'],
+      }
+
+      // パラメータ自体は「正常」なものを送る（バリデーションを通過させるため）
+      const validBody = {
+        title: BookmarksTableData.title,
+        url: BookmarksTableData.url,
+      }
+
+      const res = await app.request(
+        REQUEST_API_PATH.ADD_BOOKMARK,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(validBody),
+        },
+        {
+          BOOKMARK_PAGE_DB: mockD1Database as D1Database,
+        },
+      )
+
+      expect(res.status).toBe(500)
+
+      const json = await res.json()
+      expect(json.success).toBe(false)
+      expect(json.error).toBe(TEST_ERROR_MESSAGE.DB_ERROR)
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining(ERROR_MESSAGE.INSERT_BOOKMARK_ERROR),
+      )
+    })
+
+    it('登録済みのurlを指定した場合にステータス409を返すこと', async () => {
+      // 💡 D1 (SQLite) が UNIQUE 制約違反エラーを投げた状況をシミュレート
+      const firstSpy = vi
+        .fn()
+        .mockRejectedValue(new Error(TEST_ERROR_MESSAGE.CONSTRAINT_ERROR))
+      const bindSpy = vi.fn().mockReturnValue({ first: firstSpy })
+      const prepareSpy = vi.fn().mockReturnValue({ bind: bindSpy })
+
+      const mockD1Database: Partial<D1Database> = {
+        prepare: prepareSpy as D1Database['prepare'],
+      }
+
+      const res = await app.request(
+        REQUEST_API_PATH.ADD_BOOKMARK,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestBody),
+        },
+        {
+          BOOKMARK_PAGE_DB: mockD1Database as D1Database,
+        },
+      )
+
+      // 💡 409 Conflict の検証
+      expect(res.status).toBe(409)
+
+      const body = await res.json()
+      expect(body).toEqual({
+        success: false,
+        error: UI_MESSAGES.API.DUPLICATE_URL,
+      })
+      expect(consoleSpy).not.toHaveBeenCalled()
+    })
+
+    it('データベースのバインディング（BOOKMARK_PAGE_DB）が未設定の場合、500を返すこと', async () => {
+      const res = await app.request(
+        REQUEST_API_PATH.ADD_BOOKMARK,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestBody),
+        },
+        {},
+      )
+
+      expect(res.status).toBe(500)
+
+      const body = await res.json()
+      expect(body).toEqual({
+        success: false,
+        error: UI_MESSAGES.API.DB_ERROR,
+      })
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining(ERROR_MESSAGE.DB_BINDING_ERROR(DATABASE_NAME)),
+      )
     })
   })
 })
