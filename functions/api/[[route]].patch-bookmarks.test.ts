@@ -24,7 +24,9 @@ describe('Hono API - PATCH /api/bookmarks/:id', () => {
     url: updateBookmark.url,
   }
 
+  let consoleSpy: Mock<(...data: unknown[]) => void>
   beforeEach(() => {
+    consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     vi.resetAllMocks()
     mockPrepare.mockReturnValue({ bind: mockBind })
     mockBind.mockReturnValue({
@@ -114,21 +116,6 @@ describe('Hono API - PATCH /api/bookmarks/:id', () => {
 
       expect(mockPrepare).not.toHaveBeenCalled()
     })
-
-    it('IDを指定せずにUPDATEを呼び出した場合、Hono標準の404を返すこと', async () => {
-      const mockD1Database: Partial<D1Database> = {
-        prepare: mockPrepare as D1Database['prepare'],
-      }
-
-      const res = await app.request(
-        REQUEST_API_PATH.UPDATE_BOOKMARK(''),
-        { method: 'PATCH' },
-        { BOOKMARK_PAGE_DB: mockD1Database as D1Database },
-      )
-
-      expect(res.status).toBe(404)
-      expect(res.statusText).toBe('')
-    })
   })
 
   describe('異常系(404): ', () => {
@@ -161,14 +148,24 @@ describe('Hono API - PATCH /api/bookmarks/:id', () => {
         error: UI_MESSAGES.API.NOT_FOUND_BOOKMARK,
       })
     })
+
+    it('IDを指定せずにUPDATEを呼び出した場合、Hono標準の404を返すこと', async () => {
+      const mockD1Database: Partial<D1Database> = {
+        prepare: mockPrepare as D1Database['prepare'],
+      }
+
+      const res = await app.request(
+        REQUEST_API_PATH.UPDATE_BOOKMARK(''),
+        { method: 'PATCH' },
+        { BOOKMARK_PAGE_DB: mockD1Database as D1Database },
+      )
+
+      expect(res.status).toBe(404)
+      expect(res.statusText).toBe('')
+    })
   })
 
   describe('異常系(500): ', () => {
-    let consoleSpy: Mock<(...data: unknown[]) => void>
-    beforeEach(() => {
-      consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-    })
-
     it('データベースのバインディング（BOOKMARK_PAGE_DB）が未設定の場合、500を返すこと', async () => {
       const res = await app.request(
         REQUEST_API_PATH.UPDATE_BOOKMARK(updateBookmark.id),
@@ -225,7 +222,9 @@ describe('Hono API - PATCH /api/bookmarks/:id', () => {
       })
       expect(consoleSpy).toHaveBeenCalledWith(LOG_MESSAGE.DB_ERROR(dbError))
     })
+  })
 
+  describe('異常系(409): ', () => {
     it('登録済みのurlを指定した場合にステータス409を返すこと', async () => {
       // 💡 D1 (SQLite) が UNIQUE 制約違反エラーを投げた状況をシミュレート
       const firstSpy = vi
