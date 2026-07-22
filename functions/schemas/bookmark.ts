@@ -9,6 +9,8 @@ export const BookmarkIdSchema = z.uuid({
   message: SCHEMA_MESSAGE.INVALID_ID_FORMAT,
 })
 
+export type BookmarkId = z.infer<typeof BookmarkIdSchema>
+
 export const BookmarkTitleSchema = z
   .string({ message: SCHEMA_MESSAGE.TITLE_REQUIRED })
   .trim()
@@ -51,3 +53,7 @@ export const UpdateBookmarkSchema = z.object({
   title: BookmarkTitleSchema,
   url: BookmarkUrlSchema,
 })
+
+export type UpdateBookmarkPayload = z.infer<typeof UpdateBookmarkSchema> & {
+  id: BookmarkId
+}
