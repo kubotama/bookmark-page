@@ -24,8 +24,10 @@ export const useUpdateBookmark = () => {
       return json
     },
     onSuccess: () => {
-      // 1. ブックマーク一覧のキャッシュを古いものとして扱い、再取得を走らせる
       queryClient.invalidateQueries({ queryKey: ['bookmarks'] })
+    },
+    onError: (error) => {
+      alert(error.message)
     },
   })
 }

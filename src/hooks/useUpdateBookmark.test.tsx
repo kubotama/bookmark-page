@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { renderHook, waitFor } from '@testing-library/react'
 import { uuidv7 } from 'uuidv7'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, Mock, vi } from 'vitest'
 import { TestBookmarks } from '../../functions/test/fixtures'
 import { useUpdateBookmark } from './useUpdateBookmark'
 import { ERROR_MESSAGE, UI_MESSAGES } from '../../shared/constants/uiMessages'
@@ -42,6 +42,7 @@ describe('useUpdateBookmark', () => {
 
   beforeEach(() => {
     vi.resetAllMocks()
+    vi.spyOn(window, 'alert').mockImplementation(() => {}) // alertのポップアップを抑制
   })
 
   it('更新APIが200を返したときにキャッシュが更新されること', async () => {
@@ -85,6 +86,11 @@ describe('useUpdateBookmark', () => {
   })
 
   describe('異常系', () => {
+    let alertSpy: Mock<(message?: unknown) => void>
+
+    beforeEach(() => {
+      alertSpy = vi.spyOn(window, 'alert')
+    })
     it.each([
       {
         status: 400,
@@ -135,6 +141,8 @@ describe('useUpdateBookmark', () => {
           expect(result.current.error?.message).toBe(errorText)
 
           expect(invalidateSpy).not.toHaveBeenCalled()
+
+          expect(alertSpy).toHaveBeenCalledWith(errorText)
         })
       },
     )
@@ -163,6 +171,9 @@ describe('useUpdateBookmark', () => {
         expect(result.current.isSuccess).toBe(false)
         expect(result.current.error).toBeInstanceOf(Error)
         expect(result.current.error?.message).toBe(
+          ERROR_MESSAGE.FAILED_UPDATE_BOOKMARK,
+        )
+        expect(alertSpy).toHaveBeenCalledWith(
           ERROR_MESSAGE.FAILED_UPDATE_BOOKMARK,
         )
 

@@ -23,6 +23,9 @@ export const BookmarkUrlSchema = z
   .trim()
   .min(1, SCHEMA_MESSAGE.URL_REQUIRED) // 空文字を弾くための明示的なガード
   .max(LENGTH_LIMITATION.URL.MAX, SCHEMA_MESSAGE.MAX_LENGTH_URL)
+  .refine((val) => val.startsWith('http://') || val.startsWith('https://'), {
+    message: SCHEMA_MESSAGE.PROTOCOL_CONSTRAINT,
+  })
   // 🎯 ステップ2: 合格した文字列を、Zod v4 推奨の z.url() スキーマに流し込む（バリデーションの結合）
   .pipe(z.url({ message: SCHEMA_MESSAGE.INVALID_URL }))
 

@@ -28,6 +28,7 @@ export const BookmarksTableData = {
 
 export const INVALID_STRING = {
   URL: 'not-a-valid-url',
+  FTP: 'ftp://ftp.com',
   ID: 'not-found-id',
 } as const
 
