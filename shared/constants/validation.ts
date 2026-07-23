@@ -11,4 +11,5 @@ export const SCHEMA_MESSAGE = {
   MAX_LENGTH_URL: `URLは${LENGTH_LIMITATION.URL.MAX}文字以内で入力してください`,
   INVALID_URL: '不正なURL形式です',
   INVALID_ID_FORMAT: '無効なID形式です',
+  START_PROTOCOL: 'http または https で始まるURLを入力してください',
 } as const

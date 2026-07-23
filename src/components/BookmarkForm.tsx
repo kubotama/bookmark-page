@@ -2,7 +2,12 @@ import { useState } from 'react'
 import { UI_LABELS, UI_MESSAGES } from '../../shared/constants/uiMessages'
 import { useRouter } from '@tanstack/react-router'
 import { useDeleteBookmark } from '../hooks/useDeleteBookmark'
-import { Bookmark } from '../../functions/schemas/bookmark'
+import {
+  Bookmark,
+  BookmarkUrlSchema,
+  UpdateBookmarkSchema,
+} from '../../functions/schemas/bookmark'
+import { useUpdateBookmark } from '../hooks/useUpdateBookmark'
 
 interface BookmarkFormProps {
   bookmark: Bookmark
@@ -13,19 +18,14 @@ export const BookmarkForm = ({ bookmark }: BookmarkFormProps) => {
   const [url, setUrl] = useState(bookmark.url)
   const router = useRouter()
   const { mutate: deleteBookmark, isPending } = useDeleteBookmark()
+  const { mutate: updateBookmark, isPending: isUpdatePending } =
+    useUpdateBookmark()
 
-  const isValidateUrl = () => {
-    try {
-      const newUrl = new URL(url)
-      // protocolには末尾に「:」が含まれるため、'http:' または 'https:' で判定します
-      return newUrl.protocol === 'http:' || newUrl.protocol === 'https:'
-    } catch {
-      // URLとして解析できない場合はfalse
-      return false
-    }
-  }
-
-  const isSubmitDisable = !isValidateUrl()
+  const isSubmitDisable = !BookmarkUrlSchema.safeParse(url).success
+  const isDirty = bookmark.title !== title.trim() || bookmark.url !== url.trim()
+  const canUpdate =
+    isDirty && UpdateBookmarkSchema.safeParse({ title, url }).success
+  const isUpdateDisable = !canUpdate || isUpdatePending
 
   const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -50,6 +50,14 @@ export const BookmarkForm = ({ bookmark }: BookmarkFormProps) => {
       // バリデーション済みのIDを渡してAPI実行をトリガー
       deleteBookmark(bookmark.id)
     }
+  }
+
+  const handleUpdate = () => {
+    updateBookmark({
+      id: bookmark.id,
+      title,
+      url,
+    })
   }
 
   return (
@@ -90,7 +98,11 @@ export const BookmarkForm = ({ bookmark }: BookmarkFormProps) => {
           </button>
           <button
             type="button"
-            className="border border-slate-300 text-slate-700 bg-indigo-200 rounded px-2 py-1 cursor-pointer hover:text-slate-200 hover:bg-indigo-700 hover:font-semibold"
+            onClick={handleUpdate}
+            disabled={isUpdateDisable}
+            className={`border border-slate-300 text-slate-700 bg-indigo-200 rounded px-2 py-1 cursor-pointer
+            hover:text-slate-200 hover:bg-indigo-700 hover:font-semibold
+            disabled:bg-slate-200 disabled:text-slate-500`}
           >
             {UI_LABELS.ACTIONS.UPDATE}
           </button>
