@@ -1,14 +1,15 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { renderHook, waitFor } from '@testing-library/react'
 import { uuidv7 } from 'uuidv7'
-import { beforeEach, describe, expect, it, Mock, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { TestBookmarks } from '../../functions/test/fixtures'
 import { useUpdateBookmark } from './useUpdateBookmark'
 import { ERROR_MESSAGE, UI_MESSAGES } from '../../shared/constants/uiMessages'
 import { SCHEMA_MESSAGE } from '../../shared/constants/validation'
 
-const { mockPatch } = vi.hoisted(() => ({
+const { mockPatch, mockShowErrorMessage } = vi.hoisted(() => ({
   mockPatch: vi.fn(),
+  mockShowErrorMessage: vi.fn(),
 }))
 
 // Honoクライアントのモック化
@@ -22,6 +23,11 @@ vi.mock('hono/client', () => ({
       },
     },
   }),
+}))
+
+// notification モジュールのモック化を追加
+vi.mock('../lib/notification', () => ({
+  showErrorMessage: mockShowErrorMessage,
 }))
 
 const createTestQueryClient = () => {
@@ -86,11 +92,6 @@ describe('useUpdateBookmark', () => {
   })
 
   describe('異常系', () => {
-    let alertSpy: Mock<(message?: unknown) => void>
-
-    beforeEach(() => {
-      alertSpy = vi.spyOn(window, 'alert')
-    })
     it.each([
       {
         status: 400,
@@ -142,7 +143,7 @@ describe('useUpdateBookmark', () => {
 
           expect(invalidateSpy).not.toHaveBeenCalled()
 
-          expect(alertSpy).toHaveBeenCalledWith(errorText)
+          expect(mockShowErrorMessage).toHaveBeenCalledWith(errorText)
         })
       },
     )
@@ -173,7 +174,7 @@ describe('useUpdateBookmark', () => {
         expect(result.current.error?.message).toBe(
           ERROR_MESSAGE.FAILED_UPDATE_BOOKMARK,
         )
-        expect(alertSpy).toHaveBeenCalledWith(
+        expect(mockShowErrorMessage).toHaveBeenCalledWith(
           ERROR_MESSAGE.FAILED_UPDATE_BOOKMARK,
         )
 

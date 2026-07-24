@@ -1,5 +1,5 @@
 import React from 'react'
-import { describe, it, expect, vi, beforeEach, Mock } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useDeleteBookmark } from './useDeleteBookmark'
@@ -8,10 +8,16 @@ import { ERROR_MESSAGE } from '../../shared/constants/uiMessages'
 import { SCHEMA_MESSAGE } from '../../shared/constants/validation'
 
 // 💡 1. Hono RPC クライアントと共通のモック関数の準備
-const { mockDelete, mockNavigate, mockInvalidateQueries } = vi.hoisted(() => ({
+const {
+  mockDelete,
+  mockNavigate,
+  mockInvalidateQueries,
+  mockShowErrorMessage,
+} = vi.hoisted(() => ({
   mockDelete: vi.fn(),
   mockNavigate: vi.fn(),
   mockInvalidateQueries: vi.fn(),
+  mockShowErrorMessage: vi.fn(),
 }))
 
 // Honoクライアントのモック化
@@ -44,6 +50,11 @@ vi.mock('@tanstack/react-query', async (importOriginal) => {
   }
 })
 
+// notification モジュールのモック化を追加
+vi.mock('../lib/notification', () => ({
+  showErrorMessage: mockShowErrorMessage,
+}))
+
 // 💡 2. TanStack Query用のラッパーコンポーネントを作成
 const createWrapper = () => {
   const queryClient = new QueryClient({
@@ -59,11 +70,10 @@ const createWrapper = () => {
 
 describe('useDeleteBookmark', () => {
   const validId = uuidv7()
-  let alertSpy: Mock<(message?: unknown) => void>
 
   beforeEach(() => {
     vi.resetAllMocks()
-    alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {}) // alertのポップアップを抑制
+    vi.spyOn(window, 'alert').mockImplementation(() => {}) // alertのポップアップを抑制
   })
 
   // -------------------------------------------------------------
@@ -95,7 +105,7 @@ describe('useDeleteBookmark', () => {
       // 検証: 画面遷移したか
       expect(mockNavigate).toHaveBeenCalledWith({ to: '/' })
 
-      expect(alertSpy).not.toHaveBeenCalled()
+      expect(mockShowErrorMessage).not.toHaveBeenCalled()
     })
   })
 
@@ -137,7 +147,7 @@ describe('useDeleteBookmark', () => {
         expect(result.current.error).toBeInstanceOf(Error)
         expect(result.current.error?.message).toBe(errorText)
 
-        expect(alertSpy).toHaveBeenCalledWith(errorText)
+        expect(mockShowErrorMessage).toHaveBeenCalledWith(errorText)
         expect(mockNavigate).not.toHaveBeenCalled()
         expect(mockInvalidateQueries).not.toHaveBeenCalled()
       })
@@ -164,7 +174,7 @@ describe('useDeleteBookmark', () => {
       expect(result.current.error?.message).toBe(
         ERROR_MESSAGE.FAILED_DELETE_BOOKMARK,
       )
-      expect(alertSpy).toHaveBeenCalledWith(
+      expect(mockShowErrorMessage).toHaveBeenCalledWith(
         ERROR_MESSAGE.FAILED_DELETE_BOOKMARK,
       )
 
