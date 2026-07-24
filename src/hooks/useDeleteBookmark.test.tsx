@@ -1,10 +1,11 @@
 import React from 'react'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, Mock } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useDeleteBookmark } from './useDeleteBookmark'
 import { uuidv7 } from 'uuidv7'
 import { ERROR_MESSAGE } from '../../shared/constants/uiMessages'
+import { SCHEMA_MESSAGE } from '../../shared/constants/validation'
 
 // 💡 1. Hono RPC クライアントと共通のモック関数の準備
 const { mockDelete, mockNavigate, mockInvalidateQueries } = vi.hoisted(() => ({
@@ -58,10 +59,11 @@ const createWrapper = () => {
 
 describe('useDeleteBookmark', () => {
   const validId = uuidv7()
+  let alertSpy: Mock<(message?: unknown) => void>
 
   beforeEach(() => {
     vi.resetAllMocks()
-    vi.spyOn(window, 'alert').mockImplementation(() => {}) // alertのポップアップを抑制
+    alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {}) // alertのポップアップを抑制
   })
 
   // -------------------------------------------------------------
@@ -92,20 +94,64 @@ describe('useDeleteBookmark', () => {
       })
       // 検証: 画面遷移したか
       expect(mockNavigate).toHaveBeenCalledWith({ to: '/' })
+
+      expect(alertSpy).not.toHaveBeenCalled()
     })
   })
 
   // -------------------------------------------------------------
   // 2. 異常系：その他の通信エラー（500など）の場合
   // -------------------------------------------------------------
-  it('APIが500などの一般的なエラーを返したとき、エラー処理が行われること', async () => {
-    const alertSpy = vi.spyOn(window, 'alert')
+  // it('APIが500などの一般的なエラーを返したとき、エラー処理が行われること', async () => {
+  it.each([
+    {
+      status: 400,
+      errorName: 'バリデーション',
+      errorText: SCHEMA_MESSAGE.INVALID_ID_FORMAT,
+    },
+    {
+      status: 500,
+      errorName: '一般的な',
+      errorText: ERROR_MESSAGE.SERVER_ERROR,
+    },
+  ])(
+    `APIが$statusで$errorNameエラーを返したときにエラー処理が行われること`,
+    async ({ status, errorText }) => {
+      mockDelete.mockResolvedValueOnce({
+        status: status,
+        ok: false,
+        json: async () => ({
+          success: false,
+          error: errorText,
+        }),
+      })
 
+      const { result } = renderHook(() => useDeleteBookmark(), {
+        wrapper: createWrapper(),
+      })
+
+      result.current.mutate(validId)
+
+      await waitFor(() => {
+        expect(result.current.isError).toBe(true)
+        expect(result.current.error).toBeInstanceOf(Error)
+        expect(result.current.error?.message).toBe(errorText)
+
+        expect(alertSpy).toHaveBeenCalledWith(errorText)
+        expect(mockNavigate).not.toHaveBeenCalled()
+        expect(mockInvalidateQueries).not.toHaveBeenCalled()
+      })
+    },
+  )
+
+  it(`APIが不明なエラーを返したときにエラー処理が行われること`, async () => {
     mockDelete.mockResolvedValueOnce({
       status: 500,
       ok: false,
+      json: async () => ({
+        success: false,
+      }),
     })
-
     const { result } = renderHook(() => useDeleteBookmark(), {
       wrapper: createWrapper(),
     })
@@ -113,11 +159,17 @@ describe('useDeleteBookmark', () => {
     result.current.mutate(validId)
 
     await waitFor(() => {
-      expect(result.current.isError).toBe(true)
-
+      expect(result.current.isSuccess).toBe(false)
+      expect(result.current.error).toBeInstanceOf(Error)
+      expect(result.current.error?.message).toBe(
+        ERROR_MESSAGE.FAILED_DELETE_BOOKMARK,
+      )
       expect(alertSpy).toHaveBeenCalledWith(
         ERROR_MESSAGE.FAILED_DELETE_BOOKMARK,
       )
+
+      expect(mockNavigate).not.toHaveBeenCalled()
+      expect(mockInvalidateQueries).not.toHaveBeenCalled()
     })
   })
 })
