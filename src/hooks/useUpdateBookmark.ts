@@ -3,6 +3,7 @@ import { AppType } from '../../functions/api/[[route]]'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { ERROR_MESSAGE } from '../../shared/constants/uiMessages'
 import { UpdateBookmarkPayload } from '../../functions/schemas/bookmark'
+import { showErrorMessage } from '../lib/notification'
 
 const client = hc<AppType>('/')
 
@@ -27,7 +28,7 @@ export const useUpdateBookmark = () => {
       queryClient.invalidateQueries({ queryKey: ['bookmarks'] })
     },
     onError: (error) => {
-      alert(error.message)
+      showErrorMessage(error.message)
     },
   })
 }
