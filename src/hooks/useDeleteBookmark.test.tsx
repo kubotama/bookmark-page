@@ -1,22 +1,15 @@
-import React from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useDeleteBookmark } from './useDeleteBookmark'
 import { uuidv7 } from 'uuidv7'
 import { ERROR_MESSAGE } from '../../shared/constants/uiMessages'
 import { SCHEMA_MESSAGE } from '../../shared/constants/validation'
+import { createTestQueryClient, expectMutationError } from '../test/test-utils'
 
 // 💡 1. Hono RPC クライアントと共通のモック関数の準備
-const {
-  mockDelete,
-  mockNavigate,
-  mockInvalidateQueries,
-  mockShowErrorMessage,
-} = vi.hoisted(() => ({
+const { mockDelete, mockNavigate, mockShowErrorMessage } = vi.hoisted(() => ({
   mockDelete: vi.fn(),
   mockNavigate: vi.fn(),
-  mockInvalidateQueries: vi.fn(),
   mockShowErrorMessage: vi.fn(),
 }))
 
@@ -40,32 +33,18 @@ vi.mock('@tanstack/react-router', () => ({
   }),
 }))
 
-vi.mock('@tanstack/react-query', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@tanstack/react-query')>()
-  return {
-    ...actual,
-    useQueryClient: () => ({
-      invalidateQueries: mockInvalidateQueries,
-    }),
-  }
-})
-
 // notification モジュールのモック化を追加
 vi.mock('../lib/notification', () => ({
   showErrorMessage: mockShowErrorMessage,
 }))
 
-// 💡 2. TanStack Query用のラッパーコンポーネントを作成
-const createWrapper = () => {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: { retry: false },
-      mutations: { retry: false },
-    },
+const renderDeleteBookmark = () => {
+  const { wrapper, mockInvalidateQueries } = createTestQueryClient()
+
+  const { result } = renderHook(() => useDeleteBookmark(), {
+    wrapper,
   })
-  return ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  )
+  return { result, mockInvalidateQueries }
 }
 
 describe('useDeleteBookmark', () => {
@@ -86,9 +65,7 @@ describe('useDeleteBookmark', () => {
       ok: true,
     })
 
-    const { result } = renderHook(() => useDeleteBookmark(), {
-      wrapper: createWrapper(),
-    })
+    const { result, mockInvalidateQueries } = renderDeleteBookmark()
 
     // 💡 フックの mutate を実行
     result.current.mutate(validId)
@@ -136,20 +113,18 @@ describe('useDeleteBookmark', () => {
         }),
       })
 
-      const { result } = renderHook(() => useDeleteBookmark(), {
-        wrapper: createWrapper(),
-      })
+      const { result, mockInvalidateQueries } = renderDeleteBookmark()
 
       result.current.mutate(validId)
 
       await waitFor(() => {
-        expect(result.current.isError).toBe(true)
-        expect(result.current.error).toBeInstanceOf(Error)
-        expect(result.current.error?.message).toBe(errorText)
-
-        expect(mockShowErrorMessage).toHaveBeenCalledWith(errorText)
-        expect(mockNavigate).not.toHaveBeenCalled()
-        expect(mockInvalidateQueries).not.toHaveBeenCalled()
+        expectMutationError({
+          result,
+          errorText,
+          mockShowErrorMessage,
+          mockNavigate,
+          mockInvalidateQueries,
+        })
       })
     },
   )
@@ -162,24 +137,19 @@ describe('useDeleteBookmark', () => {
         success: false,
       }),
     })
-    const { result } = renderHook(() => useDeleteBookmark(), {
-      wrapper: createWrapper(),
-    })
+
+    const { result, mockInvalidateQueries } = renderDeleteBookmark()
 
     result.current.mutate(validId)
 
     await waitFor(() => {
-      expect(result.current.isSuccess).toBe(false)
-      expect(result.current.error).toBeInstanceOf(Error)
-      expect(result.current.error?.message).toBe(
-        ERROR_MESSAGE.FAILED_DELETE_BOOKMARK,
-      )
-      expect(mockShowErrorMessage).toHaveBeenCalledWith(
-        ERROR_MESSAGE.FAILED_DELETE_BOOKMARK,
-      )
-
-      expect(mockNavigate).not.toHaveBeenCalled()
-      expect(mockInvalidateQueries).not.toHaveBeenCalled()
+      expectMutationError({
+        result,
+        errorText: ERROR_MESSAGE.FAILED_DELETE_BOOKMARK,
+        mockShowErrorMessage,
+        mockNavigate,
+        mockInvalidateQueries,
+      })
     })
   })
 })
