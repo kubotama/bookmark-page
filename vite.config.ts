@@ -60,7 +60,7 @@ export default defineConfig({
       exclude: [
         '**/*.test.{ts,tsx}',
         'src/main.tsx',
-        'src/test/setup.ts',
+        'src/test/**.{ts,tsx}',
         'src/routeTree.gen.ts',
         'functions/schemas/**',
         'functions/constants/**',
