@@ -1,15 +1,14 @@
 // src/hooks/useBookmarks.test.ts
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useBookmarks, useBookmarkById } from './useBookmarks'
 import { ERROR_MESSAGE } from '../../shared/constants/uiMessages'
-import React from 'react'
 import {
   INVALID_STRING,
   mockBookmarksData,
   TestBookmarks,
 } from '../../functions/test/fixtures'
+import { createTestQueryClient } from '../test/test-utils'
 
 // ==========================================
 // 1. Hono クライアントのモック化
@@ -26,44 +25,24 @@ vi.mock('hono/client', () => ({
   }),
 }))
 
-// ==========================================
-// 2. テスト用ラッパーのセットアップ
-// ==========================================
-function createTestQueryClient() {
-  return new QueryClient({
-    defaultOptions: {
-      queries: {
-        retry: false, // エラー系のテストがリトライで遅くなるのを防ぐ
-        gcTime: 0, // キャッシュがテスト間で残るのを防ぐ
-      },
-    },
-  })
-}
-
-const mockWrapper = () => {
-  const queryClient = createTestQueryClient()
-  const wrapper = ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  )
-  return wrapper
-}
-
 const renderBookmark = () => {
+  const { wrapper } = createTestQueryClient()
   const { result } = renderHook(() => useBookmarks(), {
-    wrapper: mockWrapper(),
+    wrapper,
   })
   return result
 }
 
 const renderBookmarkById = (id: string) => {
+  const { wrapper } = createTestQueryClient()
   const { result } = renderHook(() => useBookmarkById(id), {
-    wrapper: mockWrapper(),
+    wrapper,
   })
   return result
 }
 
 // ==========================================
-// 3. テストケース定義
+// テストケース定義
 // ==========================================
 describe('useBookmarks Hooks', () => {
   beforeEach(() => {
