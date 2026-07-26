@@ -6,7 +6,9 @@ export const Route = createRootRoute({
     <div className="min-h-screen bg-slate-50 text-slate-900">
       {/* 必要であればここにヘッダーなどを共通配置 */}
       <div className="text-slate-200 bg-slate-700 font-bold w-1/2 m-auto text-center text-xl p-2 mb-2 mt-2">
-        {UI_LABELS.HEADER.PAGE_HEADER}
+        <a href="/" rel="noreferrer">
+          {UI_LABELS.HEADER.PAGE_HEADER}
+        </a>
       </div>
 
       <main className="container mx-auto">
@@ -14,6 +16,6 @@ export const Route = createRootRoute({
       </main>
     </div>
   ),
-/* v8 ignore start */
+  /* v8 ignore start */
 })
 /* v8 ignore stop */

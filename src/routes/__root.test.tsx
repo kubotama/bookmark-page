@@ -35,6 +35,8 @@ describe('Root Layout', () => {
     expect(screen.getByTestId('child-content')).toBeInTheDocument()
 
     // ヘッダが表示されているか
-    expect(screen.getByText(UI_LABELS.HEADER.PAGE_HEADER)).toBeInTheDocument()
+    const header = await screen.findByText(UI_LABELS.HEADER.PAGE_HEADER)
+    expect(header).toBeInTheDocument()
+    expect(header.closest('a')).toHaveAttribute('href', '/')
   })
 })
