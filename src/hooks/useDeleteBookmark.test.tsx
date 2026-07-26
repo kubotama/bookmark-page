@@ -1,10 +1,14 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, vi, beforeEach } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import { useDeleteBookmark } from './useDeleteBookmark'
 import { uuidv7 } from 'uuidv7'
 import { ERROR_MESSAGE } from '../../shared/constants/uiMessages'
 import { SCHEMA_MESSAGE } from '../../shared/constants/validation'
-import { createTestQueryClient, expectMutationError } from '../test/test-utils'
+import {
+  createTestQueryClient,
+  expectMutationError,
+  expectMutationSuccess,
+} from '../test/test-utils'
 
 // 💡 1. Hono RPC クライアントと共通のモック関数の準備
 const { mockDelete, mockNavigate, mockShowErrorMessage } = vi.hoisted(() => ({
@@ -72,17 +76,14 @@ describe('useDeleteBookmark', () => {
 
     // 非同期処理（onSuccess）が完了するまで待機して検証
     await waitFor(() => {
-      expect(result.current.isSuccess).toBe(true)
-      // 検証: 正しいIDでAPIが呼ばれたか
-      expect(mockDelete).toHaveBeenCalledWith({ param: { id: validId } })
-      // 検証: キャッシュ更新(invalidate)が走ったか
-      expect(mockInvalidateQueries).toHaveBeenCalledWith({
-        queryKey: ['bookmarks'],
+      expectMutationSuccess({
+        result,
+        mockMutation: mockDelete,
+        payload: { param: { id: validId } },
+        mockInvalidateQueries,
+        navigate: { mockNavigate, path: '/' },
+        mockShowErrorMessage,
       })
-      // 検証: 画面遷移したか
-      expect(mockNavigate).toHaveBeenCalledWith({ to: '/' })
-
-      expect(mockShowErrorMessage).not.toHaveBeenCalled()
     })
   })
 

@@ -1,11 +1,15 @@
 import { renderHook, waitFor } from '@testing-library/react'
 import { uuidv7 } from 'uuidv7'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, it, vi } from 'vitest'
 import { TestBookmarks } from '../../functions/test/fixtures'
 import { useUpdateBookmark } from './useUpdateBookmark'
 import { ERROR_MESSAGE, UI_MESSAGES } from '../../shared/constants/uiMessages'
 import { SCHEMA_MESSAGE } from '../../shared/constants/validation'
-import { createTestQueryClient, expectMutationError } from '../test/test-utils'
+import {
+  createTestQueryClient,
+  expectMutationError,
+  expectMutationSuccess,
+} from '../test/test-utils'
 
 const { mockPatch, mockShowErrorMessage } = vi.hoisted(() => ({
   mockPatch: vi.fn(),
@@ -64,21 +68,19 @@ describe('useUpdateBookmark', () => {
     result.current.mutate(updatedPayload)
 
     await waitFor(() => {
-      expect(result.current.isSuccess).toBe(true)
-
-      expect(mockPatch).toHaveBeenCalledWith({
-        param: { id: updatedPayload.id },
-        json: {
-          title: updatedPayload.title,
-          url: updatedPayload.url,
+      expectMutationSuccess({
+        result,
+        mockMutation: mockPatch,
+        payload: {
+          param: { id: updatedPayload.id },
+          json: {
+            title: updatedPayload.title,
+            url: updatedPayload.url,
+          },
         },
+        mockInvalidateQueries,
+        mockShowErrorMessage,
       })
-
-      expect(mockInvalidateQueries).toHaveBeenCalledWith({
-        queryKey: ['bookmarks'],
-      })
-
-      expect(mockShowErrorMessage).not.toHaveBeenCalled()
     })
   })
 

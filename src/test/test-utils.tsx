@@ -6,23 +6,59 @@ import {
 } from '@tanstack/react-query'
 import { UpdateBookmarkPayload } from '../../functions/schemas/bookmark'
 
-type ErrorResultType =
-  | {
-      current: UseMutationResult<
-        | { success: boolean; error: string }
-        | {
-            readonly success: true
-            readonly data: { id: string; title: string; url: string }
-          },
-        Error,
-        UpdateBookmarkPayload,
-        unknown
-      >
-    }
-  | { current: UseMutationResult<void, Error, string, unknown> }
+type ResultDelete = { current: UseMutationResult<void, Error, string, unknown> }
+type ResultUpdate = {
+  current: UseMutationResult<
+    | { success: boolean; error: string }
+    | {
+        readonly success: true
+        readonly data: { id: string; title: string; url: string }
+      },
+    Error,
+    UpdateBookmarkPayload,
+    unknown
+  >
+}
+
+type ResultType = ResultDelete | ResultUpdate
+
+interface ExpectMutationSuccessOptions {
+  result: ResultType
+  mockMutation: Mock
+  payload: { param: { id: string }; json?: { title: string; url: string } }
+  navigate?: { mockNavigate: Mock; path: string }
+  mockInvalidateQueries?: Mock
+  mockShowErrorMessage?: Mock
+}
+
+export const expectMutationSuccess = ({
+  result,
+  mockMutation,
+  payload,
+  navigate,
+  mockInvalidateQueries,
+  mockShowErrorMessage,
+}: ExpectMutationSuccessOptions) => {
+  expect(result.current.isSuccess).toBe(true)
+  // // 検証: 正しいIDでAPIが呼ばれたか
+  expect(mockMutation).toHaveBeenCalledWith(payload)
+  // // 検証: キャッシュ更新(invalidate)が走ったか
+  if (mockInvalidateQueries) {
+    expect(mockInvalidateQueries).toHaveBeenCalledWith({
+      queryKey: ['bookmarks'],
+    })
+  }
+  // // 検証: 画面遷移したか
+  if (navigate) {
+    expect(navigate.mockNavigate).toHaveBeenCalledWith({ to: navigate.path })
+  }
+  if (mockShowErrorMessage) {
+    expect(mockShowErrorMessage).not.toHaveBeenCalled()
+  }
+}
 
 interface ExpectMutationErrorOptions {
-  result: ErrorResultType
+  result: ResultType
   errorText: string
   mockShowErrorMessage: Mock
   mockNavigate?: Mock
