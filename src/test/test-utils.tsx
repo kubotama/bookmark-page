@@ -1,5 +1,7 @@
+import { screen } from '@testing-library/react'
 import { expect, Mock, vi } from 'vitest'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { UserEvent } from '@testing-library/user-event'
 
 type ResultType = {
   current: {
@@ -93,4 +95,22 @@ export const createTestQueryClient = () => {
   const mockInvalidateQueries = vi.spyOn(queryClient, 'invalidateQueries')
 
   return { wrapper, mockInvalidateQueries }
+}
+
+export const clickButton = async (user: UserEvent, label: string) => {
+  const button = await screen.findByRole('button', { name: label })
+  await user.click(button)
+  return button
+}
+
+export const inputText = async (
+  user: UserEvent,
+  label: string,
+  text: string | undefined,
+) => {
+  const input = await screen.findByRole('textbox', { name: label })
+  await user.clear(input)
+  if (text) {
+    await user.type(input, text)
+  }
 }

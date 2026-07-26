@@ -3,7 +3,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { BookmarkForm } from './BookmarkForm'
 import { INVALID_STRING, TestBookmarks } from '../../functions/test/fixtures'
 import { UI_LABELS, UI_MESSAGES } from '../../shared/constants/uiMessages'
-import { UserEvent, userEvent } from '@testing-library/user-event'
+import { userEvent } from '@testing-library/user-event'
+import { clickButton, inputText } from '../test/test-utils'
 
 const mockBack = vi.fn()
 const mockNavigate = vi.fn()
@@ -36,24 +37,6 @@ vi.mock('../hooks/useUpdateBookmark', () => ({
     isPending: mockIsUpdatePending,
   }),
 }))
-
-const clickButton = async (user: UserEvent, label: string) => {
-  const button = await screen.findByRole('button', { name: label })
-  await user.click(button)
-  return button
-}
-
-const inputText = async (
-  user: UserEvent,
-  label: string,
-  text: string | undefined,
-) => {
-  const input = await screen.findByRole('textbox', { name: label })
-  await user.clear(input)
-  if (text) {
-    await user.type(input, text)
-  }
-}
 
 describe('BookmarkForm', () => {
   it('該当するブックマークのurlとタイトルが正しく表示されること', async () => {
