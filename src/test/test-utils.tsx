@@ -1,26 +1,13 @@
 import { expect, Mock, vi } from 'vitest'
-import {
-  QueryClient,
-  QueryClientProvider,
-  UseMutationResult,
-} from '@tanstack/react-query'
-import { UpdateBookmarkPayload } from '../../functions/schemas/bookmark'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
-type ResultDelete = { current: UseMutationResult<void, Error, string, unknown> }
-type ResultUpdate = {
-  current: UseMutationResult<
-    | { success: boolean; error: string }
-    | {
-        readonly success: true
-        readonly data: { id: string; title: string; url: string }
-      },
-    Error,
-    UpdateBookmarkPayload,
-    unknown
-  >
+type ResultType = {
+  current: {
+    isSuccess: boolean
+    isError: boolean
+    error: Error | null
+  }
 }
-
-type ResultType = ResultDelete | ResultUpdate
 
 interface ExpectMutationSuccessOptions {
   result: ResultType
