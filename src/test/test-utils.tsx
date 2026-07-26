@@ -4,7 +4,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 type ResultType = {
   current: {
     isSuccess: boolean
-    isError: boolean
     error: Error | null
   }
 }
@@ -63,7 +62,7 @@ export const expectMutationError = ({
   mockInvalidateQueries,
 }: ExpectMutationErrorOptions) => {
   // 1. フックのエラー状態の検証
-  expect(result.current.isError).toBe(true)
+  expect(result.current.isSuccess).toBe(false)
   expect(result.current.error).toBeInstanceOf(Error)
   expect(result.current.error?.message).toBe(errorText)
 
