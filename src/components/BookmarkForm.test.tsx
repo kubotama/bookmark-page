@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { BookmarkForm } from './BookmarkForm'
 import { INVALID_STRING, TestBookmarks } from '../../functions/test/fixtures'
 import { UI_LABELS, UI_MESSAGES } from '../../shared/constants/uiMessages'
-import { userEvent } from '@testing-library/user-event'
+import { UserEvent, userEvent } from '@testing-library/user-event'
 
 const mockBack = vi.fn()
 const mockNavigate = vi.fn()
@@ -37,6 +37,24 @@ vi.mock('../hooks/useUpdateBookmark', () => ({
   }),
 }))
 
+const clickButton = async (user: UserEvent, label: string) => {
+  const button = await screen.findByRole('button', { name: label })
+  await user.click(button)
+  return button
+}
+
+const inputText = async (
+  user: UserEvent,
+  label: string,
+  text: string | undefined,
+) => {
+  const input = await screen.findByRole('textbox', { name: label })
+  await user.clear(input)
+  if (text) {
+    await user.type(input, text)
+  }
+}
+
 describe('BookmarkForm', () => {
   it('該当するブックマークのurlとタイトルが正しく表示されること', async () => {
     const targetBookmark = TestBookmarks[0]
@@ -61,11 +79,7 @@ describe('BookmarkForm', () => {
 
       render(<BookmarkForm key={targetBookmark.id} bookmark={targetBookmark} />)
 
-      const openButton = screen.getByRole('button', {
-        name: UI_LABELS.ACTIONS.OPEN,
-      })
-
-      await user.click(openButton)
+      await clickButton(user, UI_LABELS.ACTIONS.OPEN)
 
       expect(openSpy).toHaveBeenCalledTimes(1) // 1回だけ呼ばれたか
       expect(openSpy).toHaveBeenCalledWith(
@@ -86,17 +100,8 @@ describe('BookmarkForm', () => {
 
       render(<BookmarkForm key={targetBookmark.id} bookmark={targetBookmark} />)
 
-      const urlElement = await screen.findByRole('textbox', {
-        name: UI_LABELS.FIELDS.URL,
-      })
-      await user.clear(urlElement)
-      await user.type(urlElement, inputUrl)
-
-      const openButton = screen.getByRole('button', {
-        name: UI_LABELS.ACTIONS.OPEN,
-      })
-
-      await user.click(openButton)
+      await inputText(user, UI_LABELS.FIELDS.URL, inputUrl)
+      await clickButton(user, UI_LABELS.ACTIONS.OPEN)
 
       expect(openSpy).toHaveBeenCalledTimes(1) // 1回だけ呼ばれたか
       expect(openSpy).toHaveBeenCalledWith(
@@ -114,15 +119,8 @@ describe('BookmarkForm', () => {
 
       render(<BookmarkForm key={targetBookmark.id} bookmark={targetBookmark} />)
 
-      const urlElement = await screen.findByRole('textbox', {
-        name: UI_LABELS.FIELDS.URL,
-      })
-      await user.clear(urlElement)
-      await user.type(urlElement, INVALID_STRING.URL)
-
-      const openButton = screen.getByRole('button', {
-        name: UI_LABELS.ACTIONS.OPEN,
-      })
+      await inputText(user, UI_LABELS.FIELDS.URL, INVALID_STRING.URL)
+      const openButton = await clickButton(user, UI_LABELS.ACTIONS.OPEN)
 
       expect(openButton).toBeDisabled()
     })
@@ -140,13 +138,7 @@ describe('BookmarkForm', () => {
 
       render(<BookmarkForm bookmark={testBookmark} />)
 
-      // 💡 2. UI_LABELS.ACTIONS.BACK (戻る) のボタンを取得
-      const backButton = screen.getByRole('button', {
-        name: UI_LABELS.ACTIONS.BACK,
-      })
-
-      // ボタンをクリック
-      await user.click(backButton)
+      await clickButton(user, UI_LABELS.ACTIONS.BACK)
 
       // 💡 3. モック関数が1回呼び出されたかを検証
       expect(mockBack).not.toHaveBeenCalled()
@@ -161,11 +153,7 @@ describe('BookmarkForm', () => {
 
       render(<BookmarkForm bookmark={testBookmark} />)
 
-      const backButton = screen.getByRole('button', {
-        name: UI_LABELS.ACTIONS.BACK,
-      })
-
-      await user.click(backButton)
+      await clickButton(user, UI_LABELS.ACTIONS.BACK)
 
       // 💡 2. router.history.back が呼ばれ、navigate は呼ばれていないことを検証
       expect(mockBack).toHaveBeenCalledTimes(1)
@@ -192,10 +180,7 @@ describe('BookmarkForm', () => {
 
       render(<BookmarkForm bookmark={testBookmark} />)
 
-      const deleteButton = screen.getByRole('button', {
-        name: UI_LABELS.ACTIONS.DELETE,
-      })
-      await user.click(deleteButton)
+      await clickButton(user, UI_LABELS.ACTIONS.DELETE)
 
       // 検証: 確認ダイアログが正しい文言で開かれたか
       expect(confirmSpy).toHaveBeenCalledWith(
@@ -216,10 +201,7 @@ describe('BookmarkForm', () => {
 
       render(<BookmarkForm bookmark={testBookmark} />)
 
-      const deleteButton = screen.getByRole('button', {
-        name: UI_LABELS.ACTIONS.DELETE,
-      })
-      await user.click(deleteButton)
+      await clickButton(user, UI_LABELS.ACTIONS.DELETE)
 
       // 検証: 削除関数が呼び出されていないこと
       expect(mockMutate).not.toHaveBeenCalled()
@@ -260,24 +242,8 @@ describe('BookmarkForm', () => {
 
         render(<BookmarkForm bookmark={testBookmark} />)
 
-        if (title !== undefined) {
-          const titleInput = await screen.findByRole('textbox', {
-            name: UI_LABELS.FIELDS.TITLE,
-          })
-          await user.clear(titleInput)
-          if (title !== '') {
-            await user.type(titleInput, title)
-          }
-        }
-        if (url !== undefined) {
-          const urlInput = await screen.findByRole('textbox', {
-            name: UI_LABELS.FIELDS.URL,
-          })
-          await user.clear(urlInput)
-          if (url !== '') {
-            await user.type(urlInput, url)
-          }
-        }
+        await inputText(user, UI_LABELS.FIELDS.TITLE, title)
+        await inputText(user, UI_LABELS.FIELDS.URL, url)
 
         const updateButton = await screen.findByRole('button', {
           name: UI_LABELS.ACTIONS.UPDATE,
@@ -291,11 +257,7 @@ describe('BookmarkForm', () => {
 
       render(<BookmarkForm bookmark={testBookmark} />)
 
-      const titleInput = await screen.findByRole('textbox', {
-        name: UI_LABELS.FIELDS.TITLE,
-      })
-      await user.clear(titleInput)
-      await user.type(titleInput, TestBookmarks[1].title)
+      await inputText(user, UI_LABELS.FIELDS.TITLE, TestBookmarks[1].title)
 
       const updateButton = await screen.findByRole('button', {
         name: UI_LABELS.ACTIONS.UPDATE,
@@ -307,11 +269,7 @@ describe('BookmarkForm', () => {
       const user = userEvent.setup()
       render(<BookmarkForm bookmark={testBookmark} />)
 
-      const titleInput = await screen.findByRole('textbox', {
-        name: UI_LABELS.FIELDS.TITLE,
-      })
-      await user.clear(titleInput)
-      await user.type(titleInput, TestBookmarks[1].title)
+      await inputText(user, UI_LABELS.FIELDS.TITLE, TestBookmarks[1].title)
 
       const updateButton = await screen.findByRole('button', {
         name: UI_LABELS.ACTIONS.UPDATE,
