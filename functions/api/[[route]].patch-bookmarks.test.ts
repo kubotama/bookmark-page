@@ -26,8 +26,8 @@ describe('Hono API - PATCH /api/bookmarks/:id', () => {
 
   let consoleSpy: Mock<(...data: unknown[]) => void>
   beforeEach(() => {
-    consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     vi.resetAllMocks()
+    consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     mockPrepare.mockReturnValue({ bind: mockBind })
     mockBind.mockReturnValue({
       first: mockFirst,
