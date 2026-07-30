@@ -1,14 +1,15 @@
-import { describe, it, expect, vi, beforeEach, Mock } from 'vitest'
-import { app } from './[[route]]' // 💡 exportしたappをインポート
+import { D1Database } from '@cloudflare/workers-types'
+import { beforeEach, describe, expect, it, Mock, vi } from 'vitest'
+
+import { ERROR_MESSAGE, UI_MESSAGES } from '../../shared/constants/uiMessages'
+import { BOOKMARKS, DATABASE_NAME } from '../constants/db'
+import { LOG_MESSAGE } from '../constants/logMessage'
 import {
   REQUEST_API_PATH,
   TEST_ERROR_MESSAGE,
   TestBookmarks,
 } from '../test/fixtures'
-import { D1Database } from '@cloudflare/workers-types'
-import { BOOKMARKS, DATABASE_NAME } from '../constants/db'
-import { LOG_MESSAGE } from '../constants/logMessage'
-import { ERROR_MESSAGE, UI_MESSAGES } from '../../shared/constants/uiMessages'
+import { app } from './[[route]]' // 💡 exportしたappをインポート
 
 describe('Hono Backend API - app.request', () => {
   let consoleSpy: Mock<(...data: unknown[]) => void>
@@ -43,8 +44,8 @@ describe('Hono Backend API - app.request', () => {
     // レスポンスボディの検証
     const body = await res.json()
     expect(body).toEqual({
-      success: true,
       data: TestBookmarks,
+      success: true,
     })
   })
 
@@ -71,8 +72,8 @@ describe('Hono Backend API - app.request', () => {
 
     const json = await res.json()
     expect(json).toEqual({
-      success: false,
       error: UI_MESSAGES.API.DB_ERROR,
+      success: false,
     })
     expect(consoleSpy).toHaveBeenCalledWith(LOG_MESSAGE.DB_ERROR(dbError))
   })
@@ -86,10 +87,10 @@ describe('Hono Backend API - app.request', () => {
     const res = await app.request(
       REQUEST_API_PATH.GET_BOOKMARKS,
       {
-        method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
+        method: 'GET',
       },
       {},
     )
@@ -98,8 +99,8 @@ describe('Hono Backend API - app.request', () => {
 
     const body = await res.json()
     expect(body).toEqual({
-      success: false,
       error: UI_MESSAGES.API.DB_ERROR,
+      success: false,
     })
     expect(consoleSpy).toHaveBeenCalledWith(
       expect.stringContaining(ERROR_MESSAGE.DB_BINDING_ERROR(DATABASE_NAME)),

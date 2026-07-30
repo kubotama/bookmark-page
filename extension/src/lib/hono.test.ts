@@ -1,8 +1,9 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { client } from './hono'
-import { STORAGE_KEY } from '../../constants/storage'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
 import { TEST_API_URL } from '../../../functions/test/fixtures'
 import { DEFAULT_API_URL } from '../../../shared/constants/api'
+import { STORAGE_KEY } from '../../constants/storage'
+import { client } from './hono'
 
 describe('Hono RPC Client', () => {
   beforeEach(() => {
@@ -17,14 +18,14 @@ describe('Hono RPC Client', () => {
 
   it.each([
     {
-      name: 'ストレージに API URL が保存されていない場合',
       apiUrl: undefined,
       expectedApiUrl: DEFAULT_API_URL,
+      name: 'ストレージに API URL が保存されていない場合',
     },
     {
-      name: 'ストレージに API URL が保存されている場合',
       apiUrl: TEST_API_URL.LOCAL,
       expectedApiUrl: TEST_API_URL.LOCAL,
+      name: 'ストレージに API URL が保存されている場合',
     },
   ])(`$name`, async ({ apiUrl, expectedApiUrl }) => {
     // 1. ストレージのモック（保存されたURLを返すように設定）

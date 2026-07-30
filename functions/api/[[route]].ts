@@ -1,20 +1,21 @@
-import { Context, Hono } from 'hono'
-import { zValidator } from '@hono/zod-validator'
-
-import { handle } from 'hono/cloudflare-pages'
 import type { D1Database } from '@cloudflare/workers-types'
+
+import { zValidator } from '@hono/zod-validator'
+import { Context, Hono } from 'hono'
+import { handle } from 'hono/cloudflare-pages'
+import { cors } from 'hono/cors'
+import { uuidv7 } from 'uuidv7'
+
 import { API_PATH } from '../../shared/constants/api'
-import { BOOKMARKS, DATABASE_NAME } from '../constants/db'
 import { ERROR_MESSAGE, UI_MESSAGES } from '../../shared/constants/uiMessages'
+import { BOOKMARKS, DATABASE_NAME } from '../constants/db'
+import { LOG_MESSAGE } from '../constants/logMessage'
 import {
   Bookmark,
   BookmarkIdParamSchema,
   CreateBookmarkSchema,
   UpdateBookmarkSchema,
 } from '../schemas/bookmark'
-import { uuidv7 } from 'uuidv7'
-import { cors } from 'hono/cors'
-import { LOG_MESSAGE } from '../constants/logMessage'
 
 type Env = {
   Bindings: {
@@ -30,8 +31,8 @@ const handleDbError = (error: unknown, c: Context) => {
   ) {
     return c.json(
       {
-        success: false,
         error: UI_MESSAGES.API.DUPLICATE_URL,
+        success: false,
       } as const,
       409,
     )
@@ -41,8 +42,8 @@ const handleDbError = (error: unknown, c: Context) => {
   console.error(LOG_MESSAGE.DB_ERROR(error))
   return c.json(
     {
-      success: false,
       error: UI_MESSAGES.API.DB_ERROR,
+      success: false,
     } as const,
     500,
   )
@@ -53,6 +54,9 @@ export const app = new Hono<Env>().basePath(API_PATH.ROOT)
 app.use(
   '*',
   cors({
+    allowHeaders: ['Content-Type', 'Authorization'],
+    allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    credentials: true,
     origin: (origin) => {
       if (!origin) {
         return undefined
@@ -72,9 +76,6 @@ app.use(
       }
       return undefined
     },
-    allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
   }),
 )
 
@@ -89,8 +90,8 @@ const routes = app
       const { results } = await db.prepare(BOOKMARKS.SELECT_ALL).all<Bookmark>()
 
       return c.json({
-        success: true,
         data: results,
+        success: true,
       })
     } catch (error) {
       return handleDbError(error, c)
@@ -100,7 +101,7 @@ const routes = app
     '/bookmarks',
     zValidator('json', CreateBookmarkSchema, (result, c) => {
       return !result.success
-        ? c.json({ success: false, error: result.error.issues[0].message }, 400)
+        ? c.json({ error: result.error.issues[0].message, success: false }, 400)
         : undefined
     }),
     async (c) => {
@@ -123,8 +124,8 @@ const routes = app
 
         return c.json(
           {
-            success: true,
             data: newBookmark,
+            success: true,
           } as const,
           201,
         )
@@ -138,7 +139,7 @@ const routes = app
     API_PATH.DELETE_BOOKMARK,
     zValidator('param', BookmarkIdParamSchema, (result, c) => {
       return !result.success
-        ? c.json({ success: false, error: result.error.issues[0].message }, 400)
+        ? c.json({ error: result.error.issues[0].message, success: false }, 400)
         : undefined
     }),
     async (c) => {
@@ -167,12 +168,12 @@ const routes = app
     API_PATH.UPDATE_BOOKMARK,
     zValidator('param', BookmarkIdParamSchema, (result, c) => {
       return !result.success
-        ? c.json({ success: false, error: result.error.issues[0].message }, 400)
+        ? c.json({ error: result.error.issues[0].message, success: false }, 400)
         : undefined
     }),
     zValidator('json', UpdateBookmarkSchema, (result, c) => {
       return !result.success
-        ? c.json({ success: false, error: result.error.issues[0].message }, 400)
+        ? c.json({ error: result.error.issues[0].message, success: false }, 400)
         : undefined
     }),
     async (c) => {
@@ -192,15 +193,15 @@ const routes = app
         if (!updatedBookmark) {
           return c.json(
             {
-              success: false,
               error: UI_MESSAGES.API.NOT_FOUND_BOOKMARK,
+              success: false,
             } as const,
             404,
           )
         }
         return c.json({
-          success: true,
           data: updatedBookmark,
+          success: true,
         } as const)
       } catch (error) {
         return handleDbError(error, c)

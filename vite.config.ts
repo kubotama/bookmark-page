@@ -1,62 +1,43 @@
-import { defineConfig } from 'vitest/config'
-import react from '@vitejs/plugin-react'
-import { resolve } from 'path'
 import tailwindcss from '@tailwindcss/vite' // 追加
 import { tanstackRouter } from '@tanstack/router-plugin/vite'
+import react from '@vitejs/plugin-react'
+import { resolve } from 'path'
+import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
+  build: {
+    emptyOutDir: true,
+    outDir: '../dist',
+  },
   plugins: [
     tanstackRouter({
-      // 💡 2. __dirname（このファイルがある場所）を基準に、絶対パスに変換する
-      routesDirectory: resolve(__dirname, './src/routes'),
       generatedRouteTree: resolve(__dirname, './src/routeTree.gen.ts'),
       routeFileIgnorePattern: '((\\.|/)(test|spec))|\\.stories\\.',
+      // 💡 2. __dirname（このファイルがある場所）を基準に、絶対パスに変換する
+      routesDirectory: resolve(__dirname, './src/routes'),
     }),
     react(),
     tailwindcss(),
   ],
-  root: './src', // Reactのソースコードの場所
   resolve: {
     alias: {
-      '@functions': resolve(__dirname, './functions'),
       '@': resolve(__dirname, './src'),
+      '@functions': resolve(__dirname, './functions'),
     },
   },
+  root: './src', // Reactのソースコードの場所
   server: {
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost:8788', // Wrangler Pagesのデフォルトポート
         changeOrigin: true,
+        target: 'http://localhost:8788', // Wrangler Pagesのデフォルトポート
       },
     },
   },
-  build: {
-    outDir: '../dist',
-    emptyOutDir: true,
-  },
   test: {
-    globals: true,
-    environment: 'jsdom',
-    setupFiles: ['src/test/setup.ts', 'extension/src/test/setup.ts'],
-
-    root: resolve(__dirname, '.'),
-
-    include: [
-      'src/**/*.test.{ts,tsx}',
-      'functions/**/*.test.{ts,tsx}',
-      'extension/**/*.test.{ts,tsx}',
-    ],
-
     coverage: {
-      provider: 'v8',
       clean: true,
-      reporter: ['text', 'json', 'html'],
-      include: [
-        'src/**/*.{ts,tsx}',
-        'functions/**/*.{ts,tsx}',
-        'extension/**/*.{ts,tsx}',
-      ],
       exclude: [
         '**/*.test.{ts,tsx}',
         'src/main.tsx',
@@ -67,6 +48,25 @@ export default defineConfig({
         'functions/test/**',
         'extension/src/constants/**',
       ],
+      include: [
+        'src/**/*.{ts,tsx}',
+        'functions/**/*.{ts,tsx}',
+        'extension/**/*.{ts,tsx}',
+      ],
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
     },
+    environment: 'jsdom',
+    globals: true,
+
+    include: [
+      'src/**/*.test.{ts,tsx}',
+      'functions/**/*.test.{ts,tsx}',
+      'extension/**/*.test.{ts,tsx}',
+    ],
+
+    root: resolve(__dirname, '.'),
+
+    setupFiles: ['src/test/setup.ts', 'extension/src/test/setup.ts'],
   },
 })

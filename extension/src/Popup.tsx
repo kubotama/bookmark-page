@@ -1,16 +1,18 @@
+import { hc } from 'hono/client'
 import React, { useEffect, useState } from 'react'
-import { client } from './lib/hono'
+
+// バックエンド（functions）のエントリーポイントから型定義（AppType）のみをインポート
+import type { AppType } from '../../functions/api/[[route]]'
+
+import { TIMEOUT_MILLISECOND } from '../../shared/constants/api'
 import {
   ERROR_MESSAGE,
   UI_LABELS,
   UI_MESSAGES,
 } from '../../shared/constants/uiMessages'
-import { hc } from 'hono/client'
-// バックエンド（functions）のエントリーポイントから型定義（AppType）のみをインポート
-import type { AppType } from '../../functions/api/[[route]]'
-import { STORAGE_KEY } from '../constants/storage'
-import { TIMEOUT_MILLISECOND } from '../../shared/constants/api'
 import { SCHEMA_MESSAGE } from '../../shared/constants/validation'
+import { STORAGE_KEY } from '../constants/storage'
+import { client } from './lib/hono'
 import '../extension.css'
 
 export function Popup() {
@@ -18,10 +20,10 @@ export function Popup() {
   const [url, setUrl] = useState('')
   const [apiUrl, setApiUrl] = useState('')
   const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState<{
-    type: 'success' | 'error'
+  const [message, setMessage] = useState<null | {
     text: string
-  } | null>(null)
+    type: 'error' | 'success'
+  }>(null)
 
   // 💡 ポップアップが開いた瞬間にアクティブタブの情報を取得する
   useEffect(() => {
@@ -66,18 +68,18 @@ export function Popup() {
 
       if (data.success) {
         setMessage({
-          type: 'success',
           text: UI_MESSAGES.BOOKMARKS.SAVED_BOOKMARK,
+          type: 'success',
         })
       } else {
         // バックエンド側で整えたバリデーションエラー等のメッセージを表示
         setMessage({
-          type: 'error',
           text: data.error || UI_MESSAGES.API.FAILED_CONNECT_SERVER,
+          type: 'error',
         })
       }
     } catch {
-      setMessage({ type: 'error', text: UI_MESSAGES.API.FAILED_CONNECT_SERVER })
+      setMessage({ text: UI_MESSAGES.API.FAILED_CONNECT_SERVER, type: 'error' })
     } finally {
       setLoading(false)
     }
@@ -87,7 +89,7 @@ export function Popup() {
     try {
       return new URL(url).toString().replace(/\/$/, '')
     } catch {
-      setMessage({ type: 'error', text: SCHEMA_MESSAGE.INVALID_URL })
+      setMessage({ text: SCHEMA_MESSAGE.INVALID_URL, type: 'error' })
       return undefined
     }
   }
@@ -105,10 +107,10 @@ export function Popup() {
           [STORAGE_KEY.API_URL]: validApiUrl,
         })
       }
-      setMessage({ type: 'success', text: UI_MESSAGES.API.SAVED_API_URL })
+      setMessage({ text: UI_MESSAGES.API.SAVED_API_URL, type: 'success' })
     } catch (error) {
       console.error(error)
-      setMessage({ type: 'error', text: UI_MESSAGES.API.FAILED_SAVE_API_URL })
+      setMessage({ text: UI_MESSAGES.API.FAILED_SAVE_API_URL, type: 'error' })
     }
   }
 
@@ -126,11 +128,11 @@ export function Popup() {
 
     try {
       const testClient = hc<AppType>(validApiUrl, {
-        fetch: (input: URL | RequestInfo, init: RequestInit | undefined) =>
+        fetch: (input: RequestInfo | URL, init: RequestInit | undefined) =>
           fetch(input, {
             ...init,
-            signal: controller.signal,
             credentials: 'include',
+            signal: controller.signal,
           }),
       })
 
@@ -150,8 +152,8 @@ export function Popup() {
       }
 
       setMessage({
-        type: 'success',
         text: UI_MESSAGES.BOOKMARKS.REGISTERED_BOOKMARKS(data.data.length),
+        type: 'success',
       })
     } catch (error) {
       let errorMessage: string = UI_MESSAGES.API.FAILED_CONNECT_SERVER
@@ -167,7 +169,7 @@ export function Popup() {
           console.error(error.message)
         }
       }
-      setMessage({ type: 'error', text: errorMessage })
+      setMessage({ text: errorMessage, type: 'error' })
     } finally {
       clearTimeout(timeoutId)
     }
@@ -187,22 +189,22 @@ export function Popup() {
           <label
             htmlFor="title-input"
             style={{
+              color: '#4b5563',
               display: 'block',
               fontSize: '12px',
-              color: '#4b5563',
               marginBottom: '4px',
             }}
           >
             {UI_LABELS.FIELDS.TITLE}
           </label>
           <input
-            id="title-input"
-            type="text"
-            required
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
             className="border"
-            style={{ width: '100%', padding: '6px', boxSizing: 'border-box' }}
+            id="title-input"
+            onChange={(e) => setTitle(e.target.value)}
+            required
+            style={{ boxSizing: 'border-box', padding: '6px', width: '100%' }}
+            type="text"
+            value={title}
           />
         </div>
 
@@ -210,36 +212,36 @@ export function Popup() {
           <label
             htmlFor="url-input"
             style={{
+              color: '#4b5563',
               display: 'block',
               fontSize: '12px',
-              color: '#4b5563',
               marginBottom: '4px',
             }}
           >
             {UI_LABELS.FIELDS.URL}
           </label>
           <input
-            id="url-input"
-            type="url"
-            required
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
             className="border"
-            style={{ width: '100%', padding: '6px', boxSizing: 'border-box' }}
+            id="url-input"
+            onChange={(e) => setUrl(e.target.value)}
+            required
+            style={{ boxSizing: 'border-box', padding: '6px', width: '100%' }}
+            type="url"
+            value={url}
           />
         </div>
 
         <button
-          type="submit"
           disabled={loading}
           style={{
-            padding: '8px',
             backgroundColor: loading ? '#9ca3af' : '#2563eb',
-            color: '#fff',
             border: 'none',
             borderRadius: '4px',
+            color: '#fff',
             cursor: loading ? 'not-allowed' : 'pointer',
+            padding: '8px',
           }}
+          type="submit"
         >
           {loading ? UI_LABELS.ACTIONS.SAVING : UI_LABELS.ACTIONS.SAVE}
         </button>
@@ -248,51 +250,51 @@ export function Popup() {
           <label
             htmlFor="api-url-input"
             style={{
+              color: '#4b5563',
               display: 'block',
               fontSize: '12px',
-              color: '#4b5563',
               marginBottom: '4px',
             }}
           >
             {UI_LABELS.FIELDS.API_URL}
           </label>
           <input
+            className="border"
             id="api-url-input"
+            onChange={(e) => setApiUrl(e.target.value)}
+            style={{ boxSizing: 'border-box', padding: '6px', width: '100%' }}
             type="url"
             value={apiUrl}
-            onChange={(e) => setApiUrl(e.target.value)}
-            className="border"
-            style={{ width: '100%', padding: '6px', boxSizing: 'border-box' }}
           />
         </div>
 
         <button
-          onClick={handleSaveApiUrl}
-          type="button"
           disabled={loading}
+          onClick={handleSaveApiUrl}
           style={{
-            padding: '8px',
             backgroundColor: loading ? '#9ca3af' : '#2563eb',
-            color: '#fff',
             border: 'none',
             borderRadius: '4px',
+            color: '#fff',
             cursor: loading ? 'not-allowed' : 'pointer',
+            padding: '8px',
           }}
+          type="button"
         >
           {UI_LABELS.ACTIONS.SAVE_API_URL}
         </button>
         <button
-          onClick={handleTestConnection}
-          type="button"
           disabled={loading}
+          onClick={handleTestConnection}
           style={{
-            padding: '8px',
             backgroundColor: loading ? '#9ca3af' : '#2563eb',
-            color: '#fff',
             border: 'none',
             borderRadius: '4px',
+            color: '#fff',
             cursor: loading ? 'not-allowed' : 'pointer',
+            padding: '8px',
           }}
+          type="button"
         >
           {UI_LABELS.ACTIONS.VERIFY_API_URL}
         </button>
@@ -301,13 +303,13 @@ export function Popup() {
       {message && (
         <div
           style={{
+            backgroundColor: message.type === 'success' ? '#f0fdf4' : '#fef2f2',
+            border: `1px solid ${message.type === 'success' ? '#bbf7d0' : '#fecaca'}`,
+            borderRadius: '4px',
+            color: message.type === 'success' ? '#16a34a' : '#dc2626',
+            fontSize: '13px',
             marginTop: '12px',
             padding: '8px',
-            borderRadius: '4px',
-            fontSize: '13px',
-            backgroundColor: message.type === 'success' ? '#f0fdf4' : '#fef2f2',
-            color: message.type === 'success' ? '#16a34a' : '#dc2626',
-            border: `1px solid ${message.type === 'success' ? '#bbf7d0' : '#fecaca'}`,
           }}
         >
           {message.text}

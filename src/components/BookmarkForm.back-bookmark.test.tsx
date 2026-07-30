@@ -1,10 +1,11 @@
+import { render } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+
 import { TestBookmarks } from '../../functions/test/fixtures'
-import { render } from '@testing-library/react'
-import { BookmarkForm } from './BookmarkForm'
-import { clickButton } from '../test/test-utils'
 import { UI_LABELS } from '../../shared/constants/uiMessages'
+import { clickButton } from '../test/test-utils'
+import { BookmarkForm } from './BookmarkForm'
 
 const mockBack = vi.fn()
 const mockNavigate = vi.fn()
@@ -19,11 +20,11 @@ vi.mock('@tanstack/react-router', () => ({
 }))
 
 vi.mock('../hooks/useDeleteBookmark', () => ({
-  useDeleteBookmark: () => ({ mutate: vi.fn(), isPending: false }),
+  useDeleteBookmark: () => ({ isPending: false, mutate: vi.fn() }),
 }))
 
 vi.mock('../hooks/useUpdateBookmark', () => ({
-  useUpdateBookmark: () => ({ mutate: vi.fn(), isPending: false }),
+  useUpdateBookmark: () => ({ isPending: false, mutate: vi.fn() }),
 }))
 
 describe('戻るボタンの動作', () => {
