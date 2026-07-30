@@ -1,7 +1,8 @@
 import { render, screen } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { TestBookmarks } from '../../functions/test/fixtures'
 import userEvent from '@testing-library/user-event'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+import { TestBookmarks } from '../../functions/test/fixtures'
 import { UI_LABELS, UI_MESSAGES } from '../../shared/constants/uiMessages'
 import { clickButton } from '../test/test-utils'
 import { BookmarkForm } from './BookmarkForm'
@@ -15,13 +16,13 @@ let mockIsPending = false
 
 vi.mock('../hooks/useDeleteBookmark', () => ({
   useDeleteBookmark: () => ({
-    mutate: mockDelete,
     isPending: mockIsPending,
+    mutate: mockDelete,
   }),
 }))
 
 vi.mock('../hooks/useUpdateBookmark', () => ({
-  useUpdateBookmark: () => ({ mutate: vi.fn(), isPending: false }),
+  useUpdateBookmark: () => ({ isPending: false, mutate: vi.fn() }),
 }))
 
 describe('削除ボタンの動作', () => {

@@ -1,14 +1,14 @@
-// src/hooks/useBookmarks.test.ts
-import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
-import { useBookmarks, useBookmarkById } from './useBookmarks'
-import { ERROR_MESSAGE } from '../../shared/constants/uiMessages'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
 import {
   INVALID_STRING,
   mockBookmarksData,
   TestBookmarks,
 } from '../../functions/test/fixtures'
+import { ERROR_MESSAGE } from '../../shared/constants/uiMessages'
 import { createTestQueryClient } from '../test/test-utils'
+import { useBookmarkById, useBookmarks } from './useBookmarks'
 
 // ==========================================
 // 1. Hono クライアントのモック化
@@ -55,8 +55,8 @@ describe('useBookmarks Hooks', () => {
   describe('useBookmarks', () => {
     it('正常にデータを取得できること', async () => {
       mockGet.mockResolvedValue({
-        ok: true,
         json: async () => mockBookmarksData,
+        ok: true,
       })
 
       const result = renderBookmark()
@@ -98,8 +98,8 @@ describe('useBookmarks Hooks', () => {
   describe('useBookmarkById', () => {
     it('指定したIDのブックマークを正しく抽出できること', async () => {
       mockGet.mockResolvedValue({
-        ok: true,
         json: async () => mockBookmarksData,
+        ok: true,
       })
 
       // 存在するIDを指定してフックを呼び出す
@@ -117,8 +117,8 @@ describe('useBookmarks Hooks', () => {
 
     it('存在しないIDを指定した場合、bookmarkが undefined になること', async () => {
       mockGet.mockResolvedValue({
-        ok: true,
         json: async () => mockBookmarksData,
+        ok: true,
       })
 
       // 存在しない適当なIDを指定

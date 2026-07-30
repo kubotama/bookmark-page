@@ -1,21 +1,22 @@
+import { render } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
+
 import { INVALID_STRING, TestBookmarks } from '../../functions/test/fixtures'
-import { render } from '@testing-library/react'
-import { BookmarkForm } from './BookmarkForm'
-import { clickButton, inputText } from '../test/test-utils'
 import { UI_LABELS } from '../../shared/constants/uiMessages'
+import { clickButton, inputText } from '../test/test-utils'
+import { BookmarkForm } from './BookmarkForm'
 
 vi.mock('@tanstack/react-router', () => ({
   useRouter: () => ({ history: { back: vi.fn() }, navigate: vi.fn() }),
 }))
 
 vi.mock('../hooks/useDeleteBookmark', () => ({
-  useDeleteBookmark: () => ({ mutate: vi.fn(), isPending: false }),
+  useDeleteBookmark: () => ({ isPending: false, mutate: vi.fn() }),
 }))
 
 vi.mock('../hooks/useUpdateBookmark', () => ({
-  useUpdateBookmark: () => ({ mutate: vi.fn(), isPending: false }),
+  useUpdateBookmark: () => ({ isPending: false, mutate: vi.fn() }),
 }))
 
 describe('開くボタンの動作', () => {
@@ -25,7 +26,7 @@ describe('開くボタンの動作', () => {
     const user = userEvent.setup()
     const targetBookmark = TestBookmarks[0]
 
-    render(<BookmarkForm key={targetBookmark.id} bookmark={targetBookmark} />)
+    render(<BookmarkForm bookmark={targetBookmark} key={targetBookmark.id} />)
 
     await clickButton(user, UI_LABELS.ACTIONS.OPEN)
 
@@ -46,7 +47,7 @@ describe('開くボタンの動作', () => {
     const targetBookmark = TestBookmarks[0]
     const inputUrl = TestBookmarks[1].url
 
-    render(<BookmarkForm key={targetBookmark.id} bookmark={targetBookmark} />)
+    render(<BookmarkForm bookmark={targetBookmark} key={targetBookmark.id} />)
 
     await inputText(user, UI_LABELS.FIELDS.URL, inputUrl)
     await clickButton(user, UI_LABELS.ACTIONS.OPEN)
@@ -65,7 +66,7 @@ describe('開くボタンの動作', () => {
     const user = userEvent.setup()
     const targetBookmark = TestBookmarks[0]
 
-    render(<BookmarkForm key={targetBookmark.id} bookmark={targetBookmark} />)
+    render(<BookmarkForm bookmark={targetBookmark} key={targetBookmark.id} />)
 
     await inputText(user, UI_LABELS.FIELDS.URL, INVALID_STRING.URL)
     const openButton = await clickButton(user, UI_LABELS.ACTIONS.OPEN)

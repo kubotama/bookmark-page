@@ -1,14 +1,15 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query' // 💡 QueryClient関係をインポート
 import {
+  createMemoryHistory,
   createRouter,
   RouterProvider,
-  createMemoryHistory,
 } from '@tanstack/react-router'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query' // 💡 QueryClient関係をインポート
-import { routeTree } from '../routeTree.gen'
+import { render, screen } from '@testing-library/react'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
 import { mockBookmarksData, TestBookmarks } from '../../functions/test/fixtures'
 import { ERROR_MESSAGE, UI_LABELS } from '../../shared/constants/uiMessages'
+import { routeTree } from '../routeTree.gen'
 
 // jsdom環境用に window.scrollTo の警告を黙らせる
 window.scrollTo = vi.fn()
@@ -36,8 +37,8 @@ const renderBookmarkDetailPage = async (id: string) => {
 
   // 2. ルーターの作成
   const router = createRouter({
-    routeTree,
     history: memoryHistory,
+    routeTree,
   })
 
   await router.load()
@@ -46,8 +47,8 @@ const renderBookmarkDetailPage = async (id: string) => {
   const testQueryClient = new QueryClient({
     defaultOptions: {
       queries: {
-        retry: false,
         gcTime: 0, // キャッシュの残り火によるテスト汚染を防止
+        retry: false,
       },
     },
   })
@@ -67,8 +68,8 @@ describe('Bookmark Detail Page', () => {
 
   it('URLパラメータからIDを正しく取得して表示できること', async () => {
     mockGet.mockResolvedValue({
-      ok: true,
       json: async () => mockBookmarksData,
+      ok: true,
     })
 
     const targetBookmark = TestBookmarks[0]
@@ -88,8 +89,8 @@ describe('Bookmark Detail Page', () => {
 
   it('idがブックマークに存在しない場合には正しいメッセージが表示されること', async () => {
     mockGet.mockResolvedValue({
-      ok: true,
       json: async () => [],
+      ok: true,
     })
 
     const targetBookmark = TestBookmarks[0]
@@ -103,8 +104,8 @@ describe('Bookmark Detail Page', () => {
 
   it('ブックマークの取得がエラーの場合にはエラーメッセージが表示されること', async () => {
     mockGet.mockResolvedValue({
-      ok: false,
       error: new Error('error'),
+      ok: false,
     })
 
     const targetBookmark = TestBookmarks[0]

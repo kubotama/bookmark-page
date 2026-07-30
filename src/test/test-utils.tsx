@@ -1,31 +1,31 @@
-import { screen } from '@testing-library/react'
-import { expect, Mock, vi } from 'vitest'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { screen } from '@testing-library/react'
 import { UserEvent } from '@testing-library/user-event'
+import { expect, Mock, vi } from 'vitest'
+
+interface ExpectMutationSuccessOptions {
+  mockInvalidateQueries?: Mock
+  mockMutation: Mock
+  mockShowErrorMessage?: Mock
+  navigate?: { mockNavigate: Mock; path: string }
+  payload: { json?: { title: string; url: string }; param: { id: string }; }
+  result: ResultType
+}
 
 type ResultType = {
   current: {
-    isSuccess: boolean
     error: Error | null
+    isSuccess: boolean
   }
 }
 
-interface ExpectMutationSuccessOptions {
-  result: ResultType
-  mockMutation: Mock
-  payload: { param: { id: string }; json?: { title: string; url: string } }
-  navigate?: { mockNavigate: Mock; path: string }
-  mockInvalidateQueries?: Mock
-  mockShowErrorMessage?: Mock
-}
-
 export const expectMutationSuccess = ({
-  result,
-  mockMutation,
-  payload,
-  navigate,
   mockInvalidateQueries,
+  mockMutation,
   mockShowErrorMessage,
+  navigate,
+  payload,
+  result,
 }: ExpectMutationSuccessOptions) => {
   expect(result.current.isSuccess).toBe(true)
   // // 検証: 正しいIDでAPIが呼ばれたか
@@ -46,22 +46,22 @@ export const expectMutationSuccess = ({
 }
 
 interface ExpectMutationErrorOptions {
-  result: ResultType
   errorText: string
-  mockShowErrorMessage: Mock
-  mockNavigate?: Mock
   mockInvalidateQueries?: Mock
+  mockNavigate?: Mock
+  mockShowErrorMessage: Mock
+  result: ResultType
 }
 
 /**
  * Mutationフックでエラーが発生した際の共通アサーションヘルパー
  */
 export const expectMutationError = ({
-  result,
   errorText,
-  mockShowErrorMessage,
-  mockNavigate,
   mockInvalidateQueries,
+  mockNavigate,
+  mockShowErrorMessage,
+  result,
 }: ExpectMutationErrorOptions) => {
   // 1. フックのエラー状態の検証
   expect(result.current.isSuccess).toBe(false)
@@ -82,11 +82,11 @@ export const expectMutationError = ({
 export const createTestQueryClient = () => {
   const queryClient = new QueryClient({
     defaultOptions: {
-      queries: {
-        retry: false,
-        gcTime: 0, // キャッシュがテスト間で残るのを防ぐ
-      },
       mutations: { retry: false },
+      queries: {
+        gcTime: 0, // キャッシュがテスト間で残るのを防ぐ
+        retry: false,
+      },
     },
   })
   const wrapper = ({ children }: { children: React.ReactNode }) => (
@@ -94,7 +94,7 @@ export const createTestQueryClient = () => {
   )
   const mockInvalidateQueries = vi.spyOn(queryClient, 'invalidateQueries')
 
-  return { wrapper, mockInvalidateQueries }
+  return { mockInvalidateQueries, wrapper }
 }
 
 export const clickButton = async (user: UserEvent, label: string) => {

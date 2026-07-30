@@ -1,5 +1,6 @@
-import tsParser from '@typescript-eslint/parser'
 import tsPlugin from '@typescript-eslint/eslint-plugin'
+import tsParser from '@typescript-eslint/parser'
+import perfectionist from 'eslint-plugin-perfectionist'
 
 export default [
   {
@@ -26,11 +27,12 @@ export default [
     rules: {
       // 開発を円滑にしつつ、最低限の品質を保つルール
       ...tsPlugin.configs.recommended.rules,
+      '@typescript-eslint/no-explicit-any': 'warn', // anyは警告（徐々に無くしていくため）
       '@typescript-eslint/no-unused-vars': [
         'warn',
         { argsIgnorePattern: '^_' },
       ], // _で始まる変数は未使用でも許容
-      '@typescript-eslint/no-explicit-any': 'warn', // anyは警告（徐々に無くしていくため）
     },
   },
+  perfectionist.configs['recommended-natural'],
 ]

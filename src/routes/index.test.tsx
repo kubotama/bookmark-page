@@ -1,10 +1,11 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { act, render, screen } from '@testing-library/react'
-import { createRouter, RouterProvider } from '@tanstack/react-router'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { createRouter, RouterProvider } from '@tanstack/react-router'
+import { act, render, screen } from '@testing-library/react'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+import { mockBookmarksData, TestBookmarks } from '../../functions/test/fixtures'
 import { ERROR_MESSAGE, UI_LABELS } from '../../shared/constants/uiMessages'
 import { routeTree } from '../routeTree.gen'
-import { mockBookmarksData, TestBookmarks } from '../../functions/test/fixtures'
 
 window.scrollTo = vi.fn()
 
@@ -71,8 +72,8 @@ describe('Index Page (Bookmark List)', () => {
   it('APIから取得したブックマーク一覧が正常にレンダリングされること', async () => {
     // 正常系データを返すレスポンスをモック
     mockGet.mockResolvedValue({
-      ok: true,
       json: async () => mockBookmarksData,
+      ok: true,
     })
 
     await act(async () => {
@@ -96,8 +97,8 @@ describe('Index Page (Bookmark List)', () => {
   it('ブックマークが空の場合に「データなし」のメッセージが表示されること', async () => {
     // データが空の配列を返すレスポンスをモック
     mockGet.mockResolvedValue({
+      json: async () => ({ data: [], success: true }),
       ok: true,
-      json: async () => ({ success: true, data: [] }),
     })
 
     await act(async () => {

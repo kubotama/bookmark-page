@@ -1,17 +1,18 @@
-import { describe, expect, it, vi } from 'vitest'
-import { INVALID_STRING, TestBookmarks } from '../../functions/test/fixtures'
-import userEvent from '@testing-library/user-event'
 import { render, screen } from '@testing-library/react'
-import { BookmarkForm } from './BookmarkForm'
-import { inputText } from '../test/test-utils'
+import userEvent from '@testing-library/user-event'
+import { describe, expect, it, vi } from 'vitest'
+
+import { INVALID_STRING, TestBookmarks } from '../../functions/test/fixtures'
 import { UI_LABELS } from '../../shared/constants/uiMessages'
+import { inputText } from '../test/test-utils'
+import { BookmarkForm } from './BookmarkForm'
 
 vi.mock('@tanstack/react-router', () => ({
   useRouter: () => ({ history: { back: vi.fn() }, navigate: vi.fn() }),
 }))
 
 vi.mock('../hooks/useDeleteBookmark', () => ({
-  useDeleteBookmark: () => ({ mutate: vi.fn(), isPending: false }),
+  useDeleteBookmark: () => ({ isPending: false, mutate: vi.fn() }),
 }))
 
 const mockUpdate = vi.fn()
@@ -19,8 +20,8 @@ const mockIsUpdatePending = false
 
 vi.mock('../hooks/useUpdateBookmark', () => ({
   useUpdateBookmark: () => ({
-    mutate: mockUpdate,
     isPending: mockIsUpdatePending,
+    mutate: mockUpdate,
   }),
 }))
 

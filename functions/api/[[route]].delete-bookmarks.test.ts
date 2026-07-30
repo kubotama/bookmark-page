@@ -1,16 +1,17 @@
-import { describe, it, expect, vi, beforeEach, Mock } from 'vitest'
-import { app } from './[[route]]' // appのインポートパスは環境に合わせて調整してください
-import { uuidv7 } from 'uuidv7'
 import { D1Database } from '@cloudflare/workers-types'
+import { uuidv7 } from 'uuidv7'
+import { beforeEach, describe, expect, it, Mock, vi } from 'vitest'
+
+import { ERROR_MESSAGE, UI_MESSAGES } from '../../shared/constants/uiMessages'
 import { SCHEMA_MESSAGE } from '../../shared/constants/validation'
+import { DATABASE_NAME } from '../constants/db'
+import { LOG_MESSAGE } from '../constants/logMessage'
 import {
   INVALID_STRING,
   REQUEST_API_PATH,
   TEST_ERROR_MESSAGE,
 } from '../test/fixtures'
-import { ERROR_MESSAGE, UI_MESSAGES } from '../../shared/constants/uiMessages'
-import { LOG_MESSAGE } from '../constants/logMessage'
-import { DATABASE_NAME } from '../constants/db'
+import { app } from './[[route]]' // appのインポートパスは環境に合わせて調整してください
 
 // D1 データベースの準備（モック用）
 const mockPrepare = vi.fn()
@@ -72,8 +73,8 @@ describe('DELETE /api/bookmarks/:id', () => {
       expect(res.status).toBe(400)
       const body = await res.json()
       expect(body).toEqual({
-        success: false,
         error: SCHEMA_MESSAGE.INVALID_ID_FORMAT,
+        success: false,
       })
     })
 
@@ -119,8 +120,8 @@ describe('DELETE /api/bookmarks/:id', () => {
       expect(res.status).toBe(500)
       const body = await res.json()
       expect(body).toEqual({
-        success: false,
         error: TEST_ERROR_MESSAGE.DB_ERROR,
+        success: false,
       })
       expect(consoleSpy).toHaveBeenCalledWith(LOG_MESSAGE.DB_ERROR(dbError))
     })
@@ -138,8 +139,8 @@ describe('DELETE /api/bookmarks/:id', () => {
       expect(res.status).toBe(500)
       const body = await res.json()
       expect(body).toEqual({
-        success: false,
         error: TEST_ERROR_MESSAGE.DB_ERROR,
+        success: false,
       })
       expect(consoleSpy).toHaveBeenCalledWith(
         expect.stringContaining(ERROR_MESSAGE.FAILED_DELETE_BOOKMARK),
@@ -157,8 +158,8 @@ describe('DELETE /api/bookmarks/:id', () => {
 
       const body = await res.json()
       expect(body).toEqual({
-        success: false,
         error: UI_MESSAGES.API.DB_ERROR,
+        success: false,
       })
       expect(consoleSpy).toHaveBeenCalledWith(
         expect.stringContaining(ERROR_MESSAGE.DB_BINDING_ERROR(DATABASE_NAME)),

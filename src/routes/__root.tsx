@@ -1,4 +1,5 @@
 import { createRootRoute, Outlet } from '@tanstack/react-router'
+
 import { UI_LABELS } from '../../shared/constants/uiMessages'
 
 export const Route = createRootRoute({

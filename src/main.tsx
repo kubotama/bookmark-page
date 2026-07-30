@@ -1,11 +1,11 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+// 💡 TanStack Router のインポートを追加
+import { createRouter, RouterProvider } from '@tanstack/react-router'
 // src/main.tsx
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-// 💡 TanStack Router のインポートを追加
-import { RouterProvider, createRouter } from '@tanstack/react-router'
-import './index.css'
 
+import './index.css'
 // 💡 自動生成されたルートツリーをインポート（一度ビルド・開発サーバー起動すると生成されます）
 import { routeTree } from './routeTree.gen'
 

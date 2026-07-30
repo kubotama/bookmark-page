@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, Mock, vi } from 'vitest'
-import { showErrorMessage } from './notification'
+
 import { TEST_ERROR_MESSAGE } from '../../functions/test/fixtures'
+import { showErrorMessage } from './notification'
 
 describe('メッセージ表示', () => {
   let alertSpy: Mock<(message?: unknown) => void>

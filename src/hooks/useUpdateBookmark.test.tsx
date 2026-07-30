@@ -1,8 +1,8 @@
 import { renderHook, waitFor } from '@testing-library/react'
 import { uuidv7 } from 'uuidv7'
 import { beforeEach, describe, it, vi } from 'vitest'
+
 import { TestBookmarks } from '../../functions/test/fixtures'
-import { useUpdateBookmark } from './useUpdateBookmark'
 import { ERROR_MESSAGE, UI_MESSAGES } from '../../shared/constants/uiMessages'
 import { SCHEMA_MESSAGE } from '../../shared/constants/validation'
 import {
@@ -10,6 +10,7 @@ import {
   expectMutationError,
   expectMutationSuccess,
 } from '../test/test-utils'
+import { useUpdateBookmark } from './useUpdateBookmark'
 
 const { mockPatch, mockShowErrorMessage } = vi.hoisted(() => ({
   mockPatch: vi.fn(),
@@ -35,9 +36,9 @@ vi.mock('../lib/notification', () => ({
 }))
 
 const renderUpdateBookmark = () => {
-  const { wrapper, mockInvalidateQueries } = createTestQueryClient()
+  const { mockInvalidateQueries, wrapper } = createTestQueryClient()
   const { result } = renderHook(() => useUpdateBookmark(), { wrapper })
-  return { result, mockInvalidateQueries }
+  return { mockInvalidateQueries, result }
 }
 
 describe('useUpdateBookmark', () => {
@@ -55,31 +56,31 @@ describe('useUpdateBookmark', () => {
 
   it('更新APIが200を返したときにキャッシュが更新されること', async () => {
     mockPatch.mockResolvedValueOnce({
-      status: 200,
-      ok: true,
       json: async () => ({
-        success: true,
         data: updatedPayload,
+        success: true,
       }),
+      ok: true,
+      status: 200,
     })
 
-    const { result, mockInvalidateQueries } = renderUpdateBookmark()
+    const { mockInvalidateQueries, result } = renderUpdateBookmark()
 
     result.current.mutate(updatedPayload)
 
     await waitFor(() => {
       expectMutationSuccess({
-        result,
+        mockInvalidateQueries,
         mockMutation: mockPatch,
+        mockShowErrorMessage,
         payload: {
-          param: { id: updatedPayload.id },
           json: {
             title: updatedPayload.title,
             url: updatedPayload.url,
           },
+          param: { id: updatedPayload.id },
         },
-        mockInvalidateQueries,
-        mockShowErrorMessage,
+        result,
       })
     })
   })
@@ -87,47 +88,47 @@ describe('useUpdateBookmark', () => {
   describe('異常系', () => {
     it.each([
       {
-        status: 400,
         errorName: 'バリデーション',
         errorText: SCHEMA_MESSAGE.INVALID_ID_FORMAT,
+        status: 400,
       },
       {
-        status: 404,
         errorName: 'ブックマークが存在しない',
         errorText: UI_MESSAGES.API.NOT_FOUND_BOOKMARK,
+        status: 404,
       },
       {
-        status: 409,
         errorName: '登録済みのurlを登録しようとした',
         errorText: UI_MESSAGES.API.DUPLICATE_URL,
+        status: 409,
       },
       {
-        status: 500,
         errorName: '一般的な',
         errorText: ERROR_MESSAGE.SERVER_ERROR,
+        status: 500,
       },
     ])(
       `APIが$statusで$errorNameエラーを返したときにエラー処理が行われること`,
-      async ({ status, errorText }) => {
+      async ({ errorText, status }) => {
         mockPatch.mockResolvedValueOnce({
-          status,
-          ok: false,
           json: async () => ({
-            success: false,
             error: errorText,
+            success: false,
           }),
+          ok: false,
+          status,
         })
 
-        const { result, mockInvalidateQueries } = renderUpdateBookmark()
+        const { mockInvalidateQueries, result } = renderUpdateBookmark()
 
         result.current.mutate(updatedPayload)
 
         await waitFor(() => {
           expectMutationError({
-            result,
             errorText,
-            mockShowErrorMessage,
             mockInvalidateQueries,
+            mockShowErrorMessage,
+            result,
           })
         })
       },
@@ -135,23 +136,23 @@ describe('useUpdateBookmark', () => {
 
     it(`APIが不明なエラーを返したときにエラー処理が行われること`, async () => {
       mockPatch.mockResolvedValueOnce({
-        status: 500,
-        ok: false,
         json: async () => ({
           success: false,
         }),
+        ok: false,
+        status: 500,
       })
 
-      const { result, mockInvalidateQueries } = renderUpdateBookmark()
+      const { mockInvalidateQueries, result } = renderUpdateBookmark()
 
       result.current.mutate(updatedPayload)
 
       await waitFor(() => {
         expectMutationError({
-          result,
           errorText: ERROR_MESSAGE.FAILED_UPDATE_BOOKMARK,
-          mockShowErrorMessage,
           mockInvalidateQueries,
+          mockShowErrorMessage,
+          result,
         })
       })
     })

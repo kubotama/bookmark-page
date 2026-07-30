@@ -17,9 +17,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
     "lint": "eslint .",
+    "lint:format": "eslint . --fix",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -49,6 +48,7 @@
     "chrome-types": "^0.1.429",
     "concurrently": "^10.0.3",
     "eslint": "^10.5.0",
+    "eslint-plugin-perfectionist": "^5.10.0",
     "happy-dom": "20.10.6",
     "jsdom": "29.1.1",
     "prettier": "^3.8.4",

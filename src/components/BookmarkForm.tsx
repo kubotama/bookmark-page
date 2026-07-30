@@ -1,12 +1,13 @@
-import { useState } from 'react'
-import { UI_LABELS, UI_MESSAGES } from '../../shared/constants/uiMessages'
 import { useRouter } from '@tanstack/react-router'
-import { useDeleteBookmark } from '../hooks/useDeleteBookmark'
+import { useState } from 'react'
+
 import {
   Bookmark,
   BookmarkUrlSchema,
   UpdateBookmarkSchema,
 } from '../../functions/schemas/bookmark'
+import { UI_LABELS, UI_MESSAGES } from '../../shared/constants/uiMessages'
+import { useDeleteBookmark } from '../hooks/useDeleteBookmark'
 import { useUpdateBookmark } from '../hooks/useUpdateBookmark'
 
 interface BookmarkFormProps {
@@ -17,8 +18,8 @@ export const BookmarkForm = ({ bookmark }: BookmarkFormProps) => {
   const [title, setTitle] = useState(bookmark.title)
   const [url, setUrl] = useState(bookmark.url)
   const router = useRouter()
-  const { mutate: deleteBookmark, isPending } = useDeleteBookmark()
-  const { mutate: updateBookmark, isPending: isUpdatePending } =
+  const { isPending, mutate: deleteBookmark } = useDeleteBookmark()
+  const { isPending: isUpdatePending, mutate: updateBookmark } =
     useUpdateBookmark()
 
   const isSubmitDisable = !BookmarkUrlSchema.safeParse(url).success
@@ -68,56 +69,56 @@ export const BookmarkForm = ({ bookmark }: BookmarkFormProps) => {
             {UI_LABELS.FIELDS.TITLE}
           </label>
           <input
-            type="text"
             aria-label={UI_LABELS.FIELDS.TITLE}
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
             className="border border-slate-300 text-slate-700 bg-slate-200 rounded px-2 py-1"
+            onChange={(e) => setTitle(e.target.value)}
+            type="text"
+            value={title}
           />
 
           <label className="text-sm font-medium text-slate-600">
             {UI_LABELS.FIELDS.URL}
           </label>
           <input
-            type="text"
             aria-label={UI_LABELS.FIELDS.URL}
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
             className="border border-slate-300 text-slate-700 bg-slate-200 rounded px-2 py-1"
+            onChange={(e) => setUrl(e.target.value)}
+            type="text"
+            value={url}
           />
         </div>
         <div className="mt-2 grid grid-cols-4 gap-2">
           <button
-            type="submit"
-            disabled={isSubmitDisable}
             className={`border border-slate-300 text-slate-700 bg-indigo-200 rounded px-2 py-1 cursor-pointer
             hover:text-slate-200 hover:bg-indigo-700 hover:font-semibold
             disabled:bg-slate-200 disabled:text-slate-500`}
+            disabled={isSubmitDisable}
+            type="submit"
           >
             {UI_LABELS.ACTIONS.OPEN}
           </button>
           <button
-            type="button"
-            onClick={handleUpdate}
-            disabled={isUpdateDisable}
             className={`border border-slate-300 text-slate-700 bg-indigo-200 rounded px-2 py-1 cursor-pointer
             hover:text-slate-200 hover:bg-indigo-700 hover:font-semibold
             disabled:bg-slate-200 disabled:text-slate-500`}
+            disabled={isUpdateDisable}
+            onClick={handleUpdate}
+            type="button"
           >
             {UI_LABELS.ACTIONS.UPDATE}
           </button>
           <button
-            type="button"
-            onClick={handleDelete}
-            disabled={isPending} // 削除中は連打できないように無効化
             className="border border-slate-300 text-slate-700 bg-indigo-200 rounded px-2 py-1 cursor-pointer hover:text-slate-200 hover:bg-indigo-700 hover:font-semibold"
+            disabled={isPending} // 削除中は連打できないように無効化
+            onClick={handleDelete}
+            type="button"
           >
             {UI_LABELS.ACTIONS.DELETE}
           </button>
           <button
-            type="button"
-            onClick={handleBack}
             className="border border-slate-300 text-slate-700 bg-indigo-200 rounded px-2 py-1 cursor-pointer hover:text-slate-200 hover:bg-indigo-700 hover:font-semibold"
+            onClick={handleBack}
+            type="button"
           >
             {UI_LABELS.ACTIONS.BACK}
           </button>

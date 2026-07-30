@@ -1,9 +1,8 @@
 import { render, screen, waitFor } from '@testing-library/react'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { userEvent } from '@testing-library/user-event'
-import { Popup } from './Popup'
+import { hc } from 'hono/client'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { client } from './lib/hono'
 import {
   INVALID_STRING,
   TEST_API_URL,
@@ -12,8 +11,9 @@ import {
 } from '../../functions/test/fixtures'
 import { UI_LABELS, UI_MESSAGES } from '../../shared/constants/uiMessages'
 import { SCHEMA_MESSAGE } from '../../shared/constants/validation'
-import { hc } from 'hono/client'
 import { STORAGE_KEY } from '../constants/storage'
+import { client } from './lib/hono'
+import { Popup } from './Popup'
 
 // 💡 Hono RPC クライアントの通信部分をモック化
 vi.mock('./lib/hono', () => {
@@ -21,13 +21,13 @@ vi.mock('./lib/hono', () => {
     client: {
       api: {
         bookmarks: {
-          $post: vi.fn(() => ({
-            ok: true,
-            json: async () => ({ success: true }),
-          })),
           $get: vi.fn(() => ({
+            json: async () => ({ data: TestBookmarks, success: true }),
             ok: true,
-            json: async () => ({ success: true, data: TestBookmarks }),
+          })),
+          $post: vi.fn(() => ({
+            json: async () => ({ success: true }),
+            ok: true,
           })),
         },
       },
@@ -41,8 +41,8 @@ vi.mock('hono/client', () => {
       api: {
         bookmarks: {
           $get: vi.fn().mockResolvedValue({
+            json: async () => ({ data: TestBookmarks, success: true }),
             ok: true,
-            json: async () => ({ success: true, data: TestBookmarks }),
           }),
         },
       },
@@ -75,12 +75,12 @@ describe('Popup Component', () => {
     })
 
     return {
-      titleInput,
-      urlInput,
-      submitButton,
       apiUrlInput,
       apiUrlSaveButton,
+      submitButton,
       testConnectionButton,
+      titleInput,
+      urlInput,
     }
   }
 
@@ -120,12 +120,12 @@ describe('Popup Component', () => {
       type PostResponse = InferResponse<typeof client.api.bookmarks.$post>
 
       const mockResponse = {
+        json: async () => ({
+          error: SCHEMA_MESSAGE.INVALID_URL,
+          success: false as const,
+        }),
         ok: false,
         status: 400,
-        json: async () => ({
-          success: false as const,
-          error: SCHEMA_MESSAGE.INVALID_URL,
-        }),
       } as unknown as PostResponse
 
       vi.mocked(client.api.bookmarks.$post).mockResolvedValueOnce(mockResponse)

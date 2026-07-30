@@ -1,7 +1,7 @@
-import { describe, it, vi, beforeEach } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
-import { useDeleteBookmark } from './useDeleteBookmark'
 import { uuidv7 } from 'uuidv7'
+import { beforeEach, describe, it, vi } from 'vitest'
+
 import { ERROR_MESSAGE } from '../../shared/constants/uiMessages'
 import { SCHEMA_MESSAGE } from '../../shared/constants/validation'
 import {
@@ -9,6 +9,7 @@ import {
   expectMutationError,
   expectMutationSuccess,
 } from '../test/test-utils'
+import { useDeleteBookmark } from './useDeleteBookmark'
 
 // 💡 1. Hono RPC クライアントと共通のモック関数の準備
 const { mockDelete, mockNavigate, mockShowErrorMessage } = vi.hoisted(() => ({
@@ -43,12 +44,12 @@ vi.mock('../lib/notification', () => ({
 }))
 
 const renderDeleteBookmark = () => {
-  const { wrapper, mockInvalidateQueries } = createTestQueryClient()
+  const { mockInvalidateQueries, wrapper } = createTestQueryClient()
 
   const { result } = renderHook(() => useDeleteBookmark(), {
     wrapper,
   })
-  return { result, mockInvalidateQueries }
+  return { mockInvalidateQueries, result }
 }
 
 describe('useDeleteBookmark', () => {
@@ -65,11 +66,11 @@ describe('useDeleteBookmark', () => {
   it('削除APIが204を返したとき、キャッシュが更新され、トップへ遷移すること', async () => {
     // APIレスポンスのモック設定 (204 No Content, ok: true)
     mockDelete.mockResolvedValueOnce({
-      status: 204,
       ok: true,
+      status: 204,
     })
 
-    const { result, mockInvalidateQueries } = renderDeleteBookmark()
+    const { mockInvalidateQueries, result } = renderDeleteBookmark()
 
     // 💡 フックの mutate を実行
     result.current.mutate(validId)
@@ -77,12 +78,12 @@ describe('useDeleteBookmark', () => {
     // 非同期処理（onSuccess）が完了するまで待機して検証
     await waitFor(() => {
       expectMutationSuccess({
-        result,
-        mockMutation: mockDelete,
-        payload: { param: { id: validId } },
         mockInvalidateQueries,
-        navigate: { mockNavigate, path: '/' },
+        mockMutation: mockDelete,
         mockShowErrorMessage,
+        navigate: { mockNavigate, path: '/' },
+        payload: { param: { id: validId } },
+        result,
       })
     })
   })
@@ -93,38 +94,38 @@ describe('useDeleteBookmark', () => {
   // it('APIが500などの一般的なエラーを返したとき、エラー処理が行われること', async () => {
   it.each([
     {
-      status: 400,
       errorName: 'バリデーション',
       errorText: SCHEMA_MESSAGE.INVALID_ID_FORMAT,
+      status: 400,
     },
     {
-      status: 500,
       errorName: '一般的な',
       errorText: ERROR_MESSAGE.SERVER_ERROR,
+      status: 500,
     },
   ])(
     `APIが$statusで$errorNameエラーを返したときにエラー処理が行われること`,
-    async ({ status, errorText }) => {
+    async ({ errorText, status }) => {
       mockDelete.mockResolvedValueOnce({
-        status: status,
-        ok: false,
         json: async () => ({
-          success: false,
           error: errorText,
+          success: false,
         }),
+        ok: false,
+        status: status,
       })
 
-      const { result, mockInvalidateQueries } = renderDeleteBookmark()
+      const { mockInvalidateQueries, result } = renderDeleteBookmark()
 
       result.current.mutate(validId)
 
       await waitFor(() => {
         expectMutationError({
-          result,
           errorText,
-          mockShowErrorMessage,
-          mockNavigate,
           mockInvalidateQueries,
+          mockNavigate,
+          mockShowErrorMessage,
+          result,
         })
       })
     },
@@ -132,24 +133,24 @@ describe('useDeleteBookmark', () => {
 
   it(`APIが不明なエラーを返したときにエラー処理が行われること`, async () => {
     mockDelete.mockResolvedValueOnce({
-      status: 500,
-      ok: false,
       json: async () => ({
         success: false,
       }),
+      ok: false,
+      status: 500,
     })
 
-    const { result, mockInvalidateQueries } = renderDeleteBookmark()
+    const { mockInvalidateQueries, result } = renderDeleteBookmark()
 
     result.current.mutate(validId)
 
     await waitFor(() => {
       expectMutationError({
-        result,
         errorText: ERROR_MESSAGE.FAILED_DELETE_BOOKMARK,
-        mockShowErrorMessage,
-        mockNavigate,
         mockInvalidateQueries,
+        mockNavigate,
+        mockShowErrorMessage,
+        result,
       })
     })
   })
