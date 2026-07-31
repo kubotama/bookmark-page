@@ -27,6 +27,7 @@ export const BookmarkForm = ({ bookmark }: BookmarkFormProps) => {
   const canUpdate =
     isDirty && UpdateBookmarkSchema.safeParse({ title, url }).success
   const isUpdateDisable = !canUpdate || isUpdatePending
+  const isBackDisable = router.history.length < 2
 
   const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -34,11 +35,7 @@ export const BookmarkForm = ({ bookmark }: BookmarkFormProps) => {
   }
 
   const handleBack = () => {
-    if (window.history.length > 1) {
-      router.history.back()
-    } else {
-      router.navigate({ to: '/' })
-    }
+    router.history.back()
   }
 
   const handleDelete = () => {
@@ -116,7 +113,10 @@ export const BookmarkForm = ({ bookmark }: BookmarkFormProps) => {
             {UI_LABELS.ACTIONS.DELETE}
           </button>
           <button
-            className="border border-slate-300 text-slate-700 bg-indigo-200 rounded px-2 py-1 cursor-pointer hover:text-slate-200 hover:bg-indigo-700 hover:font-semibold"
+            className={`border border-slate-300 text-slate-700 bg-indigo-200 rounded px-2 py-1 cursor-pointer
+            hover:text-slate-200 hover:bg-indigo-700 hover:font-semibold
+            disabled:bg-slate-200 disabled:text-slate-500 disabled:cursor-not-allowed`}
+            disabled={isBackDisable}
             onClick={handleBack}
             type="button"
           >
