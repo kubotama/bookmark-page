@@ -10,6 +10,7 @@ import { UI_LABELS, UI_MESSAGES } from '../../shared/constants/uiMessages'
 import { useDeleteBookmark } from '../hooks/useDeleteBookmark'
 import { useUpdateBookmark } from '../hooks/useUpdateBookmark'
 import { Button } from './Button'
+import { FormInput } from './FormInput'
 
 interface BookmarkFormProps {
   bookmark: Bookmark
@@ -63,25 +64,15 @@ export const BookmarkForm = ({ bookmark }: BookmarkFormProps) => {
     <form onSubmit={handleSubmit}>
       <div className="w-1/2 m-auto">
         <div className="grid grid-cols-[max-content_1fr] items-center gap-1">
-          <label className="text-sm font-medium text-slate-600">
-            {UI_LABELS.FIELDS.TITLE}
-          </label>
-          <input
-            aria-label={UI_LABELS.FIELDS.TITLE}
-            className="border border-slate-300 text-slate-700 bg-slate-200 rounded px-2 py-1"
+          <FormInput
+            label={UI_LABELS.FIELDS.TITLE}
             onChange={(e) => setTitle(e.target.value)}
-            type="text"
             value={title}
           />
 
-          <label className="text-sm font-medium text-slate-600">
-            {UI_LABELS.FIELDS.URL}
-          </label>
-          <input
-            aria-label={UI_LABELS.FIELDS.URL}
-            className="border border-slate-300 text-slate-700 bg-slate-200 rounded px-2 py-1"
+          <FormInput
+            label={UI_LABELS.FIELDS.URL}
             onChange={(e) => setUrl(e.target.value)}
-            type="text"
             value={url}
           />
         </div>
