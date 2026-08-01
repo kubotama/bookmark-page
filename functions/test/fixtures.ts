@@ -26,6 +26,10 @@ export const BookmarksTableData = {
   url: 'https://vite.dev',
 } as const
 
+export const TEST_STRING = {
+  BUTTON_LABEL: 'ボタン',
+} as const
+
 export const INVALID_STRING = {
   FTP: 'ftp://ftp.com',
   ID: 'not-found-id',
@@ -45,7 +49,7 @@ export const TEST_API_URL = {
 
 export const getExpectedText = (
   schema: typeof CreateBookmarkSchema,
-  body: { title: string; url: string; },
+  body: { title: string; url: string },
   name: string,
 ) => {
   const schemaResult = schema.safeParse(body)
