@@ -70,7 +70,7 @@ export function Popup() {
 
       if (data.success) {
         setMessage({
-          text: UI_MESSAGES.BOOKMARKS.SAVED_BOOKMARK,
+          text: UI_MESSAGES.BOOKMARKS.ADDED_BOOKMARK,
           type: 'success',
         })
       } else {
@@ -200,7 +200,9 @@ export function Popup() {
         </div>
 
         <Button disabled={loading} type="submit">
-          {loading ? UI_LABELS.ACTIONS.SAVING : UI_LABELS.ACTIONS.SAVE}
+          {loading
+            ? UI_LABELS.ACTIONS.ADDING_BOOKMARK
+            : UI_LABELS.ACTIONS.ADD_BOOKMARK}
         </Button>
 
         <div className="grid grid-cols-[max-content_1fr] items-center gap-1">
@@ -212,12 +214,18 @@ export function Popup() {
           />
         </div>
 
-        <Button disabled={loading} onClick={handleSaveApiUrl} type="button">
-          {UI_LABELS.ACTIONS.SAVE_API_URL}
-        </Button>
-        <Button disabled={loading} onClick={handleTestConnection} type="button">
-          {UI_LABELS.ACTIONS.VERIFY_API_URL}
-        </Button>
+        <div className="grid grid-cols-2 gap-2">
+          <Button disabled={loading} onClick={handleSaveApiUrl} type="button">
+            {UI_LABELS.ACTIONS.SAVE_API_URL}
+          </Button>
+          <Button
+            disabled={loading}
+            onClick={handleTestConnection}
+            type="button"
+          >
+            {UI_LABELS.ACTIONS.VERIFY_API_URL}
+          </Button>
+        </div>
       </form>
 
       {message && (
