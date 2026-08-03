@@ -11,9 +11,10 @@ import {
   UI_MESSAGES,
 } from '../../shared/constants/uiMessages'
 import { SCHEMA_MESSAGE } from '../../shared/constants/validation'
+import { FormInput } from '../../src/components/FormInput'
 import { STORAGE_KEY } from '../constants/storage'
-import { client } from './lib/hono'
 import '../extension.css'
+import { client } from './lib/hono'
 
 export function Popup() {
   const [title, setTitle] = useState('')
@@ -181,52 +182,18 @@ export function Popup() {
         {UI_LABELS.HEADER.ADD_BOOKMARK}
       </h1>
 
-      <form
-        onSubmit={handleSubmit}
-        style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
-      >
-        <div>
-          <label
-            htmlFor="title-input"
-            style={{
-              color: '#4b5563',
-              display: 'block',
-              fontSize: '12px',
-              marginBottom: '4px',
-            }}
-          >
-            {UI_LABELS.FIELDS.TITLE}
-          </label>
-          <input
-            className="border"
+      <form className="flex flex-col gap-2.5" onSubmit={handleSubmit}>
+        <div className="grid grid-cols-[max-content_1fr] items-center gap-1">
+          <FormInput
             id="title-input"
+            label={UI_LABELS.FIELDS.TITLE}
             onChange={(e) => setTitle(e.target.value)}
-            required
-            style={{ boxSizing: 'border-box', padding: '6px', width: '100%' }}
-            type="text"
             value={title}
           />
-        </div>
-
-        <div>
-          <label
-            htmlFor="url-input"
-            style={{
-              color: '#4b5563',
-              display: 'block',
-              fontSize: '12px',
-              marginBottom: '4px',
-            }}
-          >
-            {UI_LABELS.FIELDS.URL}
-          </label>
-          <input
-            className="border"
+          <FormInput
             id="url-input"
+            label={UI_LABELS.FIELDS.URL}
             onChange={(e) => setUrl(e.target.value)}
-            required
-            style={{ boxSizing: 'border-box', padding: '6px', width: '100%' }}
-            type="url"
             value={url}
           />
         </div>
@@ -246,24 +213,11 @@ export function Popup() {
           {loading ? UI_LABELS.ACTIONS.SAVING : UI_LABELS.ACTIONS.SAVE}
         </button>
 
-        <div>
-          <label
-            htmlFor="api-url-input"
-            style={{
-              color: '#4b5563',
-              display: 'block',
-              fontSize: '12px',
-              marginBottom: '4px',
-            }}
-          >
-            {UI_LABELS.FIELDS.API_URL}
-          </label>
-          <input
-            className="border"
+        <div className="grid grid-cols-[max-content_1fr] items-center gap-1">
+          <FormInput
             id="api-url-input"
+            label={UI_LABELS.FIELDS.API_URL}
             onChange={(e) => setApiUrl(e.target.value)}
-            style={{ boxSizing: 'border-box', padding: '6px', width: '100%' }}
-            type="url"
             value={apiUrl}
           />
         </div>
