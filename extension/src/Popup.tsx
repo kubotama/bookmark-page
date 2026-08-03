@@ -11,6 +11,7 @@ import {
   UI_MESSAGES,
 } from '../../shared/constants/uiMessages'
 import { SCHEMA_MESSAGE } from '../../shared/constants/validation'
+import { Button } from '../../src/components/Button'
 import { FormInput } from '../../src/components/FormInput'
 import { STORAGE_KEY } from '../constants/storage'
 import '../extension.css'
@@ -198,20 +199,9 @@ export function Popup() {
           />
         </div>
 
-        <button
-          disabled={loading}
-          style={{
-            backgroundColor: loading ? '#9ca3af' : '#2563eb',
-            border: 'none',
-            borderRadius: '4px',
-            color: '#fff',
-            cursor: loading ? 'not-allowed' : 'pointer',
-            padding: '8px',
-          }}
-          type="submit"
-        >
+        <Button disabled={loading} type="submit">
           {loading ? UI_LABELS.ACTIONS.SAVING : UI_LABELS.ACTIONS.SAVE}
-        </button>
+        </Button>
 
         <div className="grid grid-cols-[max-content_1fr] items-center gap-1">
           <FormInput
@@ -222,36 +212,12 @@ export function Popup() {
           />
         </div>
 
-        <button
-          disabled={loading}
-          onClick={handleSaveApiUrl}
-          style={{
-            backgroundColor: loading ? '#9ca3af' : '#2563eb',
-            border: 'none',
-            borderRadius: '4px',
-            color: '#fff',
-            cursor: loading ? 'not-allowed' : 'pointer',
-            padding: '8px',
-          }}
-          type="button"
-        >
+        <Button disabled={loading} onClick={handleSaveApiUrl} type="button">
           {UI_LABELS.ACTIONS.SAVE_API_URL}
-        </button>
-        <button
-          disabled={loading}
-          onClick={handleTestConnection}
-          style={{
-            backgroundColor: loading ? '#9ca3af' : '#2563eb',
-            border: 'none',
-            borderRadius: '4px',
-            color: '#fff',
-            cursor: loading ? 'not-allowed' : 'pointer',
-            padding: '8px',
-          }}
-          type="button"
-        >
+        </Button>
+        <Button disabled={loading} onClick={handleTestConnection} type="button">
           {UI_LABELS.ACTIONS.VERIFY_API_URL}
-        </button>
+        </Button>
       </form>
 
       {message && (
