@@ -176,8 +176,8 @@ export function Popup() {
   }
 
   return (
-    <div style={{ padding: '16px' }}>
-      <h1 className="text-gray-900 text-base mb-3">
+    <div className="p-4">
+      <h1 className="text-slate-200 bg-slate-700 font-bold m-auto text-lg text-center p-2 mb-2">
         {UI_LABELS.HEADER.ADD_BOOKMARK}
       </h1>
 
