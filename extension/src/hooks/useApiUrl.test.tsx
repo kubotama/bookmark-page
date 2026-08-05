@@ -1,10 +1,15 @@
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { hc } from 'hono/client'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { TEST_API_URL, TestBookmarks } from '../../../functions/test/fixtures'
+import {
+  INVALID_STRING,
+  TEST_API_URL,
+  TestBookmarks,
+} from '../../../functions/test/fixtures'
 import { DEFAULT_API_URL } from '../../../shared/constants/api'
 import { UI_MESSAGES } from '../../../shared/constants/uiMessages'
+import { SCHEMA_MESSAGE } from '../../../shared/constants/validation'
 import { STORAGE_KEY } from '../../constants/storage'
 import { useApiUrl } from './useApiUrl'
 
@@ -24,7 +29,29 @@ vi.mock('hono/client', () => {
   }
 })
 
+const setupHook = async (url: string) => {
+  vi.spyOn(chrome.storage.local, 'get').mockImplementation(async () => ({
+    [STORAGE_KEY.API_URL]: '',
+  }))
+
+  const { result } = renderHook(() => useApiUrl())
+  await waitFor(() => {
+    expect(result.current.apiUrl).toBe(DEFAULT_API_URL)
+  })
+  await act(async () => {
+    result.current.setApiUrl(url)
+  })
+  await waitFor(() => {
+    expect(result.current.apiUrl).toBe(url)
+  })
+  return result
+}
+
 describe('useApiUrl', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
   describe('初期化', () => {
     it.each([
       {
@@ -75,9 +102,24 @@ describe('useApiUrl', () => {
         await result.current.testConnection()
       })
       expect(hc).toHaveBeenCalledWith(TEST_API_URL.LOCAL, expect.any(Object))
+      expect(mockGet).toHaveBeenCalledWith()
       expect(result.current.apiUrlMessage?.type).toBe('success')
       expect(result.current.apiUrlMessage?.text).toBe(
         UI_MESSAGES.BOOKMARKS.REGISTERED_BOOKMARKS(2),
+      )
+    })
+
+    it('urlが不正な場合にはアクセスしないこと', async () => {
+      const result = await setupHook(INVALID_STRING.URL)
+
+      await act(async () => {
+        await result.current.testConnection()
+      })
+      expect(hc).not.toHaveBeenCalled()
+      expect(mockGet).not.toHaveBeenCalled()
+      expect(result.current.apiUrlMessage?.type).toBe('error')
+      expect(result.current.apiUrlMessage?.text).toBe(
+        SCHEMA_MESSAGE.PROTOCOL_CONSTRAINT,
       )
     })
   })
