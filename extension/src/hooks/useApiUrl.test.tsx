@@ -1,6 +1,7 @@
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { hc } from 'hono/client'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { json } from 'zod'
 
 import {
   INVALID_STRING,
@@ -120,6 +121,72 @@ describe('useApiUrl', () => {
       expect(result.current.apiUrlMessage?.type).toBe('error')
       expect(result.current.apiUrlMessage?.text).toBe(
         SCHEMA_MESSAGE.PROTOCOL_CONSTRAINT,
+      )
+    })
+
+    it.each([
+      {
+        description: '認証エラー(401)',
+        expectedMessage: UI_MESSAGES.AUTH.ZERO_TRUST_AUTH_ERROR,
+        response: { ok: false, status: 401 },
+      },
+      {
+        description: '認証エラー(403)',
+        expectedMessage: UI_MESSAGES.AUTH.ZERO_TRUST_AUTH_ERROR,
+        response: { ok: false, status: 401 },
+      },
+      {
+        description: 'その他のエラー(500)',
+        expectedMessage: UI_MESSAGES.API.FAILED_CONNECT_SERVER,
+        response: { ok: false, status: 500 },
+      },
+      {
+        description: '文法エラー',
+        expectedMessage: UI_MESSAGES.AUTH.INVALID_RESPONSE,
+        response: {
+          json: async () => ({ data: '', success: false }),
+          ok: true,
+        },
+      },
+    ])('$description', async ({ expectedMessage, response }) => {
+      mockGet.mockResolvedValue(response)
+
+      const result = await setupHook(TEST_API_URL.LOCAL)
+      await act(async () => {
+        await result.current.testConnection()
+      })
+
+      expect(result.current.apiUrlMessage?.type).toBe('error')
+      expect(result.current.apiUrlMessage?.text).toBe(expectedMessage)
+    })
+
+    it('タイムアウト', async () => {
+      const abortError = new Error('AbortError')
+      abortError.name = 'AbortError'
+      mockGet.mockRejectedValue(abortError)
+
+      const result = await setupHook(TEST_API_URL.LOCAL)
+      await act(async () => {
+        await result.current.testConnection()
+      })
+
+      expect(result.current.apiUrlMessage?.type).toBe('error')
+      expect(result.current.apiUrlMessage?.text).toBe(
+        UI_MESSAGES.API.TIMEOUT_CONNECT_SERVER,
+      )
+    })
+
+    it('異常なエラー', async () => {
+      mockGet.mockRejectedValue('')
+
+      const result = await setupHook(TEST_API_URL.LOCAL)
+      await act(async () => {
+        await result.current.testConnection()
+      })
+
+      expect(result.current.apiUrlMessage?.type).toBe('error')
+      expect(result.current.apiUrlMessage?.text).toBe(
+        UI_MESSAGES.API.FAILED_CONNECT_SERVER,
       )
     })
   })
