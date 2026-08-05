@@ -11,9 +11,11 @@ import {
   UI_MESSAGES,
 } from '../../shared/constants/uiMessages'
 import { SCHEMA_MESSAGE } from '../../shared/constants/validation'
+import { Button } from '../../src/components/Button'
+import { FormInput } from '../../src/components/FormInput'
 import { STORAGE_KEY } from '../constants/storage'
-import { client } from './lib/hono'
 import '../extension.css'
+import { client } from './lib/hono'
 
 export function Popup() {
   const [title, setTitle] = useState('')
@@ -68,7 +70,7 @@ export function Popup() {
 
       if (data.success) {
         setMessage({
-          text: UI_MESSAGES.BOOKMARKS.SAVED_BOOKMARK,
+          text: UI_MESSAGES.BOOKMARKS.ADDED_BOOKMARK,
           type: 'success',
         })
       } else {
@@ -176,128 +178,54 @@ export function Popup() {
   }
 
   return (
-    <div style={{ padding: '16px' }}>
-      <h1 className="text-gray-900 text-base mb-3">
+    <div className="p-4">
+      <h1 className="text-slate-200 bg-slate-700 font-bold m-auto text-lg text-center p-2 mb-2">
         {UI_LABELS.HEADER.ADD_BOOKMARK}
       </h1>
 
-      <form
-        onSubmit={handleSubmit}
-        style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
-      >
-        <div>
-          <label
-            htmlFor="title-input"
-            style={{
-              color: '#4b5563',
-              display: 'block',
-              fontSize: '12px',
-              marginBottom: '4px',
-            }}
-          >
-            {UI_LABELS.FIELDS.TITLE}
-          </label>
-          <input
-            className="border"
+      <form className="flex flex-col gap-2.5" onSubmit={handleSubmit}>
+        <div className="grid grid-cols-[max-content_1fr] items-center gap-1">
+          <FormInput
             id="title-input"
+            label={UI_LABELS.FIELDS.TITLE}
             onChange={(e) => setTitle(e.target.value)}
-            required
-            style={{ boxSizing: 'border-box', padding: '6px', width: '100%' }}
-            type="text"
             value={title}
           />
-        </div>
-
-        <div>
-          <label
-            htmlFor="url-input"
-            style={{
-              color: '#4b5563',
-              display: 'block',
-              fontSize: '12px',
-              marginBottom: '4px',
-            }}
-          >
-            {UI_LABELS.FIELDS.URL}
-          </label>
-          <input
-            className="border"
+          <FormInput
             id="url-input"
+            label={UI_LABELS.FIELDS.URL}
             onChange={(e) => setUrl(e.target.value)}
-            required
-            style={{ boxSizing: 'border-box', padding: '6px', width: '100%' }}
-            type="url"
             value={url}
           />
         </div>
 
-        <button
-          disabled={loading}
-          style={{
-            backgroundColor: loading ? '#9ca3af' : '#2563eb',
-            border: 'none',
-            borderRadius: '4px',
-            color: '#fff',
-            cursor: loading ? 'not-allowed' : 'pointer',
-            padding: '8px',
-          }}
-          type="submit"
-        >
-          {loading ? UI_LABELS.ACTIONS.SAVING : UI_LABELS.ACTIONS.SAVE}
-        </button>
+        <Button disabled={loading} type="submit">
+          {loading
+            ? UI_LABELS.ACTIONS.ADDING_BOOKMARK
+            : UI_LABELS.ACTIONS.ADD_BOOKMARK}
+        </Button>
 
-        <div>
-          <label
-            htmlFor="api-url-input"
-            style={{
-              color: '#4b5563',
-              display: 'block',
-              fontSize: '12px',
-              marginBottom: '4px',
-            }}
-          >
-            {UI_LABELS.FIELDS.API_URL}
-          </label>
-          <input
-            className="border"
+        <div className="grid grid-cols-[max-content_1fr] items-center gap-1">
+          <FormInput
             id="api-url-input"
+            label={UI_LABELS.FIELDS.API_URL}
             onChange={(e) => setApiUrl(e.target.value)}
-            style={{ boxSizing: 'border-box', padding: '6px', width: '100%' }}
-            type="url"
             value={apiUrl}
           />
         </div>
 
-        <button
-          disabled={loading}
-          onClick={handleSaveApiUrl}
-          style={{
-            backgroundColor: loading ? '#9ca3af' : '#2563eb',
-            border: 'none',
-            borderRadius: '4px',
-            color: '#fff',
-            cursor: loading ? 'not-allowed' : 'pointer',
-            padding: '8px',
-          }}
-          type="button"
-        >
-          {UI_LABELS.ACTIONS.SAVE_API_URL}
-        </button>
-        <button
-          disabled={loading}
-          onClick={handleTestConnection}
-          style={{
-            backgroundColor: loading ? '#9ca3af' : '#2563eb',
-            border: 'none',
-            borderRadius: '4px',
-            color: '#fff',
-            cursor: loading ? 'not-allowed' : 'pointer',
-            padding: '8px',
-          }}
-          type="button"
-        >
-          {UI_LABELS.ACTIONS.VERIFY_API_URL}
-        </button>
+        <div className="grid grid-cols-2 gap-2">
+          <Button disabled={loading} onClick={handleSaveApiUrl} type="button">
+            {UI_LABELS.ACTIONS.SAVE_API_URL}
+          </Button>
+          <Button
+            disabled={loading}
+            onClick={handleTestConnection}
+            type="button"
+          >
+            {UI_LABELS.ACTIONS.VERIFY_API_URL}
+          </Button>
+        </div>
       </form>
 
       {message && (

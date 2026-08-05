@@ -63,7 +63,9 @@ describe('Popup Component', () => {
     const urlInput = screen.getByLabelText(
       UI_LABELS.FIELDS.URL,
     ) as HTMLInputElement
-    const submitButton = screen.getByRole('button', { name: '保存する' })
+    const submitButton = screen.getByRole('button', {
+      name: UI_LABELS.ACTIONS.ADD_BOOKMARK,
+    })
     const apiUrlInput = screen.getByLabelText(
       UI_LABELS.FIELDS.API_URL,
     ) as HTMLInputElement
@@ -99,7 +101,7 @@ describe('Popup Component', () => {
     // 保存中の状態を経て、成功メッセージが出ることを検証
     await waitFor(() => {
       expect(
-        screen.getByText('ブックマークを保存しました！'),
+        screen.getByText(UI_MESSAGES.BOOKMARKS.ADDED_BOOKMARK),
       ).toBeInTheDocument()
     })
 
