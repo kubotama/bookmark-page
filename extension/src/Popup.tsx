@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react'
 
+import { MessageBarType } from '../../shared/components/MessageBar'
 // バックエンド（functions）のエントリーポイントから型定義（AppType）のみをインポート
 import { UI_LABELS, UI_MESSAGES } from '../../shared/constants/uiMessages'
 import { validateUrl } from '../../shared/lib/utils'
 import { Button } from '../../src/components/Button'
-import { FormInput } from '../../src/components/FormInput'
 import '../extension.css'
+import { FormInput } from '../../src/components/FormInput'
 import { STORAGE_KEY } from '../constants/storage'
 import { useApiUrl } from './hooks/useApiUrl'
 import { client } from './lib/hono'
@@ -14,11 +15,8 @@ export function Popup() {
   const [title, setTitle] = useState('')
   const [url, setUrl] = useState('')
   const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState<null | {
-    text: string
-    type: 'error' | 'success'
-  }>(null)
-  const { apiUrl, apiUrlMessage, setApiUrl, testConnection } = useApiUrl()
+  const [message, setMessage] = useState<MessageBarType>(null)
+  const { apiUrl, setApiUrl, testConnection } = useApiUrl()
 
   // 💡 ポップアップが開いた瞬間にアクティブタブの情報を取得する
   useEffect(() => {
@@ -104,62 +102,8 @@ export function Popup() {
   ) => {
     e.preventDefault()
     setMessage(null)
-    await testConnection()
-    if (apiUrlMessage) setMessage(apiUrlMessage)
-
-    // const validApiUrl = validateUrl(apiUrl, setMessage)
-    // if (!validApiUrl) return
-
-    // const controller = new AbortController()
-    // const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MILLISECOND)
-
-    // try {
-    //   const testClient = hc<AppType>(validApiUrl, {
-    //     fetch: (input: RequestInfo | URL, init: RequestInit | undefined) =>
-    //       fetch(input, {
-    //         ...init,
-    //         credentials: 'include',
-    //         signal: controller.signal,
-    //       }),
-    //   })
-
-    //   const response = await testClient.api.bookmarks.$get()
-
-    //   if (!response.ok) {
-    //     if (response.status === 401 || response.status === 403) {
-    //       throw new Error(ERROR_MESSAGE.AUTH_ERROR)
-    //     }
-    //     throw new Error(ERROR_MESSAGE.STATUS_CODE(response.status))
-    //   }
-
-    //   const data = await response.json()
-
-    //   if (!data || !data.success || !Array.isArray(data.data)) {
-    //     throw new SyntaxError('Invalid JSON structure')
-    //   }
-
-    //   setMessage({
-    //     text: UI_MESSAGES.BOOKMARKS.REGISTERED_BOOKMARKS(data.data.length),
-    //     type: 'success',
-    //   })
-    // } catch (error) {
-    //   let errorMessage: string = UI_MESSAGES.API.FAILED_CONNECT_SERVER
-
-    //   if (error instanceof Error) {
-    //     if (error.name === 'AbortError') {
-    //       errorMessage = UI_MESSAGES.API.TIMEOUT_CONNECT_SERVER
-    //     } else if (error instanceof SyntaxError) {
-    //       errorMessage = UI_MESSAGES.AUTH.INVALID_RESPONSE
-    //     } else if (error.message === ERROR_MESSAGE.AUTH_ERROR) {
-    //       errorMessage = UI_MESSAGES.AUTH.ZERO_TRUST_AUTH_ERROR
-    //     } else {
-    //       console.error(error.message)
-    //     }
-    //   }
-    //   setMessage({ text: errorMessage, type: 'error' })
-    // } finally {
-    //   clearTimeout(timeoutId)
-    // }
+    const resultMessage = await testConnection()
+    setMessage(resultMessage)
   }
 
   return (

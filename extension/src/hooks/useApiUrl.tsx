@@ -2,6 +2,7 @@ import { hc } from 'hono/client'
 import { useEffect, useState } from 'react'
 
 import { AppType } from '../../../functions/api/[[route]]'
+import { type MessageBarType } from '../../../shared/components/MessageBar'
 import {
   DEFAULT_API_URL,
   TIMEOUT_MILLISECOND,
@@ -15,10 +16,6 @@ import { STORAGE_KEY } from '../../constants/storage'
 
 export const useApiUrl = () => {
   const [apiUrl, setApiUrl] = useState(DEFAULT_API_URL)
-  const [apiUrlMessage, setApiUrlMessage] = useState<null | {
-    text: string
-    type: 'error' | 'success'
-  }>(null)
 
   useEffect(() => {
     if (globalThis.chrome?.storage?.local) {
@@ -32,8 +29,7 @@ export const useApiUrl = () => {
     }
   }, [])
 
-  const testConnection = async () => {
-    setApiUrlMessage(null)
+  const testConnection = async (): Promise<MessageBarType> => {
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MILLISECOND)
 
@@ -67,10 +63,10 @@ export const useApiUrl = () => {
         throw new SyntaxError(ERROR_MESSAGE.INVALID_JSON_FORMAT)
       }
 
-      setApiUrlMessage({
+      return {
         text: UI_MESSAGES.BOOKMARKS.REGISTERED_BOOKMARKS(data.data.length),
         type: 'success',
-      })
+      }
     } catch (error) {
       let errorMessage: string = UI_MESSAGES.API.FAILED_CONNECT_SERVER
 
@@ -87,11 +83,11 @@ export const useApiUrl = () => {
           console.error(error.message)
         }
       }
-      setApiUrlMessage({ text: errorMessage, type: 'error' })
+      return { text: errorMessage, type: 'error' }
     } finally {
       clearTimeout(timeoutId)
     }
   }
 
-  return { apiUrl, apiUrlMessage, setApiUrl, testConnection }
+  return { apiUrl, setApiUrl, testConnection }
 }

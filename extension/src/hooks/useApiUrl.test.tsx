@@ -1,13 +1,13 @@
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { hc } from 'hono/client'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { json } from 'zod'
 
 import {
   INVALID_STRING,
   TEST_API_URL,
   TestBookmarks,
 } from '../../../functions/test/fixtures'
+import { MessageBarType } from '../../../shared/components/MessageBar'
 import { DEFAULT_API_URL } from '../../../shared/constants/api'
 import { UI_MESSAGES } from '../../../shared/constants/uiMessages'
 import { SCHEMA_MESSAGE } from '../../../shared/constants/validation'
@@ -88,40 +88,37 @@ describe('useApiUrl', () => {
         [STORAGE_KEY.API_URL]: '',
       }))
 
-      const { result } = renderHook(() => useApiUrl())
-      await waitFor(() => {
-        expect(result.current.apiUrl).toBe(DEFAULT_API_URL)
-      })
+      const result = await setupHook(TEST_API_URL.LOCAL)
+
+      let resultMessage: MessageBarType
       await act(async () => {
-        result.current.setApiUrl(TEST_API_URL.LOCAL)
-      })
-      await waitFor(() => {
-        expect(result.current.apiUrl).toBe(TEST_API_URL.LOCAL)
+        resultMessage = await result.current.testConnection()
       })
 
-      await act(async () => {
-        await result.current.testConnection()
+      await waitFor(() => {
+        expect(hc).toHaveBeenCalledWith(TEST_API_URL.LOCAL, expect.any(Object))
+        expect(mockGet).toHaveBeenCalledWith()
+        expect(resultMessage?.type).toBe('success')
+        expect(resultMessage?.text).toBe(
+          UI_MESSAGES.BOOKMARKS.REGISTERED_BOOKMARKS(2),
+        )
       })
-      expect(hc).toHaveBeenCalledWith(TEST_API_URL.LOCAL, expect.any(Object))
-      expect(mockGet).toHaveBeenCalledWith()
-      expect(result.current.apiUrlMessage?.type).toBe('success')
-      expect(result.current.apiUrlMessage?.text).toBe(
-        UI_MESSAGES.BOOKMARKS.REGISTERED_BOOKMARKS(2),
-      )
     })
 
     it('urlが不正な場合にはアクセスしないこと', async () => {
       const result = await setupHook(INVALID_STRING.URL)
 
+      let resultMessage: MessageBarType
       await act(async () => {
-        await result.current.testConnection()
+        resultMessage = await result.current.testConnection()
       })
-      expect(hc).not.toHaveBeenCalled()
-      expect(mockGet).not.toHaveBeenCalled()
-      expect(result.current.apiUrlMessage?.type).toBe('error')
-      expect(result.current.apiUrlMessage?.text).toBe(
-        SCHEMA_MESSAGE.PROTOCOL_CONSTRAINT,
-      )
+
+      await waitFor(() => {
+        expect(hc).not.toHaveBeenCalled()
+        expect(mockGet).not.toHaveBeenCalled()
+        expect(resultMessage?.type).toBe('error')
+        expect(resultMessage?.text).toBe(SCHEMA_MESSAGE.PROTOCOL_CONSTRAINT)
+      })
     })
 
     it.each([
@@ -150,14 +147,17 @@ describe('useApiUrl', () => {
       },
     ])('$description', async ({ expectedMessage, response }) => {
       mockGet.mockResolvedValue(response)
-
       const result = await setupHook(TEST_API_URL.LOCAL)
+
+      let resultMessage: MessageBarType
       await act(async () => {
-        await result.current.testConnection()
+        resultMessage = await result.current.testConnection()
       })
 
-      expect(result.current.apiUrlMessage?.type).toBe('error')
-      expect(result.current.apiUrlMessage?.text).toBe(expectedMessage)
+      await waitFor(() => {
+        expect(resultMessage?.type).toBe('error')
+        expect(resultMessage?.text).toBe(expectedMessage)
+      })
     })
 
     it('タイムアウト', async () => {
@@ -166,28 +166,32 @@ describe('useApiUrl', () => {
       mockGet.mockRejectedValue(abortError)
 
       const result = await setupHook(TEST_API_URL.LOCAL)
+
+      let resultMessage: MessageBarType
       await act(async () => {
-        await result.current.testConnection()
+        resultMessage = await result.current.testConnection()
       })
 
-      expect(result.current.apiUrlMessage?.type).toBe('error')
-      expect(result.current.apiUrlMessage?.text).toBe(
-        UI_MESSAGES.API.TIMEOUT_CONNECT_SERVER,
-      )
+      await waitFor(() => {
+        expect(resultMessage?.type).toBe('error')
+        expect(resultMessage?.text).toBe(UI_MESSAGES.API.TIMEOUT_CONNECT_SERVER)
+      })
     })
 
     it('異常なエラー', async () => {
       mockGet.mockRejectedValue('')
 
       const result = await setupHook(TEST_API_URL.LOCAL)
+
+      let resultMessage: MessageBarType
       await act(async () => {
-        await result.current.testConnection()
+        resultMessage = await result.current.testConnection()
       })
 
-      expect(result.current.apiUrlMessage?.type).toBe('error')
-      expect(result.current.apiUrlMessage?.text).toBe(
-        UI_MESSAGES.API.FAILED_CONNECT_SERVER,
-      )
+      await waitFor(() => {
+        expect(resultMessage?.type).toBe('error')
+        expect(resultMessage?.text).toBe(UI_MESSAGES.API.FAILED_CONNECT_SERVER)
+      })
     })
   })
 })
