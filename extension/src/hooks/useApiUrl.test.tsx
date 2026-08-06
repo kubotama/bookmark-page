@@ -9,7 +9,10 @@ import {
 } from '../../../functions/test/fixtures'
 import { MessageBarType } from '../../../shared/components/MessageBar'
 import { DEFAULT_API_URL } from '../../../shared/constants/api'
-import { UI_MESSAGES } from '../../../shared/constants/uiMessages'
+import {
+  ERROR_MESSAGE,
+  UI_MESSAGES,
+} from '../../../shared/constants/uiMessages'
 import { SCHEMA_MESSAGE } from '../../../shared/constants/validation'
 import { STORAGE_KEY } from '../../constants/storage'
 import { useApiUrl } from './useApiUrl'
@@ -135,6 +138,7 @@ describe('useApiUrl', () => {
       },
       {
         description: 'その他のエラー(500)',
+        expectedLog: ERROR_MESSAGE.STATUS_CODE(500),
         expectedMessage: UI_MESSAGES.API.FAILED_CONNECT_SERVER,
         response: { ok: false, status: 500 },
       },
@@ -146,7 +150,9 @@ describe('useApiUrl', () => {
           ok: true,
         },
       },
-    ])('$description', async ({ expectedMessage, response }) => {
+    ])('$description', async ({ expectedLog, expectedMessage, response }) => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
       mockGet.mockResolvedValue(response)
       const result = await setupHook(TEST_API_URL.LOCAL)
 
@@ -158,6 +164,7 @@ describe('useApiUrl', () => {
       await waitFor(() => {
         expect(resultMessage?.type).toBe('error')
         expect(resultMessage?.text).toBe(expectedMessage)
+        if (expectedLog) expect(consoleSpy).toHaveBeenCalledWith(expectedLog)
       })
     })
 
