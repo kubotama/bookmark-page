@@ -10,10 +10,6 @@ export const validateUrl = (url: string) => {
   return BookmarkUrlSchema.safeParse(url)
 }
 
-export class ValidationError extends Error {
-  constructor(message: string) {
-    super(message)
-    // エラーの名前をクラス名と一致させる
-    this.name = 'ValidationError'
-  }
+export const createErrorMessage = (text: string) => {
+  return { text, type: 'error' }
 }

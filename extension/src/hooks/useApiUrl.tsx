@@ -11,7 +11,7 @@ import {
   ERROR_MESSAGE,
   UI_MESSAGES,
 } from '../../../shared/constants/uiMessages'
-import { validateUrl, ValidationError } from '../../../shared/lib/utils'
+import { createErrorMessage, validateUrl } from '../../../shared/lib/utils'
 import { STORAGE_KEY } from '../../constants/storage'
 
 export const useApiUrl = () => {
@@ -33,17 +33,18 @@ export const useApiUrl = () => {
     try {
       const validApiUrl = validateUrl(apiUrl)
       if (!validApiUrl.success) {
-        return { text: validApiUrl.error.issues[0].message, type: 'error' }
+        return createErrorMessage(validApiUrl.error.issues[0].message)
       }
       if (globalThis.chrome?.storage?.local) {
         await globalThis.chrome.storage.local.set({
           [STORAGE_KEY.API_URL]: validApiUrl.data,
         })
+        return { text: UI_MESSAGES.API.SAVED_API_URL, type: 'success' }
       }
-      return { text: UI_MESSAGES.API.SAVED_API_URL, type: 'success' }
+      return createErrorMessage(UI_MESSAGES.API.FAILED_SAVE_API_URL)
     } catch (error) {
       console.error(error)
-      return { text: UI_MESSAGES.API.FAILED_SAVE_API_URL, type: 'error' }
+      return createErrorMessage(UI_MESSAGES.API.FAILED_SAVE_API_URL)
     }
   }
 
@@ -54,7 +55,7 @@ export const useApiUrl = () => {
     try {
       const validApiUrl = validateUrl(apiUrl)
       if (!validApiUrl.success) {
-        throw new ValidationError(validApiUrl.error.issues[0].message)
+        return createErrorMessage(validApiUrl.error.issues[0].message)
       }
 
       const testClient = hc<AppType>(validApiUrl.data, {
@@ -70,7 +71,7 @@ export const useApiUrl = () => {
 
       if (!response.ok) {
         if (response.status === 401 || response.status === 403) {
-          throw new Error(ERROR_MESSAGE.AUTH_ERROR)
+          return createErrorMessage(UI_MESSAGES.AUTH.ZERO_TRUST_AUTH_ERROR)
         }
         throw new Error(ERROR_MESSAGE.STATUS_CODE(response.status))
       }
@@ -78,7 +79,7 @@ export const useApiUrl = () => {
       const data = await response.json()
 
       if (!data || !data.success || !Array.isArray(data.data)) {
-        throw new SyntaxError(ERROR_MESSAGE.INVALID_JSON_FORMAT)
+        return createErrorMessage(UI_MESSAGES.AUTH.INVALID_RESPONSE)
       }
 
       return {
@@ -91,17 +92,11 @@ export const useApiUrl = () => {
       if (error instanceof Error) {
         if (error.name === 'AbortError') {
           errorMessage = UI_MESSAGES.API.TIMEOUT_CONNECT_SERVER
-        } else if (error instanceof SyntaxError) {
-          errorMessage = UI_MESSAGES.AUTH.INVALID_RESPONSE
-        } else if (error instanceof ValidationError) {
-          errorMessage = error.message
-        } else if (error.message === ERROR_MESSAGE.AUTH_ERROR) {
-          errorMessage = UI_MESSAGES.AUTH.ZERO_TRUST_AUTH_ERROR
         } else {
           console.error(error.message)
         }
       }
-      return { text: errorMessage, type: 'error' }
+      return createErrorMessage(errorMessage)
     } finally {
       clearTimeout(timeoutId)
     }

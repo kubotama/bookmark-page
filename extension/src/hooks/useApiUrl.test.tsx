@@ -1,6 +1,6 @@
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { hc } from 'hono/client'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
   INVALID_STRING,
@@ -59,6 +59,10 @@ const setupHook = async (url: string) => {
 describe('useApiUrl', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+  })
+  afterEach(() => {
+    // 各テスト終了後にグローバルオブジェクトのスタブを解除
+    vi.unstubAllGlobals()
   })
 
   describe('初期化', () => {
@@ -254,6 +258,24 @@ describe('useApiUrl', () => {
         expect(resultMessage?.type).toBe('error')
         expect(resultMessage?.text).toBe(UI_MESSAGES.API.FAILED_SAVE_API_URL)
         expect(consoleSpy).toHaveBeenCalledWith(setError)
+      })
+    })
+
+    it('ストレージにアクセスできない場合', async () => {
+      const { result } = await setupHook(TEST_API_URL.LOCAL)
+      vi.stubGlobal('chrome', {
+        storage: {
+          local: undefined,
+        },
+      })
+
+      let resultMessage: MessageBarType
+      await act(async () => {
+        resultMessage = await result.current.saveApiUrl()
+      })
+      await waitFor(() => {
+        expect(resultMessage?.type).toBe('error')
+        expect(resultMessage?.text).toBe(UI_MESSAGES.API.FAILED_SAVE_API_URL)
       })
     })
   })
