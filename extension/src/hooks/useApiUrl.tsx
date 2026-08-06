@@ -29,6 +29,24 @@ export const useApiUrl = () => {
     }
   }, [])
 
+  const saveApiUrl = async (): Promise<MessageBarType> => {
+    try {
+      const validApiUrl = validateUrl(apiUrl)
+      if (!validApiUrl.success) {
+        return { text: validApiUrl.error.issues[0].message, type: 'error' }
+      }
+      if (globalThis.chrome?.storage?.local) {
+        await globalThis.chrome.storage.local.set({
+          [STORAGE_KEY.API_URL]: validApiUrl.data,
+        })
+      }
+      return { text: UI_MESSAGES.API.SAVED_API_URL, type: 'success' }
+    } catch (error) {
+      console.error(error)
+      return { text: UI_MESSAGES.API.FAILED_SAVE_API_URL, type: 'error' }
+    }
+  }
+
   const testConnection = async (): Promise<MessageBarType> => {
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MILLISECOND)
@@ -89,5 +107,5 @@ export const useApiUrl = () => {
     }
   }
 
-  return { apiUrl, setApiUrl, testConnection }
+  return { apiUrl, saveApiUrl, setApiUrl, testConnection }
 }

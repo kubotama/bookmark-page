@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   INVALID_STRING,
   TEST_API_URL,
+  TEST_ERROR_MESSAGE,
   TestBookmarks,
 } from '../../../functions/test/fixtures'
 import { MessageBarType } from '../../../shared/components/MessageBar'
@@ -34,10 +35,13 @@ vi.mock('hono/client', () => {
 })
 
 const setupHook = async (url: string) => {
+  const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
   vi.spyOn(chrome.storage.local, 'get').mockImplementation(async () => ({
     [STORAGE_KEY.API_URL]: '',
   }))
-  vi.spyOn(chrome.storage.local, 'set').mockImplementation(async () => ({}))
+  const spySet = vi
+    .spyOn(chrome.storage.local, 'set')
+    .mockImplementation(async () => ({}))
 
   const { result } = renderHook(() => useApiUrl())
   await waitFor(() => {
@@ -49,7 +53,7 @@ const setupHook = async (url: string) => {
   await waitFor(() => {
     expect(result.current.apiUrl).toBe(url)
   })
-  return result
+  return { consoleSpy, result, spySet }
 }
 
 describe('useApiUrl', () => {
@@ -92,7 +96,7 @@ describe('useApiUrl', () => {
         [STORAGE_KEY.API_URL]: '',
       }))
 
-      const result = await setupHook(TEST_API_URL.LOCAL)
+      const { result } = await setupHook(TEST_API_URL.LOCAL)
 
       let resultMessage: MessageBarType
       await act(async () => {
@@ -110,7 +114,7 @@ describe('useApiUrl', () => {
     })
 
     it('urlが不正な場合にはアクセスしないこと', async () => {
-      const result = await setupHook(INVALID_STRING.URL)
+      const { result } = await setupHook(INVALID_STRING.URL)
 
       let resultMessage: MessageBarType
       await act(async () => {
@@ -151,10 +155,8 @@ describe('useApiUrl', () => {
         },
       },
     ])('$description', async ({ expectedLog, expectedMessage, response }) => {
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-
       mockGet.mockResolvedValue(response)
-      const result = await setupHook(TEST_API_URL.LOCAL)
+      const { consoleSpy, result } = await setupHook(TEST_API_URL.LOCAL)
 
       let resultMessage: MessageBarType
       await act(async () => {
@@ -173,7 +175,7 @@ describe('useApiUrl', () => {
       abortError.name = 'AbortError'
       mockGet.mockRejectedValue(abortError)
 
-      const result = await setupHook(TEST_API_URL.LOCAL)
+      const { result } = await setupHook(TEST_API_URL.LOCAL)
 
       let resultMessage: MessageBarType
       await act(async () => {
@@ -189,7 +191,7 @@ describe('useApiUrl', () => {
     it('異常なエラー', async () => {
       mockGet.mockRejectedValue('')
 
-      const result = await setupHook(TEST_API_URL.LOCAL)
+      const { result } = await setupHook(TEST_API_URL.LOCAL)
 
       let resultMessage: MessageBarType
       await act(async () => {
@@ -204,8 +206,55 @@ describe('useApiUrl', () => {
   })
 
   describe('saveApiUrl', () => {
-    it('urlを保存できること', () => {})
-    it('urlが不正な場合には保存処理を実行しないこと', () => {})
-    it('保存がエラーになった場合', () => {})
+    it('urlを保存できること', async () => {
+      const { result, spySet } = await setupHook(TEST_API_URL.LOCAL)
+
+      let resultMessage: MessageBarType
+      await act(async () => {
+        resultMessage = await result.current.saveApiUrl()
+      })
+      await waitFor(() => {
+        expect(spySet).toHaveBeenCalledWith({
+          [STORAGE_KEY.API_URL]: TEST_API_URL.LOCAL,
+        })
+        expect(resultMessage?.type).toBe('success')
+        expect(resultMessage?.text).toBe(UI_MESSAGES.API.SAVED_API_URL)
+      })
+    })
+
+    it('urlが不正な場合には保存処理を実行しないこと', async () => {
+      const { result, spySet } = await setupHook(INVALID_STRING.URL)
+
+      let resultMessage: MessageBarType
+      await act(async () => {
+        resultMessage = await result.current.saveApiUrl()
+      })
+      await waitFor(() => {
+        expect(spySet).not.toHaveBeenCalled()
+        expect(resultMessage?.type).toBe('error')
+        expect(resultMessage?.text).toBe(SCHEMA_MESSAGE.PROTOCOL_CONSTRAINT)
+      })
+    })
+
+    it('保存がエラーになった場合', async () => {
+      const { consoleSpy, result } = await setupHook(TEST_API_URL.LOCAL)
+      const setError = new Error(TEST_ERROR_MESSAGE.SAVE_ERROR)
+      const spySet = vi
+        .spyOn(chrome.storage.local, 'set')
+        .mockRejectedValue(setError)
+
+      let resultMessage: MessageBarType
+      await act(async () => {
+        resultMessage = await result.current.saveApiUrl()
+      })
+      await waitFor(() => {
+        expect(spySet).toHaveBeenCalledWith({
+          [STORAGE_KEY.API_URL]: TEST_API_URL.LOCAL,
+        })
+        expect(resultMessage?.type).toBe('error')
+        expect(resultMessage?.text).toBe(UI_MESSAGES.API.FAILED_SAVE_API_URL)
+        expect(consoleSpy).toHaveBeenCalledWith(setError)
+      })
+    })
   })
 })

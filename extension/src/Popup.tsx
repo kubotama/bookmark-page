@@ -3,11 +3,9 @@ import React, { useEffect, useState } from 'react'
 import { MessageBarType } from '../../shared/components/MessageBar'
 // バックエンド（functions）のエントリーポイントから型定義（AppType）のみをインポート
 import { UI_LABELS, UI_MESSAGES } from '../../shared/constants/uiMessages'
-import { validateUrl } from '../../shared/lib/utils'
 import { Button } from '../../src/components/Button'
 import '../extension.css'
 import { FormInput } from '../../src/components/FormInput'
-import { STORAGE_KEY } from '../constants/storage'
 import { useApiUrl } from './hooks/useApiUrl'
 import { client } from './lib/hono'
 
@@ -16,7 +14,7 @@ export function Popup() {
   const [url, setUrl] = useState('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<MessageBarType>(null)
-  const { apiUrl, setApiUrl, testConnection } = useApiUrl()
+  const { apiUrl, saveApiUrl, setApiUrl, testConnection } = useApiUrl()
 
   // 💡 ポップアップが開いた瞬間にアクティブタブの情報を取得する
   useEffect(() => {
@@ -71,20 +69,8 @@ export function Popup() {
   const handleSaveApiUrl = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
     setMessage(null)
-
-    try {
-      const validApiUrl = validateUrl(apiUrl)
-      if (!validApiUrl.success) return
-      if (globalThis.chrome?.storage?.local) {
-        await globalThis.chrome.storage.local.set({
-          [STORAGE_KEY.API_URL]: validApiUrl.data,
-        })
-      }
-      setMessage({ text: UI_MESSAGES.API.SAVED_API_URL, type: 'success' })
-    } catch (error) {
-      console.error(error)
-      setMessage({ text: UI_MESSAGES.API.FAILED_SAVE_API_URL, type: 'error' })
-    }
+    const resultMessage = await saveApiUrl()
+    setMessage(resultMessage)
   }
 
   const handleTestConnection = async (
