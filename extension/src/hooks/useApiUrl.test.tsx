@@ -34,6 +34,7 @@ const setupHook = async (url: string) => {
   vi.spyOn(chrome.storage.local, 'get').mockImplementation(async () => ({
     [STORAGE_KEY.API_URL]: '',
   }))
+  vi.spyOn(chrome.storage.local, 'set').mockImplementation(async () => ({}))
 
   const { result } = renderHook(() => useApiUrl())
   await waitFor(() => {
@@ -193,5 +194,11 @@ describe('useApiUrl', () => {
         expect(resultMessage?.text).toBe(UI_MESSAGES.API.FAILED_CONNECT_SERVER)
       })
     })
+  })
+
+  describe('saveApiUrl', () => {
+    it('urlを保存できること', () => {})
+    it('urlが不正な場合には保存処理を実行しないこと', () => {})
+    it('保存がエラーになった場合', () => {})
   })
 })

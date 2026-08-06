@@ -32,16 +32,6 @@ export function Popup() {
         },
       )
     }
-
-    if (globalThis.chrome?.storage?.local) {
-      globalThis.chrome.storage.local
-        .get([STORAGE_KEY.API_URL])
-        .then((result) => {
-          if (result[STORAGE_KEY.API_URL]) {
-            setApiUrl(result[STORAGE_KEY.API_URL])
-          }
-        })
-    }
   }, [])
 
   // 💡 フォーム送信（Hono RPC を使った POST リクエスト）
