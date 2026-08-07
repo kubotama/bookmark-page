@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react'
 
+import { BookmarkInput } from '../../shared/components/BookmarkInput'
 import { Button } from '../../shared/components/Button'
 import { FormInput } from '../../shared/components/FormInput'
-import { MessageBarType } from '../../shared/components/MessageBar'
 import '../extension.css'
+import { MessageBarType } from '../../shared/components/MessageBar'
 // バックエンド（functions）のエントリーポイントから型定義（AppType）のみをインポート
 import { UI_LABELS, UI_MESSAGES } from '../../shared/constants/uiMessages'
 import { useApiUrl } from './hooks/useApiUrl'
@@ -89,20 +90,12 @@ export function Popup() {
       </h1>
 
       <form className="flex flex-col gap-2.5" onSubmit={handleSubmit}>
-        <div className="grid grid-cols-[max-content_1fr] items-center gap-1">
-          <FormInput
-            id="title-input"
-            label={UI_LABELS.FIELDS.TITLE}
-            onChange={(e) => setTitle(e.target.value)}
-            value={title}
-          />
-          <FormInput
-            id="url-input"
-            label={UI_LABELS.FIELDS.URL}
-            onChange={(e) => setUrl(e.target.value)}
-            value={url}
-          />
-        </div>
+        <BookmarkInput
+          setTitle={setTitle}
+          setUrl={setUrl}
+          title={title}
+          url={url}
+        />
 
         <Button disabled={loading} type="submit">
           {loading
