@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react'
 
+import { Button } from '../../shared/components/Button'
+import { FormInput } from '../../shared/components/FormInput'
 import { MessageBarType } from '../../shared/components/MessageBar'
+import '../extension.css'
 // バックエンド（functions）のエントリーポイントから型定義（AppType）のみをインポート
 import { UI_LABELS, UI_MESSAGES } from '../../shared/constants/uiMessages'
-import { Button } from '../../src/components/Button'
-import '../extension.css'
-import { FormInput } from '../../src/components/FormInput'
 import { useApiUrl } from './hooks/useApiUrl'
 import { client } from './lib/hono'
 
