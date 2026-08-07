@@ -41,6 +41,7 @@ export const TEST_ERROR_MESSAGE = {
   CONSTRAINT_ERROR: 'UNIQUE constraint failed: bookmarks.url',
   DB_ERROR: 'データベースにエラーが発生しました',
   NETWORK_ERROR: 'ネットワークにエラーが発生しました',
+  SAVE_ERROR: '保存できませんでした',
 } as const
 
 export const TEST_API_URL = {

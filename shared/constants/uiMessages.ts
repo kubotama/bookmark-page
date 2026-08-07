@@ -7,6 +7,7 @@ export const ERROR_MESSAGE = {
   STATUS_CODE: (code: number) => `ステータスコード: ${code}`,
   FAILED_DELETE_BOOKMARK: 'ブックマークの削除に失敗しました。',
   FAILED_UPDATE_BOOKMARK: 'ブックマークの更新に失敗しました。',
+  INVALID_JSON_FORMAT: 'JSON形式が正しくありません。',
 } as const
 
 export const UI_LABELS = {
