@@ -3,8 +3,8 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
 import { TEST_STRING } from '../../functions/test/fixtures'
+import { Button } from '../../shared/components/Button'
 import { clickButton } from '../test/test-utils'
-import { Button } from './Button'
 
 describe('Button', () => {
   it('クリックするとonClickに割り当てた関数が呼び出される', async () => {

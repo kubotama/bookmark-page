@@ -6,11 +6,11 @@ import {
   BookmarkUrlSchema,
   UpdateBookmarkSchema,
 } from '../../functions/schemas/bookmark'
+import { Button } from '../../shared/components/Button'
+import { FormInput } from '../../shared/components/FormInput'
 import { UI_LABELS, UI_MESSAGES } from '../../shared/constants/uiMessages'
 import { useDeleteBookmark } from '../hooks/useDeleteBookmark'
 import { useUpdateBookmark } from '../hooks/useUpdateBookmark'
-import { Button } from './Button'
-import { FormInput } from './FormInput'
 
 interface BookmarkFormProps {
   bookmark: Bookmark
