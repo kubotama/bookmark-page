@@ -180,13 +180,13 @@ describe('Popup Component', () => {
       await user.type(apiUrlInput, TEST_API_URL.LOCAL)
       await user.click(testConnectionButton)
 
-      // await waitFor(() => {
-      //   expect(
-      //     screen.getByText(
-      //       UI_MESSAGES.BOOKMARKS.REGISTERED_BOOKMARKS(TestBookmarks.length),
-      //     ),
-      //   ).toBeInTheDocument()
-      // })
+      await waitFor(() => {
+        expect(
+          screen.getByText(
+            UI_MESSAGES.BOOKMARKS.REGISTERED_BOOKMARKS(TestBookmarks.length),
+          ),
+        ).toBeInTheDocument()
+      })
       expect(hc).toHaveBeenCalledWith(TEST_API_URL.LOCAL, expect.any(Object))
     })
 
@@ -198,11 +198,11 @@ describe('Popup Component', () => {
       await user.type(apiUrlInput, INVALID_STRING.URL)
       await user.click(testConnectionButton)
 
-      // await waitFor(() => {
-      //   expect(
-      //     screen.getByText(SCHEMA_MESSAGE.PROTOCOL_CONSTRAINT),
-      //   ).toBeInTheDocument()
-      // })
+      await waitFor(() => {
+        expect(
+          screen.getByText(SCHEMA_MESSAGE.PROTOCOL_CONSTRAINT),
+        ).toBeInTheDocument()
+      })
       expect(hc).not.toHaveBeenCalled()
     })
 
@@ -238,11 +238,11 @@ describe('Popup Component', () => {
       await user.type(apiUrlInput, INVALID_STRING.URL)
       await user.click(apiUrlSaveButton)
 
-      // await waitFor(() => {
-      //   expect(
-      //     screen.getByText(SCHEMA_MESSAGE.PROTOCOL_CONSTRAINT),
-      //   ).toBeInTheDocument()
-      // })
+      await waitFor(() => {
+        expect(
+          screen.getByText(SCHEMA_MESSAGE.PROTOCOL_CONSTRAINT),
+        ).toBeInTheDocument()
+      })
       expect(setSpy).not.toHaveBeenCalled()
     })
 
