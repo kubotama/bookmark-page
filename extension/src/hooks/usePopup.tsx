@@ -56,7 +56,10 @@ export const usePopup = (apiUrl: string) => {
           data.error || UI_MESSAGES.API.FAILED_CONNECT_SERVER,
         )
       }
-    } catch {
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error(error.message)
+      }
       return createErrorMessage(UI_MESSAGES.API.FAILED_CONNECT_SERVER)
     }
   }
