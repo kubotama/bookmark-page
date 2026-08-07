@@ -5,7 +5,6 @@ import { Button } from '../../shared/components/Button'
 import { FormInput } from '../../shared/components/FormInput'
 import '../extension.css'
 import { MessageBarType } from '../../shared/components/MessageBar'
-// バックエンド（functions）のエントリーポイントから型定義（AppType）のみをインポート
 import { UI_LABELS, UI_MESSAGES } from '../../shared/constants/uiMessages'
 import { useApiUrl } from './hooks/useApiUrl'
 import { client } from './lib/hono'
