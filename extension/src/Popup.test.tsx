@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
 import { hc } from 'hono/client'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, Mock, vi } from 'vitest'
 
 import {
   INVALID_STRING,
@@ -9,9 +9,11 @@ import {
   TEST_ERROR_MESSAGE,
   TestBookmarks,
 } from '../../functions/test/fixtures'
+import { MessageBarType } from '../../shared/components/MessageBar'
 import { DEFAULT_API_URL } from '../../shared/constants/api'
 import { UI_LABELS, UI_MESSAGES } from '../../shared/constants/uiMessages'
 import { SCHEMA_MESSAGE } from '../../shared/constants/validation'
+import { clickButton } from '../../src/test/test-utils'
 import { STORAGE_KEY } from '../constants/storage'
 import { client } from './lib/hono'
 import { Popup } from './Popup'
@@ -66,6 +68,14 @@ vi.mock('./hooks/useAddBookmark', () => ({
   }),
 }))
 
+type TestDataType = {
+  buttonLabel: string
+  description: string
+  expectedParam: string
+  message: MessageBarType
+  mockFn: Mock<() => object>
+}
+
 describe('Popup Component', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -109,25 +119,43 @@ describe('Popup Component', () => {
     expect(urlInput.value).toBe(TestBookmarks[0].url)
   })
 
-  it('ブックマークを追加するボタンを押した際、addBookmarkが正しく呼び出されること', async () => {
-    mockAddBookmark.mockResolvedValue({
-      text: UI_MESSAGES.BOOKMARKS.ADDED_BOOKMARK,
-      type: 'success',
-    })
-    const { submitButton } = getElements()
-    const user = userEvent.setup()
-    await user.click(submitButton)
+  const testData: TestDataType[] = [
+    {
+      buttonLabel: UI_LABELS.ACTIONS.ADD_BOOKMARK,
+      description:
+        'ブックマークを追加するボタンを押した際、addBookmarkが正しく呼び出されること',
+      expectedParam: DEFAULT_API_URL,
+      message: { text: UI_MESSAGES.BOOKMARKS.ADDED_BOOKMARK, type: 'success' },
+      mockFn: mockAddBookmark,
+    },
+    {
+      buttonLabel: UI_LABELS.ACTIONS.ADD_BOOKMARK,
+      description:
+        'ブックマークの追加でエラーになった場合に、エラーメッセージが表示されること',
+      expectedParam: DEFAULT_API_URL,
+      message: { text: UI_MESSAGES.API.FAILED_CONNECT_SERVER, type: 'error' },
+      mockFn: mockAddBookmark,
+    },
+  ]
 
-    // 保存中の状態を経て、成功メッセージが出ることを検証
-    await waitFor(() => {
-      expect(
-        screen.getByText(UI_MESSAGES.BOOKMARKS.ADDED_BOOKMARK),
-      ).toBeInTheDocument()
-    })
+  it.each(testData)(
+    `$description`,
+    async ({ buttonLabel, expectedParam, message, mockFn }) => {
+      mockFn.mockResolvedValue(message)
+      render(<Popup />)
+      const user = userEvent.setup()
+      clickButton(user, buttonLabel)
 
-    // APIがどんな引数で呼ばれたかを検証
-    expect(mockAddBookmark).toHaveBeenCalledWith(DEFAULT_API_URL)
-  })
+      // 保存中の状態を経て、成功メッセージが出ることを検証
+      await waitFor(() => {
+        expect(screen.getByText(message.text)).toBeInTheDocument()
+      })
+
+      // APIがどんな引数で呼ばれたかを検証
+      if (expectedParam) expect(mockFn).toHaveBeenCalledWith(expectedParam)
+      else expect(mockFn).toHaveBeenCalledWith()
+    },
+  )
 
   describe.skip('Popup 異常系のテスト', () => {
     it('サーバー側でバリデーションエラーが発生した場合、エラーメッセージが表示されること', async () => {
