@@ -11,7 +11,7 @@ import { useApiUrl } from './hooks/useApiUrl'
 
 export function Popup() {
   const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState<MessageBarType>(null)
+  const [message, setMessage] = useState<MessageBarType | null>(null)
   const { apiUrl, saveApiUrl, setApiUrl, testConnection } = useApiUrl()
   const { addBookmark, setTitle, setUrl, title, url } = useAddBookmark()
 
