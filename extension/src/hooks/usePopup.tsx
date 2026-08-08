@@ -5,7 +5,7 @@ import { AppType } from '../../../functions/api/[[route]]'
 import { UI_MESSAGES } from '../../../shared/constants/uiMessages'
 import { createErrorMessage, validateUrl } from '../../../shared/lib/utils'
 
-export const usePopup = (apiUrl: string) => {
+export const usePopup = () => {
   const [title, setTitle] = useState('')
   const [url, setUrl] = useState('')
 
@@ -25,7 +25,7 @@ export const usePopup = (apiUrl: string) => {
     }
   }, [])
 
-  const addBookmark = async () => {
+  const addBookmark = async (apiUrl: string) => {
     try {
       const validApiUrl = validateUrl(apiUrl)
       if (!validApiUrl.success) {

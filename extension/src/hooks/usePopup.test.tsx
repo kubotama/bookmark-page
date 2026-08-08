@@ -36,7 +36,7 @@ describe('usePopup', () => {
   })
 
   it('起動時に chrome.tabs.query からタイトルとURLを取得して入力欄にセットすること', async () => {
-    const { result } = renderHook(() => usePopup(TEST_API_URL.LOCAL))
+    const { result } = renderHook(() => usePopup())
 
     await waitFor(() => {
       expect(result.current.title).toBe(TestBookmarks[0].title)
@@ -49,11 +49,11 @@ describe('usePopup', () => {
       json: async () => ({ data: TestBookmarks, success: true }),
       ok: true,
     })
-    const { result } = renderHook(() => usePopup(TEST_API_URL.LOCAL))
+    const { result } = renderHook(() => usePopup())
 
     let resultMessage: MessageBarType
     await act(async () => {
-      resultMessage = await result.current.addBookmark()
+      resultMessage = await result.current.addBookmark(TEST_API_URL.LOCAL)
     })
 
     await waitFor(() => {
@@ -67,11 +67,11 @@ describe('usePopup', () => {
   })
 
   it('APIへのURLが不正な場合', async () => {
-    const { result } = renderHook(() => usePopup(INVALID_STRING.URL))
+    const { result } = renderHook(() => usePopup())
 
     let resultMessage: MessageBarType
     await act(async () => {
-      resultMessage = await result.current.addBookmark()
+      resultMessage = await result.current.addBookmark(INVALID_STRING.URL)
     })
 
     await waitFor(() => {
@@ -90,11 +90,11 @@ describe('usePopup', () => {
       ok: false,
       status: 500,
     })
-    const { result } = renderHook(() => usePopup(TEST_API_URL.LOCAL))
+    const { result } = renderHook(() => usePopup())
 
     let resultMessage: MessageBarType
     await act(async () => {
-      resultMessage = await result.current.addBookmark()
+      resultMessage = await result.current.addBookmark(TEST_API_URL.LOCAL)
     })
 
     await waitFor(() => {
@@ -115,11 +115,11 @@ describe('usePopup', () => {
       ok: false,
       status: 500,
     })
-    const { result } = renderHook(() => usePopup(TEST_API_URL.LOCAL))
+    const { result } = renderHook(() => usePopup())
 
     let resultMessage: MessageBarType
     await act(async () => {
-      resultMessage = await result.current.addBookmark()
+      resultMessage = await result.current.addBookmark(TEST_API_URL.LOCAL)
     })
 
     await waitFor(() => {
@@ -140,11 +140,11 @@ describe('usePopup', () => {
 
     it('非同期関数がreject(Error)の場合', async () => {
       mockPost.mockRejectedValue(new Error(TEST_ERROR_MESSAGE.API_ERROR))
-      const { result } = renderHook(() => usePopup(TEST_API_URL.LOCAL))
+      const { result } = renderHook(() => usePopup())
 
       let resultMessage: MessageBarType
       await act(async () => {
-        resultMessage = await result.current.addBookmark()
+        resultMessage = await result.current.addBookmark(TEST_API_URL.LOCAL)
       })
 
       await waitFor(() => {
@@ -160,11 +160,11 @@ describe('usePopup', () => {
 
     it('非同期関数がreject(Error以外)の場合', async () => {
       mockPost.mockRejectedValue('')
-      const { result } = renderHook(() => usePopup(TEST_API_URL.LOCAL))
+      const { result } = renderHook(() => usePopup())
 
       let resultMessage: MessageBarType
       await act(async () => {
-        resultMessage = await result.current.addBookmark()
+        resultMessage = await result.current.addBookmark(TEST_API_URL.LOCAL)
       })
 
       await waitFor(() => {
