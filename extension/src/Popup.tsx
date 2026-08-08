@@ -6,14 +6,14 @@ import { FormInput } from '../../shared/components/FormInput'
 import '../extension.css'
 import { MessageBarType } from '../../shared/components/MessageBar'
 import { UI_LABELS } from '../../shared/constants/uiMessages'
+import { useAddBookmark } from './hooks/useAddBookmark'
 import { useApiUrl } from './hooks/useApiUrl'
-import { usePopup } from './hooks/usePopup'
 
 export function Popup() {
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<MessageBarType>(null)
   const { apiUrl, saveApiUrl, setApiUrl, testConnection } = useApiUrl()
-  const { addBookmark, setTitle, setUrl, title, url } = usePopup()
+  const { addBookmark, setTitle, setUrl, title, url } = useAddBookmark()
 
   // 💡 フォーム送信（Hono RPC を使った POST リクエスト）
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {

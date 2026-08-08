@@ -5,7 +5,7 @@ import { AppType } from '../../../functions/api/[[route]]'
 import { UI_MESSAGES } from '../../../shared/constants/uiMessages'
 import { createErrorMessage, validateUrl } from '../../../shared/lib/utils'
 
-export const usePopup = () => {
+export const useAddBookmark = () => {
   const [title, setTitle] = useState('')
   const [url, setUrl] = useState('')
 
