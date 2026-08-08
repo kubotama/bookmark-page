@@ -169,6 +169,28 @@ describe('Popup Component', () => {
       message: { text: UI_MESSAGES.API.FAILED_SAVE_API_URL, type: 'error' },
       mockFn: mockSaveApiUrl,
     },
+    {
+      buttonLabel: UI_LABELS.ACTIONS.VERIFY_API_URL,
+      description:
+        'APIへのurlを検証するボタンを押したら、testConnectionが正しく呼び出されること',
+      expectedParam: undefined,
+      message: {
+        text: UI_MESSAGES.BOOKMARKS.REGISTERED_BOOKMARKS(4),
+        type: 'success',
+      },
+      mockFn: mockTestConnection,
+    },
+    {
+      buttonLabel: UI_LABELS.ACTIONS.VERIFY_API_URL,
+      description:
+        'APIへのurlを検証でエラーになったら、エラーメッセージが表示されること',
+      expectedParam: undefined,
+      message: {
+        text: UI_MESSAGES.API.FAILED_CONNECT_SERVER,
+        type: 'error',
+      },
+      mockFn: mockTestConnection,
+    },
   ]
 
   it.each(testData)(
