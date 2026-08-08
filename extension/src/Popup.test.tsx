@@ -13,7 +13,7 @@ import { MessageBarType } from '../../shared/components/MessageBar'
 import { DEFAULT_API_URL } from '../../shared/constants/api'
 import { UI_LABELS, UI_MESSAGES } from '../../shared/constants/uiMessages'
 import { SCHEMA_MESSAGE } from '../../shared/constants/validation'
-import { clickButton } from '../../src/test/test-utils'
+import { clickButton, inputText } from '../../src/test/test-utils'
 import { STORAGE_KEY } from '../constants/storage'
 import { client } from './lib/hono'
 import { Popup } from './Popup'
@@ -55,12 +55,14 @@ import { Popup } from './Popup'
 const {
   mockAddBookmark,
   mockSaveApiUrl,
+  mockSetApiUrl,
   mockSetTitle,
   mockSetUrl,
   mockTestConnection,
 } = vi.hoisted(() => ({
   mockAddBookmark: vi.fn(),
   mockSaveApiUrl: vi.fn(),
+  mockSetApiUrl: vi.fn(),
   mockSetTitle: vi.fn(),
   mockSetUrl: vi.fn(),
   mockTestConnection: vi.fn(),
@@ -80,7 +82,7 @@ vi.mock('./hooks/useApiUrl', () => ({
   useApiUrl: () => ({
     apiUrl: DEFAULT_API_URL,
     saveApiUrl: mockSaveApiUrl,
-    setApiUrl: vi.fn(),
+    setApiUrl: mockSetApiUrl,
     testConnection: mockTestConnection,
   }),
 }))
@@ -134,6 +136,14 @@ describe('Popup Component', () => {
 
     expect(titleInput.value).toBe(TestBookmarks[0].title)
     expect(urlInput.value).toBe(TestBookmarks[0].url)
+  })
+
+  it('APIのurlを変更したら、文字列の長さ回、変更する関数が呼び出されること', async () => {
+    render(<Popup />)
+    const user = userEvent.setup()
+    await inputText(user, UI_LABELS.FIELDS.API_URL, TEST_API_URL.LOCAL)
+
+    expect(mockSetApiUrl).toHaveBeenCalledTimes(TEST_API_URL.LOCAL.length + 1)
   })
 
   const testData: TestDataType[] = [
