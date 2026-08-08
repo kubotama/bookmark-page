@@ -52,10 +52,18 @@ import { Popup } from './Popup'
 //     }),
 //   }
 // })
-const { mockAddBookmark, mockSetTitle, mockSetUrl } = vi.hoisted(() => ({
+const {
+  mockAddBookmark,
+  mockSaveApiUrl,
+  mockSetTitle,
+  mockSetUrl,
+  mockTestConnection,
+} = vi.hoisted(() => ({
   mockAddBookmark: vi.fn(),
+  mockSaveApiUrl: vi.fn(),
   mockSetTitle: vi.fn(),
   mockSetUrl: vi.fn(),
+  mockTestConnection: vi.fn(),
 }))
 
 vi.mock('./hooks/useAddBookmark', () => ({
@@ -68,10 +76,19 @@ vi.mock('./hooks/useAddBookmark', () => ({
   }),
 }))
 
+vi.mock('./hooks/useApiUrl', () => ({
+  useApiUrl: () => ({
+    apiUrl: DEFAULT_API_URL,
+    saveApiUrl: mockSaveApiUrl,
+    setApiUrl: vi.fn(),
+    testConnection: mockTestConnection,
+  }),
+}))
+
 type TestDataType = {
   buttonLabel: string
   description: string
-  expectedParam: string
+  expectedParam: string | undefined
   message: MessageBarType
   mockFn: Mock<() => object>
 }
@@ -123,7 +140,7 @@ describe('Popup Component', () => {
     {
       buttonLabel: UI_LABELS.ACTIONS.ADD_BOOKMARK,
       description:
-        'ブックマークを追加するボタンを押した際、addBookmarkが正しく呼び出されること',
+        'ブックマークを追加するボタンを押したら、addBookmarkが正しく呼び出されること',
       expectedParam: DEFAULT_API_URL,
       message: { text: UI_MESSAGES.BOOKMARKS.ADDED_BOOKMARK, type: 'success' },
       mockFn: mockAddBookmark,
@@ -131,10 +148,26 @@ describe('Popup Component', () => {
     {
       buttonLabel: UI_LABELS.ACTIONS.ADD_BOOKMARK,
       description:
-        'ブックマークの追加でエラーになった場合に、エラーメッセージが表示されること',
+        'ブックマークの追加でエラーになったら、エラーメッセージが表示されること',
       expectedParam: DEFAULT_API_URL,
       message: { text: UI_MESSAGES.API.FAILED_CONNECT_SERVER, type: 'error' },
       mockFn: mockAddBookmark,
+    },
+    {
+      buttonLabel: UI_LABELS.ACTIONS.SAVE_API_URL,
+      description:
+        'APIへのurlを保存するボタンを押したら、saveApiUrlが正しく呼び出されること',
+      expectedParam: undefined,
+      message: { text: UI_MESSAGES.API.SAVED_API_URL, type: 'success' },
+      mockFn: mockSaveApiUrl,
+    },
+    {
+      buttonLabel: UI_LABELS.ACTIONS.SAVE_API_URL,
+      description:
+        'APIへのurlの保存でエラーになったら、エラーメッセージが表示されること',
+      expectedParam: undefined,
+      message: { text: UI_MESSAGES.API.FAILED_SAVE_API_URL, type: 'error' },
+      mockFn: mockSaveApiUrl,
     },
   ]
 
