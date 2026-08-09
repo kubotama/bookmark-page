@@ -1,9 +1,9 @@
-import { hc } from 'hono/client'
 import { useEffect, useState } from 'react'
+import { ZodError } from 'zod'
 
-import { AppType } from '../../../functions/api/[[route]]'
 import { UI_MESSAGES } from '../../../shared/constants/uiMessages'
-import { createErrorMessage, validateUrl } from '../../../shared/lib/utils'
+import { createErrorMessage } from '../../../shared/lib/utils'
+import { createClient } from '../lib/hono'
 
 export const useAddBookmark = () => {
   const [title, setTitle] = useState('')
@@ -27,18 +27,16 @@ export const useAddBookmark = () => {
 
   const addBookmark = async (apiUrl: string) => {
     try {
-      const validApiUrl = validateUrl(apiUrl)
-      if (!validApiUrl.success) {
-        return createErrorMessage(validApiUrl.error.issues[0].message)
+      let client
+      try {
+        client = createClient({ apiUrl })
+      } catch (error) {
+        if (error instanceof ZodError) {
+          return createErrorMessage(error.issues[0].message)
+        }
+        throw error
       }
 
-      const client = hc<AppType>(validApiUrl.data, {
-        fetch: (input: RequestInfo | URL, init: RequestInit | undefined) =>
-          fetch(input, {
-            ...init,
-            credentials: 'include',
-          }),
-      })
       const res = await client.api.bookmarks.$post({
         json: { title, url },
       })
