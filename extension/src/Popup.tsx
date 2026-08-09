@@ -1,69 +1,28 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 
 import { BookmarkInput } from '../../shared/components/BookmarkInput'
 import { Button } from '../../shared/components/Button'
 import { FormInput } from '../../shared/components/FormInput'
 import '../extension.css'
 import { MessageBarType } from '../../shared/components/MessageBar'
-import { UI_LABELS, UI_MESSAGES } from '../../shared/constants/uiMessages'
+import { UI_LABELS } from '../../shared/constants/uiMessages'
+import { useAddBookmark } from './hooks/useAddBookmark'
 import { useApiUrl } from './hooks/useApiUrl'
-import { client } from './lib/hono'
 
 export function Popup() {
-  const [title, setTitle] = useState('')
-  const [url, setUrl] = useState('')
   const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState<MessageBarType>(null)
+  const [message, setMessage] = useState<MessageBarType | null>(null)
   const { apiUrl, saveApiUrl, setApiUrl, testConnection } = useApiUrl()
-
-  // 💡 ポップアップが開いた瞬間にアクティブタブの情報を取得する
-  useEffect(() => {
-    if (globalThis.chrome?.tabs) {
-      globalThis.chrome.tabs.query(
-        { active: true, currentWindow: true },
-        (tabs) => {
-          const activeTab = tabs?.[0]
-          if (activeTab) {
-            setTitle(activeTab.title || '')
-            setUrl(activeTab.url || '')
-          }
-        },
-      )
-    }
-  }, [])
+  const { addBookmark, setTitle, setUrl, title, url } = useAddBookmark()
 
   // 💡 フォーム送信（Hono RPC を使った POST リクエスト）
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
     setMessage(null)
-
-    try {
-      // RPC クライアントによる型安全な POST 送信
-      // $post の引数やレスポンスには、バックエンドの Zod スキーマの型が100%効いています
-      const res = await client.api.bookmarks.$post({
-        json: { title, url },
-      })
-
-      const data = await res.json()
-
-      if (data.success) {
-        setMessage({
-          text: UI_MESSAGES.BOOKMARKS.ADDED_BOOKMARK,
-          type: 'success',
-        })
-      } else {
-        // バックエンド側で整えたバリデーションエラー等のメッセージを表示
-        setMessage({
-          text: data.error || UI_MESSAGES.API.FAILED_CONNECT_SERVER,
-          type: 'error',
-        })
-      }
-    } catch {
-      setMessage({ text: UI_MESSAGES.API.FAILED_CONNECT_SERVER, type: 'error' })
-    } finally {
-      setLoading(false)
-    }
+    const resultMessage = await addBookmark(apiUrl)
+    setMessage(resultMessage)
+    setLoading(false)
   }
 
   const handleSaveApiUrl = async (e: React.MouseEvent<HTMLButtonElement>) => {
