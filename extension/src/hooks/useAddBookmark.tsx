@@ -27,15 +27,7 @@ export const useAddBookmark = () => {
 
   const addBookmark = async (apiUrl: string) => {
     try {
-      let client
-      try {
-        client = createClient({ apiUrl })
-      } catch (error) {
-        if (error instanceof ZodError) {
-          return createErrorMessage(error.issues[0].message)
-        }
-        throw error
-      }
+      const client = createClient({ apiUrl })
 
       const res = await client.api.bookmarks.$post({
         json: { title, url },
@@ -55,7 +47,9 @@ export const useAddBookmark = () => {
         )
       }
     } catch (error) {
-      if (error instanceof Error) {
+      if (error instanceof ZodError) {
+        return createErrorMessage(error.issues[0].message)
+      } else if (error instanceof Error) {
         console.error(error.message)
       }
       return createErrorMessage(UI_MESSAGES.API.FAILED_CONNECT_SERVER)

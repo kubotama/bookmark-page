@@ -50,15 +50,7 @@ export const useApiUrl = () => {
 
   const testConnection = async (): Promise<MessageBarType> => {
     try {
-      let client
-      try {
-        client = createClient({ apiUrl, timeoutMs: TIMEOUT_MILLISECOND })
-      } catch (error) {
-        if (error instanceof ZodError) {
-          return createErrorMessage(error.issues[0].message)
-        }
-        throw error
-      }
+      const client = createClient({ apiUrl, timeoutMs: TIMEOUT_MILLISECOND })
 
       const response = await client.api.bookmarks.$get()
 
@@ -82,7 +74,9 @@ export const useApiUrl = () => {
     } catch (error) {
       let errorMessage: string = UI_MESSAGES.API.FAILED_CONNECT_SERVER
 
-      if (error instanceof Error) {
+      if (error instanceof ZodError) {
+        errorMessage = error.issues[0].message
+      } else if (error instanceof Error) {
         if (error.name === 'AbortError') {
           errorMessage = UI_MESSAGES.API.TIMEOUT_CONNECT_SERVER
         } else {
