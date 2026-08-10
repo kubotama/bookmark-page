@@ -36,12 +36,15 @@ vi.mock('hono/client', () => {
 
 const setupHook = async (url: string) => {
   const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-  vi.spyOn(chrome.storage.local, 'get').mockImplementation(async () => ({
-    [STORAGE_KEY.API_URL]: '',
-  }))
-  const spySet = vi
-    .spyOn(chrome.storage.local, 'set')
-    .mockImplementation(async () => ({}))
+  let spySet
+  if (globalThis.chrome.storage.local) {
+    vi.spyOn(chrome.storage.local, 'get').mockImplementation(async () => ({
+      [STORAGE_KEY.API_URL]: '',
+    }))
+    spySet = vi
+      .spyOn(chrome.storage.local, 'set')
+      .mockImplementation(async () => ({}))
+  }
 
   const { result } = renderHook(() => useApiUrl())
   await waitFor(() => {
@@ -262,12 +265,12 @@ describe('useApiUrl', () => {
     })
 
     it('ストレージにアクセスできない場合', async () => {
-      const { result } = await setupHook(TEST_API_URL.LOCAL)
       vi.stubGlobal('chrome', {
         storage: {
           local: undefined,
         },
       })
+      const { result } = await setupHook(TEST_API_URL.LOCAL)
 
       let resultMessage: MessageBarType
       await act(async () => {

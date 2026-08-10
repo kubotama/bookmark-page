@@ -1,6 +1,6 @@
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { hc } from 'hono/client'
-import { beforeEach, describe, expect, it, Mock, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest'
 
 import {
   INVALID_STRING,
@@ -137,6 +137,9 @@ describe('useAddBookmark', () => {
     beforeEach(() => {
       consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     })
+    afterEach(() => {
+      vi.unstubAllGlobals()
+    })
 
     it('非同期関数がreject(Error)の場合', async () => {
       mockPost.mockRejectedValue(new Error(TEST_ERROR_MESSAGE.API_ERROR))
@@ -175,6 +178,71 @@ describe('useAddBookmark', () => {
         expect(resultMessage?.type).toBe('error')
         expect(resultMessage?.text).toBe(UI_MESSAGES.API.FAILED_CONNECT_SERVER)
         expect(consoleSpy).not.toHaveBeenCalled()
+      })
+    })
+
+    type TestDataType = {
+      description: string
+      tabs:
+        | undefined
+        | {
+            query: ReturnType<typeof vi.fn>
+          }
+    }
+
+    const testData: TestDataType[] = [
+      { description: 'タブにアクセスできない場合', tabs: undefined },
+      {
+        description: 'アクティブなタブにアクセスできない場合',
+        tabs: {
+          query: vi.fn((_queryInfo, callback) => {
+            callback([])
+          }),
+        },
+      },
+      {
+        description: 'アクティブなタブのタイトルとurlにアクセスできない場合',
+        tabs: {
+          query: vi.fn((_queryInfo, callback) => {
+            callback([{}])
+          }),
+        },
+      },
+    ]
+
+    it.each(testData)(`$description`, async ({ tabs }) => {
+      vi.stubGlobal('chrome', {
+        tabs,
+      })
+      const { result } = renderHook(() => useAddBookmark())
+
+      let resultMessage: MessageBarType
+      await act(async () => {
+        resultMessage = await result.current.addBookmark(TEST_API_URL.LOCAL)
+      })
+      await waitFor(() => {
+        expect(resultMessage?.type).toBe('error')
+        expect(resultMessage?.text).toBe(UI_MESSAGES.API.FAILED_CONNECT_SERVER)
+      })
+    })
+
+    it('アクティブなタブにアクセスできない場合', async () => {
+      vi.stubGlobal('chrome', {
+        tabs: {
+          query: vi.fn((_queryInfo, callback) => {
+            callback([{}])
+          }),
+        },
+      })
+      const { result } = renderHook(() => useAddBookmark())
+
+      let resultMessage: MessageBarType
+      await act(async () => {
+        resultMessage = await result.current.addBookmark(TEST_API_URL.LOCAL)
+      })
+      await waitFor(() => {
+        expect(resultMessage?.type).toBe('error')
+        expect(resultMessage?.text).toBe(UI_MESSAGES.API.FAILED_CONNECT_SERVER)
       })
     })
   })
