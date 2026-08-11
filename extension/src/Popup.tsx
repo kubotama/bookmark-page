@@ -51,7 +51,6 @@ export function Popup() {
 
       <form className="flex flex-col gap-2.5" onSubmit={handleSubmit}>
         <FormInput
-          key={linkText}
           label={UI_LABELS.FIELDS.LINK_TEXT}
           readOnly
           value={linkText}
