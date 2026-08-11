@@ -141,7 +141,7 @@ describe('Popup Component', () => {
       mockFn.mockResolvedValue(message)
       render(<Popup />)
       const user = userEvent.setup()
-      clickButton(user, buttonLabel)
+      await clickButton(user, buttonLabel)
 
       // 保存中の状態を経て、成功メッセージが出ることを検証
       await waitFor(() => {

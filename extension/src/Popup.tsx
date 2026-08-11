@@ -41,6 +41,8 @@ export function Popup() {
     setMessage(resultMessage)
   }
 
+  const linkText = `\[${title}\]\(${url}\)`
+
   return (
     <div className="p-4">
       <h1 className="text-slate-200 bg-slate-700 font-bold m-auto text-lg text-center p-2 mb-2">
@@ -48,6 +50,13 @@ export function Popup() {
       </h1>
 
       <form className="flex flex-col gap-2.5" onSubmit={handleSubmit}>
+        <FormInput
+          key={linkText}
+          label={UI_LABELS.FIELDS.LINK_TEXT}
+          readOnly
+          value={linkText}
+        />
+
         <BookmarkInput
           setTitle={setTitle}
           setUrl={setUrl}
