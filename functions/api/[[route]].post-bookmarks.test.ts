@@ -1,7 +1,11 @@
-import { describe, it, expect, vi, beforeEach, Mock } from 'vitest'
-import { app } from './[[route]]'
 import type { D1Database } from '@cloudflare/workers-types'
+
+import { beforeEach, describe, expect, it, Mock, vi } from 'vitest'
+
+import { ERROR_MESSAGE, UI_MESSAGES } from '../../shared/constants/uiMessages'
 import { BOOKMARKS, DATABASE_NAME } from '../constants/db'
+import { LOG_MESSAGE } from '../constants/logMessage'
+import { CreateBookmarkSchema } from '../schemas/bookmark'
 import {
   BookmarksTableData,
   getExpectedText,
@@ -10,9 +14,7 @@ import {
   TEST_ERROR_MESSAGE,
   TestBookmarks,
 } from '../test/fixtures'
-import { CreateBookmarkSchema } from '../schemas/bookmark'
-import { LOG_MESSAGE } from '../constants/logMessage'
-import { ERROR_MESSAGE, UI_MESSAGES } from '../../shared/constants/uiMessages'
+import { app } from './[[route]]'
 
 describe('Hono API - POST /api/bookmarks', () => {
   let consoleSpy: Mock<(...data: unknown[]) => void>
@@ -40,11 +42,11 @@ describe('Hono API - POST /api/bookmarks', () => {
     const res = await app.request(
       REQUEST_API_PATH.ADD_BOOKMARK,
       {
-        method: 'POST',
+        body: JSON.stringify(requestBody),
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(requestBody),
+        method: 'POST',
       },
       {
         BOOKMARK_PAGE_DB: mockD1Database as D1Database,
@@ -66,20 +68,20 @@ describe('Hono API - POST /api/bookmarks', () => {
   describe('Hono API - POST /api/bookmarks (異常系: バリデーション)', () => {
     it.each([
       {
-        name: 'タイトル',
         invalidBody: {
           title: '',
           url: BookmarksTableData.url,
         },
         invalidName: 'title',
+        name: 'タイトル',
       },
       {
-        name: 'url',
         invalidBody: {
           title: BookmarksTableData.title,
           url: INVALID_STRING.URL,
         },
         invalidName: 'url',
+        name: 'url',
       },
     ])(
       `異常系: $nameが空のとき、ステータス400を返すこと`,
@@ -97,9 +99,9 @@ describe('Hono API - POST /api/bookmarks', () => {
         const res = await app.request(
           REQUEST_API_PATH.ADD_BOOKMARK,
           {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(invalidBody),
+            headers: { 'Content-Type': 'application/json' },
+            method: 'POST',
           },
           {
             BOOKMARK_PAGE_DB: mockD1Database as D1Database,
@@ -139,9 +141,9 @@ describe('Hono API - POST /api/bookmarks', () => {
       const res = await app.request(
         REQUEST_API_PATH.ADD_BOOKMARK,
         {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(validBody),
+          headers: { 'Content-Type': 'application/json' },
+          method: 'POST',
         },
         {
           BOOKMARK_PAGE_DB: mockD1Database as D1Database,
@@ -175,9 +177,9 @@ describe('Hono API - POST /api/bookmarks', () => {
       const res = await app.request(
         REQUEST_API_PATH.ADD_BOOKMARK,
         {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(validBody),
+          headers: { 'Content-Type': 'application/json' },
+          method: 'POST',
         },
         {
           BOOKMARK_PAGE_DB: mockD1Database as D1Database,
@@ -209,11 +211,11 @@ describe('Hono API - POST /api/bookmarks', () => {
       const res = await app.request(
         REQUEST_API_PATH.ADD_BOOKMARK,
         {
-          method: 'POST',
+          body: JSON.stringify(requestBody),
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(requestBody),
+          method: 'POST',
         },
         {
           BOOKMARK_PAGE_DB: mockD1Database as D1Database,
@@ -225,8 +227,8 @@ describe('Hono API - POST /api/bookmarks', () => {
 
       const body = await res.json()
       expect(body).toEqual({
-        success: false,
         error: UI_MESSAGES.API.DUPLICATE_URL,
+        success: false,
       })
       expect(consoleSpy).not.toHaveBeenCalled()
     })
@@ -235,11 +237,11 @@ describe('Hono API - POST /api/bookmarks', () => {
       const res = await app.request(
         REQUEST_API_PATH.ADD_BOOKMARK,
         {
-          method: 'POST',
+          body: JSON.stringify(requestBody),
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(requestBody),
+          method: 'POST',
         },
         {},
       )
@@ -248,8 +250,8 @@ describe('Hono API - POST /api/bookmarks', () => {
 
       const body = await res.json()
       expect(body).toEqual({
-        success: false,
         error: UI_MESSAGES.API.DB_ERROR,
+        success: false,
       })
       expect(consoleSpy).toHaveBeenCalledWith(
         expect.stringContaining(ERROR_MESSAGE.DB_BINDING_ERROR(DATABASE_NAME)),

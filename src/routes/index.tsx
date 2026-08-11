@@ -1,5 +1,6 @@
 // src/routes/index.tsx
 import { createFileRoute, Link } from '@tanstack/react-router'
+
 import { UI_LABELS } from '../../shared/constants/uiMessages'
 import { useBookmarks } from '../hooks/useBookmarks'
 
@@ -8,7 +9,7 @@ export const Route = createFileRoute('/')({
 })
 
 function IndexComponent() {
-  const { data: resJson, isLoading, error } = useBookmarks() // 💡 呼ぶだけ
+  const { data: resJson, error, isLoading } = useBookmarks() // 💡 呼ぶだけ
 
   // 💡 早期リターンを廃止し、データを安全に抽出するためのフォールバック
   const bookmarks = resJson?.data ?? []
@@ -21,7 +22,7 @@ function IndexComponent() {
         <div style={{ padding: '20px' }}>{UI_LABELS.ACTIONS.LOADING}</div>
       ) : error ? (
         /* 2. エラー発生時の表示 */
-        <div style={{ padding: '20px', color: 'red' }}>{error.message}</div>
+        <div style={{ color: 'red', padding: '20px' }}>{error.message}</div>
       ) : bookmarks.length === 0 ? (
         /* 3. データが空の時の表示 */
         <p>{UI_LABELS.HEADER.NO_BOOKMARKS}</p>
@@ -31,22 +32,22 @@ function IndexComponent() {
           <div className="flex flex-col items-start">
             {bookmarks.map((bookmark) => (
               <div
-                key={bookmark.id}
                 className="relative w-full p-2 text-slate-700 bg-slate-200 border border-slate-300 hover:bg-indigo-200 flex justify-between items-center"
+                key={bookmark.id}
               >
                 {/* Stretched Link パターンを使用してカード全体をクリック可能にしつつ、キーボード操作も可能にします */}
                 <Link
-                  to="/bookmark/$id"
-                  params={{ id: bookmark.id }}
                   className="hover:font-semibold flex-1 text-left after:absolute after:inset-0"
+                  params={{ id: bookmark.id }}
+                  to="/bookmark/$id"
                 >
                   {bookmark.title}
                 </Link>
                 <a
-                  href={bookmark.url}
-                  target="_blank"
-                  rel="noreferrer"
                   className="relative z-10 text-shadow-xs text-indigo-400 hover:text-indigo-800 hover:underline hover:font-bold ml-2"
+                  href={bookmark.url}
+                  rel="noreferrer"
+                  target="_blank"
                 >
                   {UI_LABELS.ACTIONS.OPEN}
                 </a>
@@ -57,6 +58,6 @@ function IndexComponent() {
       )}
     </div>
   )
-/* v8 ignore start */
+  /* v8 ignore start */
 }
 /* v8 ignore stop */

@@ -2,7 +2,7 @@
   "name": "bookmark-page",
   "type": "module",
   "private": true,
-  "version": "0.4.1",
+  "version": "0.5.0",
   "license": "MIT",
   "scripts": {
     "dev:frontend": "vite",
@@ -17,18 +17,19 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
     "lint": "eslint .",
+    "lint:format": "eslint . --fix",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@hono/zod-validator": "^0.8.0",
     "@tanstack/react-query": "^5.101.1",
     "@tanstack/react-router": "^1.170.17",
+    "clsx": "^2.1.1",
     "hono": "4.12.26",
     "react": "19.2.7",
     "react-dom": "19.2.7",
+    "tailwind-merge": "^3.6.0",
     "uuidv7": "^1.2.1",
     "zod": "4.4.3"
   },
@@ -49,6 +50,7 @@
     "chrome-types": "^0.1.429",
     "concurrently": "^10.0.3",
     "eslint": "^10.5.0",
+    "eslint-plugin-perfectionist": "^5.10.0",
     "happy-dom": "20.10.6",
     "jsdom": "29.1.1",
     "prettier": "^3.8.4",

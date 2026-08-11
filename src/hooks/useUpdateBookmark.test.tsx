@@ -1,14 +1,20 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { renderHook, waitFor } from '@testing-library/react'
 import { uuidv7 } from 'uuidv7'
-import { beforeEach, describe, expect, it, Mock, vi } from 'vitest'
+import { beforeEach, describe, it, vi } from 'vitest'
+
 import { TestBookmarks } from '../../functions/test/fixtures'
-import { useUpdateBookmark } from './useUpdateBookmark'
 import { ERROR_MESSAGE, UI_MESSAGES } from '../../shared/constants/uiMessages'
 import { SCHEMA_MESSAGE } from '../../shared/constants/validation'
+import {
+  createTestQueryClient,
+  expectMutationError,
+  expectMutationSuccess,
+} from '../test/test-utils'
+import { useUpdateBookmark } from './useUpdateBookmark'
 
-const { mockPatch } = vi.hoisted(() => ({
+const { mockPatch, mockShowErrorMessage } = vi.hoisted(() => ({
   mockPatch: vi.fn(),
+  mockShowErrorMessage: vi.fn(),
 }))
 
 // Honoクライアントのモック化
@@ -24,21 +30,24 @@ vi.mock('hono/client', () => ({
   }),
 }))
 
-const createTestQueryClient = () => {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: { retry: false },
-      mutations: { retry: false },
-    },
-  })
-  const wrapper = ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  )
-  return { queryClient, wrapper }
+// notification モジュールのモック化を追加
+vi.mock('../lib/notification', () => ({
+  showErrorMessage: mockShowErrorMessage,
+}))
+
+const renderUpdateBookmark = () => {
+  const { mockInvalidateQueries, wrapper } = createTestQueryClient()
+  const { result } = renderHook(() => useUpdateBookmark(), { wrapper })
+  return { mockInvalidateQueries, result }
 }
 
 describe('useUpdateBookmark', () => {
   const validId = uuidv7()
+  const updatedPayload = {
+    id: validId,
+    title: TestBookmarks[0].title,
+    url: TestBookmarks[0].url,
+  }
 
   beforeEach(() => {
     vi.resetAllMocks()
@@ -46,138 +55,105 @@ describe('useUpdateBookmark', () => {
   })
 
   it('更新APIが200を返したときにキャッシュが更新されること', async () => {
-    const updatedPayload = {
-      id: validId,
-      title: TestBookmarks[0].title,
-      url: TestBookmarks[0].url,
-    }
     mockPatch.mockResolvedValueOnce({
-      status: 200,
-      ok: true,
       json: async () => ({
-        success: true,
         data: updatedPayload,
+        success: true,
       }),
+      ok: true,
+      status: 200,
     })
 
-    const { queryClient, wrapper } = createTestQueryClient()
-    // 💡 本物の queryClient の invalidateQueries を spyOn する
-    const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
-
-    const { result } = renderHook(() => useUpdateBookmark(), { wrapper })
+    const { mockInvalidateQueries, result } = renderUpdateBookmark()
 
     result.current.mutate(updatedPayload)
 
     await waitFor(() => {
-      expect(result.current.isSuccess).toBe(true)
-
-      expect(mockPatch).toHaveBeenCalledWith({
-        param: { id: validId },
-        json: {
-          title: updatedPayload.title,
-          url: updatedPayload.url,
+      expectMutationSuccess({
+        mockInvalidateQueries,
+        mockMutation: mockPatch,
+        mockShowErrorMessage,
+        payload: {
+          json: {
+            title: updatedPayload.title,
+            url: updatedPayload.url,
+          },
+          param: { id: updatedPayload.id },
         },
-      })
-
-      expect(invalidateSpy).toHaveBeenCalledWith({
-        queryKey: ['bookmarks'],
+        result,
       })
     })
   })
 
   describe('異常系', () => {
-    let alertSpy: Mock<(message?: unknown) => void>
-
-    beforeEach(() => {
-      alertSpy = vi.spyOn(window, 'alert')
-    })
     it.each([
       {
-        status: 400,
         errorName: 'バリデーション',
         errorText: SCHEMA_MESSAGE.INVALID_ID_FORMAT,
+        status: 400,
       },
       {
-        status: 404,
         errorName: 'ブックマークが存在しない',
         errorText: UI_MESSAGES.API.NOT_FOUND_BOOKMARK,
+        status: 404,
       },
       {
-        status: 409,
         errorName: '登録済みのurlを登録しようとした',
         errorText: UI_MESSAGES.API.DUPLICATE_URL,
+        status: 409,
       },
       {
-        status: 500,
         errorName: '一般的な',
         errorText: ERROR_MESSAGE.SERVER_ERROR,
+        status: 500,
       },
     ])(
       `APIが$statusで$errorNameエラーを返したときにエラー処理が行われること`,
-      async ({ status, errorText }) => {
+      async ({ errorText, status }) => {
         mockPatch.mockResolvedValueOnce({
-          status,
-          ok: false,
           json: async () => ({
-            success: false,
             error: errorText,
+            success: false,
           }),
+          ok: false,
+          status,
         })
-        const updatedPayload = {
-          id: validId,
-          title: TestBookmarks[0].title,
-          url: TestBookmarks[0].url,
-        }
-        const { queryClient, wrapper } = createTestQueryClient()
-        const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
 
-        const { result } = renderHook(() => useUpdateBookmark(), { wrapper })
+        const { mockInvalidateQueries, result } = renderUpdateBookmark()
 
         result.current.mutate(updatedPayload)
 
         await waitFor(() => {
-          expect(result.current.isSuccess).toBe(false)
-          expect(result.current.error).toBeInstanceOf(Error)
-          expect(result.current.error?.message).toBe(errorText)
-
-          expect(invalidateSpy).not.toHaveBeenCalled()
-
-          expect(alertSpy).toHaveBeenCalledWith(errorText)
+          expectMutationError({
+            errorText,
+            mockInvalidateQueries,
+            mockShowErrorMessage,
+            result,
+          })
         })
       },
     )
 
     it(`APIが不明なエラーを返したときにエラー処理が行われること`, async () => {
       mockPatch.mockResolvedValueOnce({
-        status: 500,
-        ok: false,
         json: async () => ({
           success: false,
         }),
+        ok: false,
+        status: 500,
       })
-      const updatedPayload = {
-        id: validId,
-        title: TestBookmarks[0].title,
-        url: TestBookmarks[0].url,
-      }
-      const { queryClient, wrapper } = createTestQueryClient()
-      const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
 
-      const { result } = renderHook(() => useUpdateBookmark(), { wrapper })
+      const { mockInvalidateQueries, result } = renderUpdateBookmark()
 
       result.current.mutate(updatedPayload)
 
       await waitFor(() => {
-        expect(result.current.isSuccess).toBe(false)
-        expect(result.current.error).toBeInstanceOf(Error)
-        expect(result.current.error?.message).toBe(
-          ERROR_MESSAGE.FAILED_UPDATE_BOOKMARK,
-        )
-        expect(alertSpy).toHaveBeenCalledWith(
-          ERROR_MESSAGE.FAILED_UPDATE_BOOKMARK,
-        )
-
-        expect(invalidateSpy).not.toHaveBeenCalled()
+        expectMutationError({
+          errorText: ERROR_MESSAGE.FAILED_UPDATE_BOOKMARK,
+          mockInvalidateQueries,
+          mockShowErrorMessage,
+          result,
+        })
       })
     })
   })

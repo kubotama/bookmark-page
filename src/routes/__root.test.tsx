@@ -1,12 +1,13 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
 import {
   createRoute,
   createRouter,
   RouterProvider,
 } from '@tanstack/react-router'
-import { Route as RootRoute } from './__root'
+import { render, screen } from '@testing-library/react'
+import { describe, expect, it, vi } from 'vitest'
+
 import { UI_LABELS } from '../../shared/constants/uiMessages'
+import { Route as RootRoute } from './__root'
 
 window.scrollTo = vi.fn()
 
@@ -14,11 +15,11 @@ describe('Root Layout', () => {
   it('共通レイアウトの中に子ルート（Outlet）が正常にレンダリングされること', async () => {
     // テスト用のダミー子ルートを作成
     const testChildRoute = createRoute({
-      getParentRoute: () => RootRoute,
-      path: '/',
       component: () => (
         <div data-testid="child-content">子要素のコンテンツ</div>
       ),
+      getParentRoute: () => RootRoute,
+      path: '/',
     })
 
     // __root に子ルートを結合
@@ -35,6 +36,8 @@ describe('Root Layout', () => {
     expect(screen.getByTestId('child-content')).toBeInTheDocument()
 
     // ヘッダが表示されているか
-    expect(screen.getByText(UI_LABELS.HEADER.PAGE_HEADER)).toBeInTheDocument()
+    const header = await screen.findByText(UI_LABELS.HEADER.PAGE_HEADER)
+    expect(header).toBeInTheDocument()
+    expect(header.closest('a')).toHaveAttribute('href', '/')
   })
 })

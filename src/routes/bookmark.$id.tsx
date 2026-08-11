@@ -1,7 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useBookmarkById } from '../hooks/useBookmarks'
+
 import { UI_LABELS } from '../../shared/constants/uiMessages'
 import { BookmarkForm } from '../components/BookmarkForm'
+import { useBookmarkById } from '../hooks/useBookmarks'
 
 export const Route = createFileRoute('/bookmark/$id')({
   component: BookmarkDetailComponent,
@@ -9,7 +10,7 @@ export const Route = createFileRoute('/bookmark/$id')({
 
 function BookmarkDetailComponent() {
   const { id } = Route.useParams()
-  const { bookmark, isLoading, error } = useBookmarkById(id)
+  const { bookmark, error, isLoading } = useBookmarkById(id)
   // テキストボックス用のローカル状態（State）
 
   return (
@@ -18,12 +19,12 @@ function BookmarkDetailComponent() {
         <div style={{ padding: '20px' }}>{UI_LABELS.ACTIONS.LOADING}</div>
       ) : error ? (
         /* 2. エラー発生時の表示 */
-        <div style={{ padding: '20px', color: 'red' }}>{error.message}</div>
+        <div style={{ color: 'red', padding: '20px' }}>{error.message}</div>
       ) : bookmark === undefined ? (
         /* 3. データが空の時の表示 */
         <p>{UI_LABELS.HEADER.NO_BOOKMARKS}</p>
       ) : (
-        <BookmarkForm key={bookmark.id} bookmark={bookmark} />
+        <BookmarkForm bookmark={bookmark} key={bookmark.id} />
       )}
     </div>
   )

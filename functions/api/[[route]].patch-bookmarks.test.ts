@@ -1,16 +1,17 @@
+import { D1Database } from '@cloudflare/workers-types'
 import { beforeEach, describe, expect, it, Mock, vi } from 'vitest'
-import { app } from './[[route]]' // appのインポートパスは環境に合わせて調整してください
+
+import { ERROR_MESSAGE, UI_MESSAGES } from '../../shared/constants/uiMessages'
+import { SCHEMA_MESSAGE } from '../../shared/constants/validation'
+import { BOOKMARKS, DATABASE_NAME } from '../constants/db'
+import { LOG_MESSAGE } from '../constants/logMessage'
 import {
   INVALID_STRING,
   REQUEST_API_PATH,
   TEST_ERROR_MESSAGE,
   TestBookmarks,
 } from '../test/fixtures'
-import { D1Database } from '@cloudflare/workers-types'
-import { BOOKMARKS, DATABASE_NAME } from '../constants/db'
-import { SCHEMA_MESSAGE } from '../../shared/constants/validation'
-import { ERROR_MESSAGE, UI_MESSAGES } from '../../shared/constants/uiMessages'
-import { LOG_MESSAGE } from '../constants/logMessage'
+import { app } from './[[route]]' // appのインポートパスは環境に合わせて調整してください
 
 // D1 データベースの準備（モック用）
 
@@ -26,8 +27,8 @@ describe('Hono API - PATCH /api/bookmarks/:id', () => {
 
   let consoleSpy: Mock<(...data: unknown[]) => void>
   beforeEach(() => {
-    consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     vi.resetAllMocks()
+    consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     mockPrepare.mockReturnValue({ bind: mockBind })
     mockBind.mockReturnValue({
       first: mockFirst,
@@ -44,11 +45,11 @@ describe('Hono API - PATCH /api/bookmarks/:id', () => {
     const res = await app.request(
       REQUEST_API_PATH.UPDATE_BOOKMARK(updateBookmark.id),
       {
-        method: 'PATCH',
+        body: JSON.stringify(requestBody),
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(requestBody),
+        method: 'PATCH',
       },
       {
         BOOKMARK_PAGE_DB: mockD1Database as D1Database,
@@ -74,23 +75,23 @@ describe('Hono API - PATCH /api/bookmarks/:id', () => {
     it.each([
       {
         description: 'IDが不正な形式',
+        expectedError: SCHEMA_MESSAGE.INVALID_ID_FORMAT,
         id: INVALID_STRING.ID,
         invalidBody: { title: updateBookmark.title, url: updateBookmark.url },
-        expectedError: SCHEMA_MESSAGE.INVALID_ID_FORMAT,
       },
       {
         description: 'タイトルが不足',
+        expectedError: SCHEMA_MESSAGE.TITLE_REQUIRED,
         id: updateBookmark.id,
         invalidBody: { url: updateBookmark.url },
-        expectedError: SCHEMA_MESSAGE.TITLE_REQUIRED,
       },
       {
         description: 'urlが不足',
+        expectedError: SCHEMA_MESSAGE.URL_REQUIRED,
         id: updateBookmark.id,
         invalidBody: { title: updateBookmark.title },
-        expectedError: SCHEMA_MESSAGE.URL_REQUIRED,
       },
-    ])(`$description`, async ({ invalidBody, expectedError, id }) => {
+    ])(`$description`, async ({ expectedError, id, invalidBody }) => {
       const mockD1Database: Partial<D1Database> = {
         prepare: mockPrepare as D1Database['prepare'],
       }
@@ -98,11 +99,11 @@ describe('Hono API - PATCH /api/bookmarks/:id', () => {
       const res = await app.request(
         REQUEST_API_PATH.UPDATE_BOOKMARK(id),
         {
-          method: 'PATCH',
+          body: JSON.stringify(invalidBody),
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(invalidBody),
+          method: 'PATCH',
         },
         {
           BOOKMARK_PAGE_DB: mockD1Database as D1Database,
@@ -129,11 +130,11 @@ describe('Hono API - PATCH /api/bookmarks/:id', () => {
       const res = await app.request(
         REQUEST_API_PATH.UPDATE_BOOKMARK(updateBookmark.id),
         {
-          method: 'PATCH',
+          body: JSON.stringify(requestBody),
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(requestBody),
+          method: 'PATCH',
         },
         {
           BOOKMARK_PAGE_DB: mockD1Database as D1Database,
@@ -144,8 +145,8 @@ describe('Hono API - PATCH /api/bookmarks/:id', () => {
 
       const body = await res.json()
       expect(body).toEqual({
-        success: false,
         error: UI_MESSAGES.API.NOT_FOUND_BOOKMARK,
+        success: false,
       })
     })
 
@@ -170,11 +171,11 @@ describe('Hono API - PATCH /api/bookmarks/:id', () => {
       const res = await app.request(
         REQUEST_API_PATH.UPDATE_BOOKMARK(updateBookmark.id),
         {
-          method: 'PATCH',
+          body: JSON.stringify(requestBody),
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(requestBody),
+          method: 'PATCH',
         },
         {},
       )
@@ -183,8 +184,8 @@ describe('Hono API - PATCH /api/bookmarks/:id', () => {
 
       const body = await res.json()
       expect(body).toEqual({
-        success: false,
         error: UI_MESSAGES.API.DB_ERROR,
+        success: false,
       })
       expect(consoleSpy).toHaveBeenCalledWith(
         expect.stringContaining(ERROR_MESSAGE.DB_BINDING_ERROR(DATABASE_NAME)),
@@ -202,11 +203,11 @@ describe('Hono API - PATCH /api/bookmarks/:id', () => {
       const res = await app.request(
         REQUEST_API_PATH.UPDATE_BOOKMARK(updateBookmark.id),
         {
-          method: 'PATCH',
+          body: JSON.stringify(requestBody),
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(requestBody),
+          method: 'PATCH',
         },
         {
           BOOKMARK_PAGE_DB: mockD1Database as D1Database,
@@ -217,8 +218,8 @@ describe('Hono API - PATCH /api/bookmarks/:id', () => {
 
       const body = await res.json()
       expect(body).toEqual({
-        success: false,
         error: UI_MESSAGES.API.DB_ERROR,
+        success: false,
       })
       expect(consoleSpy).toHaveBeenCalledWith(LOG_MESSAGE.DB_ERROR(dbError))
     })
@@ -240,11 +241,11 @@ describe('Hono API - PATCH /api/bookmarks/:id', () => {
       const res = await app.request(
         REQUEST_API_PATH.UPDATE_BOOKMARK(updateBookmark.id),
         {
-          method: 'PATCH',
+          body: JSON.stringify(requestBody),
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(requestBody),
+          method: 'PATCH',
         },
         {
           BOOKMARK_PAGE_DB: mockD1Database as D1Database,
@@ -256,8 +257,8 @@ describe('Hono API - PATCH /api/bookmarks/:id', () => {
 
       const body = await res.json()
       expect(body).toEqual({
-        success: false,
         error: UI_MESSAGES.API.DUPLICATE_URL,
+        success: false,
       })
       expect(consoleSpy).not.toHaveBeenCalled()
     })
