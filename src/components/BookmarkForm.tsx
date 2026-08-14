@@ -62,38 +62,31 @@ export const BookmarkForm = ({ bookmark }: BookmarkFormProps) => {
 
   return (
     <form onSubmit={handleSubmit}>
-      <div className="w-1/2 m-auto">
-        <div className="grid grid-cols-[max-content_1fr] items-center gap-1">
-          <FormInput
-            label={UI_LABELS.FIELDS.TITLE}
-            onChange={(e) => setTitle(e.target.value)}
-            value={title}
-          />
-
-          <FormInput
-            label={UI_LABELS.FIELDS.URL}
-            onChange={(e) => setUrl(e.target.value)}
-            value={url}
-          />
-        </div>
-        <div className="mt-2 grid grid-cols-4 gap-2">
-          <Button disabled={isSubmitDisable} type="submit">
-            {UI_LABELS.ACTIONS.OPEN}
-          </Button>
-          <Button
-            disabled={isUpdateDisable}
-            onClick={handleUpdate}
-            type="button"
-          >
-            {UI_LABELS.ACTIONS.UPDATE}
-          </Button>
-          <Button disabled={isPending} onClick={handleDelete} type="button">
-            {UI_LABELS.ACTIONS.DELETE}
-          </Button>
-          <Button disabled={isBackDisable} onClick={handleBack} type="button">
-            {UI_LABELS.ACTIONS.BACK}
-          </Button>
-        </div>
+      <div className="grid grid-cols-[max-content_1fr] items-center gap-1">
+        <FormInput
+          label={UI_LABELS.FIELDS.TITLE}
+          onChange={(e) => setTitle(e.target.value)}
+          value={title}
+        />
+        <FormInput
+          label={UI_LABELS.FIELDS.URL}
+          onChange={(e) => setUrl(e.target.value)}
+          value={url}
+        />
+      </div>
+      <div className="mt-2 grid grid-cols-4 gap-2">
+        <Button disabled={isSubmitDisable} type="submit">
+          {UI_LABELS.ACTIONS.OPEN}
+        </Button>
+        <Button disabled={isUpdateDisable} onClick={handleUpdate} type="button">
+          {UI_LABELS.ACTIONS.UPDATE}
+        </Button>
+        <Button disabled={isPending} onClick={handleDelete} type="button">
+          {UI_LABELS.ACTIONS.DELETE}
+        </Button>
+        <Button disabled={isBackDisable} onClick={handleBack} type="button">
+          {UI_LABELS.ACTIONS.BACK}
+        </Button>
       </div>
     </form>
   )

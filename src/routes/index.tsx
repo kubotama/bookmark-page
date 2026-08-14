@@ -28,7 +28,7 @@ function IndexComponent() {
         <p>{UI_LABELS.HEADER.NO_BOOKMARKS}</p>
       ) : (
         /* 4. 通常のデータ一覧表示 */
-        <div className="w-1/2 m-auto transition">
+        <div className="w-full transition">
           <div className="flex flex-col items-start">
             {bookmarks.map((bookmark) => (
               <div
