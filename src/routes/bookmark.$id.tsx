@@ -14,7 +14,7 @@ function BookmarkDetailComponent() {
   // テキストボックス用のローカル状態（State）
 
   return (
-    <div>
+    <div className="w-full">
       {isLoading ? (
         <div style={{ padding: '20px' }}>{UI_LABELS.ACTIONS.LOADING}</div>
       ) : error ? (

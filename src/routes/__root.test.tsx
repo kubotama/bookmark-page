@@ -30,7 +30,7 @@ describe('Root Layout', () => {
 
     // 全体の背景色などのクラスを持つmainタグ（レイアウト）が存在するか
     const mainElement = await screen.findByRole('main')
-    expect(mainElement).toHaveClass('container')
+    expect(mainElement).toHaveClass('w-full xl:w-1/2')
 
     // Outletを通じて子要素の内容が表示されているか
     expect(screen.getByTestId('child-content')).toBeInTheDocument()
