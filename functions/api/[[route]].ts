@@ -5,6 +5,7 @@ import { Context, Hono } from 'hono'
 import { handle } from 'hono/cloudflare-pages'
 import { cors } from 'hono/cors'
 import { uuidv7 } from 'uuidv7'
+import z from 'zod'
 
 import { API_PATH } from '../../shared/constants/api'
 import { ERROR_MESSAGE, UI_MESSAGES } from '../../shared/constants/uiMessages'
@@ -16,7 +17,7 @@ import {
   CreateBookmarkSchema,
   UpdateBookmarkSchema,
 } from '../schemas/bookmark'
-import { Keyword } from '../schemas/keyword'
+import { KeywordWithBookmarkIdsSchema } from '../schemas/keyword'
 
 type Env = {
   Bindings: {
@@ -105,11 +106,16 @@ const routes = app
         throw new Error(ERROR_MESSAGE.DB_BINDING_ERROR(DATABASE_NAME))
       }
 
-      // keywords テーブルから全キーワードを取得
-      const { results } = await db.prepare(KEYWORDS.SELECT_ALL).all<Keyword>()
+      // 1. D1 から生データを取得（bookmark_ids は JSON 文字列）
+      const { results } = await db
+        .prepare(KEYWORDS.SELECT_ALL_WITH_BOOKMARKS)
+        .all()
+
+      // 2. Zod スキーマに通して一括でパース・変換
+      const data = z.array(KeywordWithBookmarkIdsSchema).parse(results)
 
       return c.json({
-        data: results,
+        data,
         success: true,
       })
     } catch (error) {

@@ -1,5 +1,5 @@
 import { Bookmark, CreateBookmarkSchema } from '../schemas/bookmark'
-import { Keyword } from '../schemas/keyword'
+import { KeywordWithBookmarkIds } from '../schemas/keyword'
 
 // MVP用のダミーデータ
 export const TestBookmarks: Bookmark[] = [
@@ -70,12 +70,27 @@ export const REQUEST_API_PATH = {
   UPDATE_BOOKMARK: (id: string) => `/api/bookmarks/${id}`,
 } as const
 
-export const TestKeywords: Keyword[] = [
+export const TestKeywordsTableData = [
   {
+    bookmark_ids: '["018ed000-0001-7000-8000-000000000001"]',
     id: '018ed000-0001-7000-8000-000000000001',
     name: 'キーワード1',
   },
   {
+    bookmark_ids: '[]',
+    id: '018ed000-0001-7000-8000-000000000002',
+    name: 'キーワード2',
+  },
+] as const
+
+export const TestKeywords: KeywordWithBookmarkIds[] = [
+  {
+    bookmark_ids: ['018ed000-0001-7000-8000-000000000001'],
+    id: '018ed000-0001-7000-8000-000000000001',
+    name: 'キーワード1',
+  },
+  {
+    bookmark_ids: [],
     id: '018ed000-0001-7000-8000-000000000002',
     name: 'キーワード2',
   },

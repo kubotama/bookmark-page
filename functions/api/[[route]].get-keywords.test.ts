@@ -2,13 +2,17 @@ import { D1Database } from '@cloudflare/workers-types'
 import { describe, expect, it, vi } from 'vitest'
 
 import { KEYWORDS } from '../constants/db'
-import { REQUEST_API_PATH, TestKeywords } from '../test/fixtures'
+import {
+  REQUEST_API_PATH,
+  TestKeywords,
+  TestKeywordsTableData,
+} from '../test/fixtures'
 import { app } from './[[route]]'
 
 describe('Hono API - GET /keywords', () => {
   it('GET /api/keywords が正しいJSONを返すこと', async () => {
     const allSpy = vi.fn().mockResolvedValue({
-      results: TestKeywords,
+      results: TestKeywordsTableData,
     })
     const prepareSpy = vi.fn().mockReturnValue({ all: allSpy })
 
@@ -23,7 +27,7 @@ describe('Hono API - GET /keywords', () => {
         BOOKMARK_PAGE_DB: mockD1Database as D1Database,
       },
     )
-    const expectedSQL = KEYWORDS.SELECT_ALL
+    const expectedSQL = KEYWORDS.SELECT_ALL_WITH_BOOKMARKS
 
     expect(prepareSpy).toHaveBeenCalledWith(expectedSQL)
     expect(allSpy).toHaveBeenCalledOnce()
