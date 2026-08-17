@@ -8,7 +8,7 @@ import { uuidv7 } from 'uuidv7'
 
 import { API_PATH } from '../../shared/constants/api'
 import { ERROR_MESSAGE, UI_MESSAGES } from '../../shared/constants/uiMessages'
-import { BOOKMARKS, DATABASE_NAME } from '../constants/db'
+import { BOOKMARKS, DATABASE_NAME, KEYWORDS } from '../constants/db'
 import { LOG_MESSAGE } from '../constants/logMessage'
 import {
   Bookmark,
@@ -16,6 +16,7 @@ import {
   CreateBookmarkSchema,
   UpdateBookmarkSchema,
 } from '../schemas/bookmark'
+import { Keyword } from '../schemas/keyword'
 
 type Env = {
   Bindings: {
@@ -88,6 +89,24 @@ const routes = app
         throw new Error(ERROR_MESSAGE.DB_BINDING_ERROR(DATABASE_NAME))
       }
       const { results } = await db.prepare(BOOKMARKS.SELECT_ALL).all<Bookmark>()
+
+      return c.json({
+        data: results,
+        success: true,
+      })
+    } catch (error) {
+      return handleDbError(error, c)
+    }
+  })
+  .get(API_PATH.GET_KEYWORDS, async (c) => {
+    try {
+      const db = c.env.BOOKMARK_PAGE_DB
+      if (!db) {
+        throw new Error(ERROR_MESSAGE.DB_BINDING_ERROR(DATABASE_NAME))
+      }
+
+      // keywords テーブルから全キーワードを取得
+      const { results } = await db.prepare(KEYWORDS.SELECT_ALL).all<Keyword>()
 
       return c.json({
         data: results,

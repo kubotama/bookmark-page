@@ -1,4 +1,5 @@
 import { Bookmark, CreateBookmarkSchema } from '../schemas/bookmark'
+import { Keyword } from '../schemas/keyword'
 
 // MVP用のダミーデータ
 export const TestBookmarks: Bookmark[] = [
@@ -65,5 +66,17 @@ export const REQUEST_API_PATH = {
   ADD_BOOKMARK: '/api/bookmarks',
   DELETE_BOOKMARK: (id: string) => `/api/bookmarks/${id}`,
   GET_BOOKMARKS: '/api/bookmarks',
+  GET_KEYWORDS: '/api/keywords',
   UPDATE_BOOKMARK: (id: string) => `/api/bookmarks/${id}`,
 } as const
+
+export const TestKeywords: Keyword[] = [
+  {
+    id: '018ed000-0001-7000-8000-000000000001',
+    name: 'キーワード1',
+  },
+  {
+    id: '018ed000-0001-7000-8000-000000000002',
+    name: 'キーワード2',
+  },
+] as const

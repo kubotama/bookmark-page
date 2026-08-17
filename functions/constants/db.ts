@@ -8,4 +8,8 @@ export const BOOKMARKS = {
     'UPDATE bookmarks SET title = ?, url = ? WHERE id = ? RETURNING id, title, url',
 } as const
 
+export const KEYWORDS = {
+  SELECT_ALL: 'SELECT id, name FROM keywords ORDER BY created_at DESC',
+}
+
 export const DATABASE_NAME = 'BOOKMARK_PAGE_DB'
