@@ -1,9 +1,12 @@
 import { D1Database } from '@cloudflare/workers-types'
 import { describe, expect, it, vi } from 'vitest'
 
+import { UI_MESSAGES } from '../../shared/constants/uiMessages'
 import { KEYWORDS } from '../constants/db'
+import { LOG_MESSAGE } from '../constants/logMessage'
 import {
   REQUEST_API_PATH,
+  TEST_ERROR_MESSAGE,
   TestKeywords,
   TestKeywordsTableData,
 } from '../test/fixtures'
@@ -39,5 +42,34 @@ describe('Hono API - GET /keywords', () => {
       data: TestKeywords,
       success: true,
     })
+  })
+
+  it('GET /api/keywords - DB側で例外が発生した際、適切に500エラーを返すこと', async () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const dbError = new Error(TEST_ERROR_MESSAGE.DB_ERROR)
+
+    const allSpy = vi.fn().mockRejectedValue(dbError)
+    const prepareSpy = vi.fn().mockReturnValue({ all: allSpy })
+
+    const mockFailedDb: Partial<D1Database> = {
+      prepare: prepareSpy as D1Database['prepare'],
+    }
+
+    const res = await app.request(
+      REQUEST_API_PATH.GET_KEYWORDS,
+      {},
+      {
+        BOOKMARK_PAGE_DB: mockFailedDb as D1Database,
+      },
+    )
+
+    expect(res.status).toBe(500)
+
+    const json = await res.json()
+    expect(json).toEqual({
+      error: UI_MESSAGES.API.DB_ERROR,
+      success: false,
+    })
+    expect(consoleSpy).toHaveBeenCalledWith(LOG_MESSAGE.DB_ERROR(dbError))
   })
 })
