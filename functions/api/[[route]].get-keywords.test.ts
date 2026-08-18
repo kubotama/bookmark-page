@@ -1,8 +1,8 @@
 import { D1Database } from '@cloudflare/workers-types'
 import { describe, expect, it, vi } from 'vitest'
 
-import { UI_MESSAGES } from '../../shared/constants/uiMessages'
-import { KEYWORDS } from '../constants/db'
+import { ERROR_MESSAGE, UI_MESSAGES } from '../../shared/constants/uiMessages'
+import { DATABASE_NAME, KEYWORDS } from '../constants/db'
 import { LOG_MESSAGE } from '../constants/logMessage'
 import {
   REQUEST_API_PATH,
@@ -71,5 +71,30 @@ describe('Hono API - GET /keywords', () => {
       success: false,
     })
     expect(consoleSpy).toHaveBeenCalledWith(LOG_MESSAGE.DB_ERROR(dbError))
+  })
+
+  it('データベースのバインディング（BOOKMARK_PAGE_DB）が未設定の場合、500を返すこと', async () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const res = await app.request(
+      REQUEST_API_PATH.GET_KEYWORDS,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        method: 'GET',
+      },
+      {},
+    )
+
+    expect(res.status).toBe(500)
+
+    const body = await res.json()
+    expect(body).toEqual({
+      error: UI_MESSAGES.API.DB_ERROR,
+      success: false,
+    })
+    expect(consoleSpy).toHaveBeenCalledWith(
+      expect.stringContaining(ERROR_MESSAGE.DB_BINDING_ERROR(DATABASE_NAME)),
+    )
   })
 })
