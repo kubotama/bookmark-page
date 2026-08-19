@@ -2,7 +2,22 @@ export const BOOKMARKS = {
   DELETE: 'DELETE FROM bookmarks WHERE id = ?',
   INSERT:
     'INSERT INTO bookmarks (id, title, url) VALUES (?, ?, ?) RETURNING id, title, url',
-  SELECT_ALL: 'SELECT id, title, url FROM bookmarks ORDER BY created_at DESC',
+  SELECT_ALL_WITH_KEYWORDS: `SELECT
+      b.id,
+      b.title,
+      b.url,
+      b.created_at,
+      COALESCE(
+        json_group_array(
+          json_object('id', k.id, 'name', k.name)
+        ) FILTER (WHERE k.id IS NOT NULL),
+        '[]'
+      ) AS keywords
+    FROM bookmarks b
+    LEFT JOIN bookmarks_keywords bk ON b.id = bk.bookmark_id
+    LEFT JOIN keywords k ON bk.keyword_id = k.id
+    GROUP BY b.id
+    ORDER BY b.created_at DESC;`,
   SELECT_ID: 'SELECT id FROM bookmarks WHERE id = ?',
   UPDATE:
     'UPDATE bookmarks SET title = ?, url = ? WHERE id = ? RETURNING id, title, url',

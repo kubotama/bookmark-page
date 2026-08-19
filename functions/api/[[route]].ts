@@ -14,6 +14,7 @@ import { LOG_MESSAGE } from '../constants/logMessage'
 import {
   Bookmark,
   BookmarkIdParamSchema,
+  BookmarkWithKeywordsSchema,
   CreateBookmarkSchema,
   UpdateBookmarkSchema,
 } from '../schemas/bookmark'
@@ -89,10 +90,14 @@ const routes = app
       if (!db) {
         throw new Error(ERROR_MESSAGE.DB_BINDING_ERROR(DATABASE_NAME))
       }
-      const { results } = await db.prepare(BOOKMARKS.SELECT_ALL).all<Bookmark>()
+      const { results } = await db
+        .prepare(BOOKMARKS.SELECT_ALL_WITH_KEYWORDS)
+        .all()
+
+      const data = z.array(BookmarkWithKeywordsSchema).parse(results)
 
       return c.json({
-        data: results,
+        data,
         success: true,
       })
     } catch (error) {

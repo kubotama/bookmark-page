@@ -1,4 +1,8 @@
-import { Bookmark, CreateBookmarkSchema } from '../schemas/bookmark'
+import {
+  Bookmark,
+  BookmarkWithKeywords,
+  CreateBookmarkSchema,
+} from '../schemas/bookmark'
 import { KeywordWithBookmarkIds } from '../schemas/keyword'
 
 // MVP用のダミーデータ
@@ -98,5 +102,53 @@ export const TestKeywords: KeywordWithBookmarkIds[] = [
 
 export const mockKeywordsData = {
   data: TestKeywords,
+  success: true,
+}
+
+export const TestBookmarkWKWTableData = [
+  {
+    id: '018ed000-0001-7000-8000-000000000001',
+    keywords:
+      '[{ "id": "018ed000-0001-7000-8000-000000000011", "name": "IT" }]',
+    title: 'Hono',
+    url: 'https://hono.dev/',
+  },
+  {
+    id: '018ed000-0001-7000-8000-000000000002',
+    keywords: '[]',
+    title: 'Vite',
+    url: 'https://vitejs.dev/',
+  },
+  {
+    id: '018ed000-0001-7000-8000-000000000003',
+    keywords: '[]',
+    title: 'Google マップ',
+    url: 'https://www.google.com/maps',
+  },
+]
+
+export const TestBookmarkWithKeywords: BookmarkWithKeywords[] = [
+  {
+    id: '018ed000-0001-7000-8000-000000000001',
+    keywords: [{ id: '018ed000-0001-7000-8000-000000000011', name: 'IT' }],
+    title: 'Hono',
+    url: 'https://hono.dev/',
+  },
+  {
+    id: '018ed000-0001-7000-8000-000000000002',
+    keywords: [],
+    title: 'Vite',
+    url: 'https://vitejs.dev/',
+  },
+  {
+    id: '018ed000-0001-7000-8000-000000000003',
+    keywords: [],
+    title: 'Google マップ',
+    url: 'https://www.google.com/maps',
+  },
+]
+
+export const mockTestBookmarkWithKeywords = {
+  data: TestBookmarkWithKeywords,
   success: true,
 }
