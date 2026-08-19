@@ -39,5 +39,9 @@ describe('Root Layout', () => {
     const header = await screen.findByText(UI_LABELS.HEADER.PAGE_HEADER)
     expect(header).toBeInTheDocument()
     expect(header.closest('a')).toHaveAttribute('href', '/')
+
+    const keyword = await screen.findByText(UI_LABELS.HEADER.KEYWORD)
+    expect(keyword).toBeInTheDocument()
+    expect(keyword.closest('a')).toHaveAttribute('href', '/keyword')
   })
 })
