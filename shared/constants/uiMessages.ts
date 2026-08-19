@@ -30,8 +30,10 @@ export const UI_LABELS = {
   },
   HEADER: {
     PAGE_HEADER: 'Bookmark Page',
+    KEYWORD: 'キーワード',
     NO_BOOKMARKS: 'ブックマークがありません。',
     ADD_BOOKMARK: 'ブックマークの追加',
+    NO_KEYWORDS: 'キーワードがありません。',
   },
 } as const
 

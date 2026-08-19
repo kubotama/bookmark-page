@@ -95,3 +95,8 @@ export const TestKeywords: KeywordWithBookmarkIds[] = [
     name: 'キーワード2',
   },
 ] as const
+
+export const mockKeywordsData = {
+  data: TestKeywords,
+  success: true,
+}
