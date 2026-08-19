@@ -7,11 +7,8 @@ import {
 import { act, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import {
-  mockBookmarksData,
-  mockKeywordsData,
-  TestKeywords,
-} from '../../functions/test/fixtures'
+import { Keyword } from '../../functions/schemas/keyword'
+import { mockKeywordsData, TestKeywords } from '../../functions/test/fixtures'
 import { ERROR_MESSAGE, UI_LABELS } from '../../shared/constants/uiMessages'
 import { routeTree } from '../routeTree.gen'
 
@@ -85,6 +82,12 @@ describe('Keyword List Page', () => {
     expect(screen.getByText(UI_LABELS.ACTIONS.LOADING)).toBeInTheDocument()
   })
 
+  const verifyKeywordLink = async (keyword: Keyword) => {
+    const link = await screen.findByText(keyword.name)
+    expect(link).toBeInTheDocument()
+    expect(link.closest('a')).toHaveAttribute('href', `/bookmark/${keyword.id}`)
+  }
+
   it('APIから取得したブックマーク一覧が正常にレンダリングされること', async () => {
     // 正常系データを返すレスポンスをモック
     mockGet.mockResolvedValue({
@@ -96,54 +99,41 @@ describe('Keyword List Page', () => {
       await renderKeyword()
     })
 
-    // 非同期データ取得と描画の完了を待つため findByText を使用
-    const firstKeyword = await screen.findByText(TestKeywords[0].name)
-    const secondKeyword = await screen.findByText(TestKeywords[1].name)
-
-    expect(firstKeyword).toBeInTheDocument()
-    expect(secondKeyword).toBeInTheDocument()
-
-    // リンクの href 属性が正しく設定されているか検証
-    expect(firstKeyword.closest('a')).toHaveAttribute(
-      'href',
-      `/bookmark/${mockBookmarksData.data[0].id}`,
-    )
+    await verifyKeywordLink(TestKeywords[0])
+    await verifyKeywordLink(TestKeywords[1])
   })
 
-  it('ブックマークが空の場合に「データなし」のメッセージが表示されること', async () => {
-    // データが空の配列を返すレスポンスをモック
-    mockGet.mockResolvedValue({
-      json: async () => ({ data: [], success: true }),
-      ok: true,
-    })
+  type TestCase = {
+    description: string
+    expectedMessage: string
+    mockData: object
+  }
 
-    await act(async () => {
-      await renderKeyword()
-    })
+  const testCases: TestCase[] = [
+    {
+      description: 'ブックマークが空の場合に「データなし」の',
+      expectedMessage: UI_LABELS.HEADER.NO_KEYWORDS,
+      mockData: {
+        json: async () => ({ data: [], success: true }),
+        ok: true,
+      },
+    },
+    {
+      description: 'サーバーエラー(res.okがfalse)が発生した際にエラー',
+      expectedMessage: ERROR_MESSAGE.SERVER_ERROR,
+      mockData: { ok: false },
+    },
+  ]
 
-    // ブックマークがない場合の専用文言が表示されるか検証
-    const noDataMessage = await screen.findByText(UI_LABELS.HEADER.NO_KEYWORDS)
-    expect(noDataMessage).toBeInTheDocument()
-  })
+  it.each(testCases)(
+    `$descriptionメッセージが表示されること`,
+    async ({ expectedMessage, mockData }) => {
+      mockGet.mockResolvedValue(mockData)
 
-  it('サーバーエラー(res.okがfalse)が発生した際にエラーメッセージが表示されること', async () => {
-    // エラーによる console.error の出力をテストログで汚さないためのハック（任意）
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-
-    // APIがエラーを返した状態を模倣
-    mockGet.mockResolvedValue({
-      ok: false,
-    })
-
-    await act(async () => {
-      await renderKeyword()
-    })
-
-    // エラーハンドリングによって表示される要素を検証
-    // ※ index.tsx 内の `throw new Error(ERROR_MESSAGE.SERVER_ERROR)` に基づくテキスト
-    const errorText = await screen.findByText(ERROR_MESSAGE.SERVER_ERROR)
-    expect(errorText).toBeInTheDocument()
-
-    consoleSpy.mockRestore()
-  })
+      await act(async () => {
+        await renderKeyword()
+      })
+      expect(await screen.findByText(expectedMessage)).toBeInTheDocument()
+    },
+  )
 })
