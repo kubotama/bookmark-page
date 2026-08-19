@@ -32,6 +32,7 @@ export const UI_LABELS = {
     PAGE_HEADER: 'Bookmark Page',
     NO_BOOKMARKS: 'ブックマークがありません。',
     ADD_BOOKMARK: 'ブックマークの追加',
+    NO_KEYWORDS: 'キーワードがありません。',
   },
 } as const
 
