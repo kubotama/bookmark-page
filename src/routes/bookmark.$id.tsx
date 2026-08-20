@@ -16,10 +16,10 @@ function BookmarkDetailComponent() {
   return (
     <div className="w-full">
       {isLoading ? (
-        <div style={{ padding: '20px' }}>{UI_LABELS.ACTIONS.LOADING}</div>
+        <div className="p-5">{UI_LABELS.ACTIONS.LOADING}</div>
       ) : error ? (
         /* 2. エラー発生時の表示 */
-        <div style={{ color: 'red', padding: '20px' }}>{error.message}</div>
+        <div className="p-5 text-red-700">{error.message}</div>
       ) : bookmark === undefined ? (
         /* 3. データが空の時の表示 */
         <p>{UI_LABELS.HEADER.NO_BOOKMARKS}</p>

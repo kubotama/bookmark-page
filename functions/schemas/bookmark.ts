@@ -4,6 +4,7 @@ import {
   LENGTH_LIMITATION,
   SCHEMA_MESSAGE,
 } from '../../shared/constants/validation'
+import { KeywordSchema } from './keyword'
 
 // Zodで型を定義（バリデーションや安全なパース用）
 export const BookmarkIdSchema = z.uuid({
@@ -36,6 +37,27 @@ export const BookmarkSchema = z.object({
   url: BookmarkUrlSchema,
 })
 export type Bookmark = z.infer<typeof BookmarkSchema>
+
+/**
+ * 💡 キーワード配列（keywords）を含むブックマークスキーマ
+ * D1 から取得した JSON 文字列（'[{"id":"...","name":"..."}]'）をパースして Keyword[] に変換します
+ */
+export const BookmarkWithKeywordsSchema = BookmarkSchema.extend({
+  keywords: z.string().transform((val) => {
+    try {
+      const parsed = JSON.parse(val)
+      return z.array(KeywordSchema).parse(parsed)
+    } catch {
+      return []
+    }
+  }),
+})
+
+/**
+ * 💡 キーワード配列を含むブックマークの型定義
+ * 推論される型: { id: string; title: string; url: string; keywords: Keyword[] }
+ */
+export type BookmarkWithKeywords = z.infer<typeof BookmarkWithKeywordsSchema>
 
 /**
  * 💡 ブックマーク新規登録時のバリデーションスキーマ

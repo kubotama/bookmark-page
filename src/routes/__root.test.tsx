@@ -7,6 +7,7 @@ import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { UI_LABELS } from '../../shared/constants/uiMessages'
+import { expectText } from '../test/test-utils'
 import { Route as RootRoute } from './__root'
 
 window.scrollTo = vi.fn()
@@ -36,12 +37,7 @@ describe('Root Layout', () => {
     expect(screen.getByTestId('child-content')).toBeInTheDocument()
 
     // ヘッダが表示されているか
-    const header = await screen.findByText(UI_LABELS.HEADER.PAGE_HEADER)
-    expect(header).toBeInTheDocument()
-    expect(header.closest('a')).toHaveAttribute('href', '/')
-
-    const keyword = await screen.findByText(UI_LABELS.HEADER.KEYWORD)
-    expect(keyword).toBeInTheDocument()
-    expect(keyword.closest('a')).toHaveAttribute('href', '/keyword')
+    await expectText({ link: '/', text: UI_LABELS.HEADER.PAGE_HEADER })
+    await expectText({ link: '/keyword', text: UI_LABELS.HEADER.KEYWORD })
   })
 })
