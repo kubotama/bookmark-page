@@ -9,6 +9,7 @@ import {
 } from '../../functions/test/fixtures'
 import { ERROR_MESSAGE, UI_LABELS } from '../../shared/constants/uiMessages'
 import { routeTree } from '../routeTree.gen'
+import { expectText } from '../test/test-utils'
 
 window.scrollTo = vi.fn()
 
@@ -52,12 +53,6 @@ async function renderIndexPage() {
   )
 }
 
-const expectBookmarkLink = async (label: string, id: string) => {
-  const linkItem = await screen.findByText(label)
-  expect(linkItem).toBeInTheDocument()
-  expect(linkItem.closest('a')).toHaveAttribute('href', `/bookmark/${id}`)
-}
-
 // ==========================================
 // 3. テストケース定義
 // ==========================================
@@ -89,14 +84,15 @@ describe('Index Page (Bookmark List)', () => {
       await renderIndexPage()
     })
 
-    await expectBookmarkLink(
-      TestBookmarkWithKeywords[0].title,
-      TestBookmarkWithKeywords[0].id,
-    )
-    await expectBookmarkLink(
-      TestBookmarkWithKeywords[1].title,
-      TestBookmarkWithKeywords[1].id,
-    )
+    await expectText({
+      link: `/bookmark/${TestBookmarkWithKeywords[0].id}`,
+      text: TestBookmarkWithKeywords[0].title,
+    })
+
+    await expectText({
+      link: `/bookmark/${TestBookmarkWithKeywords[1].id}`,
+      text: TestBookmarkWithKeywords[1].title,
+    })
   })
 
   type TestCase = {
@@ -130,7 +126,7 @@ describe('Index Page (Bookmark List)', () => {
         await renderIndexPage()
       })
 
-      expect(await screen.findByText(expectedMessage)).toBeInTheDocument()
+      await expectText({ text: expectedMessage })
     },
   )
 })

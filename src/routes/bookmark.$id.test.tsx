@@ -13,6 +13,7 @@ import {
 } from '../../functions/test/fixtures'
 import { ERROR_MESSAGE, UI_LABELS } from '../../shared/constants/uiMessages'
 import { routeTree } from '../routeTree.gen'
+import { expectText } from '../test/test-utils'
 
 // jsdom環境用に window.scrollTo の警告を黙らせる
 window.scrollTo = vi.fn()
@@ -118,7 +119,7 @@ describe('Bookmark Detail Page', () => {
       renderBookmarkDetailPage(targetBookmark.id)
 
       // カスタムフックを介して取得・表示されたタイトルを非同期で待つ
-      expect(await screen.findByText(expectedMessage)).toBeInTheDocument()
+      await expectText({ text: expectedMessage })
     },
   )
 })
