@@ -3,7 +3,10 @@ import { createRouter, RouterProvider } from '@tanstack/react-router'
 import { act, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { mockBookmarksData, TestBookmarks } from '../../functions/test/fixtures'
+import {
+  mockTestBookmarkWithKeywords,
+  TestBookmarkWithKeywords,
+} from '../../functions/test/fixtures'
 import { ERROR_MESSAGE, UI_LABELS } from '../../shared/constants/uiMessages'
 import { routeTree } from '../routeTree.gen'
 
@@ -49,6 +52,12 @@ async function renderIndexPage() {
   )
 }
 
+const expectBookmarkLink = async (label: string, id: string) => {
+  const linkItem = await screen.findByText(label)
+  expect(linkItem).toBeInTheDocument()
+  expect(linkItem.closest('a')).toHaveAttribute('href', `/bookmark/${id}`)
+}
+
 // ==========================================
 // 3. テストケース定義
 // ==========================================
@@ -72,7 +81,7 @@ describe('Index Page (Bookmark List)', () => {
   it('APIから取得したブックマーク一覧が正常にレンダリングされること', async () => {
     // 正常系データを返すレスポンスをモック
     mockGet.mockResolvedValue({
-      json: async () => mockBookmarksData,
+      json: async () => mockTestBookmarkWithKeywords,
       ok: true,
     })
 
@@ -80,54 +89,48 @@ describe('Index Page (Bookmark List)', () => {
       await renderIndexPage()
     })
 
-    // 非同期データ取得と描画の完了を待つため findByText を使用
-    const firstBookmark = await screen.findByText(TestBookmarks[0].title)
-    const secondBookmark = await screen.findByText(TestBookmarks[1].title)
-
-    expect(firstBookmark).toBeInTheDocument()
-    expect(secondBookmark).toBeInTheDocument()
-
-    // リンクの href 属性が正しく設定されているか検証
-    expect(firstBookmark.closest('a')).toHaveAttribute(
-      'href',
-      `/bookmark/${mockBookmarksData.data[0].id}`,
+    await expectBookmarkLink(
+      TestBookmarkWithKeywords[0].title,
+      TestBookmarkWithKeywords[0].id,
+    )
+    await expectBookmarkLink(
+      TestBookmarkWithKeywords[1].title,
+      TestBookmarkWithKeywords[1].id,
     )
   })
 
-  it('ブックマークが空の場合に「データなし」のメッセージが表示されること', async () => {
-    // データが空の配列を返すレスポンスをモック
-    mockGet.mockResolvedValue({
-      json: async () => ({ data: [], success: true }),
-      ok: true,
-    })
+  type TestCase = {
+    description: string
+    expectedMessage: string
+    mockData: object
+  }
 
-    await act(async () => {
-      await renderIndexPage()
-    })
+  const testCases: TestCase[] = [
+    {
+      description: 'ブックマークが空の場合に「データなし」の',
+      expectedMessage: UI_LABELS.HEADER.NO_BOOKMARKS,
+      mockData: {
+        json: async () => ({ data: [], success: true }),
+        ok: true,
+      },
+    },
+    {
+      description: 'サーバーエラー(res.okがfalse)が発生した際にエラー',
+      expectedMessage: ERROR_MESSAGE.SERVER_ERROR,
+      mockData: { ok: false },
+    },
+  ]
 
-    // ブックマークがない場合の専用文言が表示されるか検証
-    const noDataMessage = await screen.findByText(UI_LABELS.HEADER.NO_BOOKMARKS)
-    expect(noDataMessage).toBeInTheDocument()
-  })
+  it.each(testCases)(
+    `$descriptionメッセージが表示されること`,
+    async ({ expectedMessage, mockData }) => {
+      mockGet.mockResolvedValue(mockData)
 
-  it('サーバーエラー(res.okがfalse)が発生した際にエラーメッセージが表示されること', async () => {
-    // エラーによる console.error の出力をテストログで汚さないためのハック（任意）
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      await act(async () => {
+        await renderIndexPage()
+      })
 
-    // APIがエラーを返した状態を模倣
-    mockGet.mockResolvedValue({
-      ok: false,
-    })
-
-    await act(async () => {
-      await renderIndexPage()
-    })
-
-    // エラーハンドリングによって表示される要素を検証
-    // ※ index.tsx 内の `throw new Error(ERROR_MESSAGE.SERVER_ERROR)` に基づくテキスト
-    const errorText = await screen.findByText(ERROR_MESSAGE.SERVER_ERROR)
-    expect(errorText).toBeInTheDocument()
-
-    consoleSpy.mockRestore()
-  })
+      expect(await screen.findByText(expectedMessage)).toBeInTheDocument()
+    },
+  )
 })
