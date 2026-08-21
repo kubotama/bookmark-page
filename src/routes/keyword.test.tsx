@@ -7,10 +7,10 @@ import {
 import { act, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { Keyword } from '../../functions/schemas/keyword'
 import { mockKeywordsData, TestKeywords } from '../../functions/test/fixtures'
 import { ERROR_MESSAGE, UI_LABELS } from '../../shared/constants/uiMessages'
 import { routeTree } from '../routeTree.gen'
+import { expectText } from '../test/test-utils'
 
 window.scrollTo = vi.fn()
 
@@ -82,12 +82,6 @@ describe('Keyword List Page', () => {
     expect(screen.getByText(UI_LABELS.ACTIONS.LOADING)).toBeInTheDocument()
   })
 
-  const verifyKeywordLink = async (keyword: Keyword) => {
-    const link = await screen.findByText(keyword.name)
-    expect(link).toBeInTheDocument()
-    expect(link.closest('a')).toHaveAttribute('href', `/bookmark/${keyword.id}`)
-  }
-
   it('APIから取得したブックマーク一覧が正常にレンダリングされること', async () => {
     // 正常系データを返すレスポンスをモック
     mockGet.mockResolvedValue({
@@ -99,8 +93,14 @@ describe('Keyword List Page', () => {
       await renderKeyword()
     })
 
-    await verifyKeywordLink(TestKeywords[0])
-    await verifyKeywordLink(TestKeywords[1])
+    await expectText({
+      link: `/bookmark/${TestKeywords[0].id}`,
+      text: TestKeywords[0].name,
+    })
+    await expectText({
+      link: `/bookmark/${TestKeywords[1].id}`,
+      text: TestKeywords[1].name,
+    })
   })
 
   type TestCase = {
@@ -133,7 +133,7 @@ describe('Keyword List Page', () => {
       await act(async () => {
         await renderKeyword()
       })
-      expect(await screen.findByText(expectedMessage)).toBeInTheDocument()
+      await expectText({ text: expectedMessage })
     },
   )
 })
