@@ -30,6 +30,10 @@ vi.mock('../hooks/useUpdateBookmark', () => ({
   }),
 }))
 
+vi.mock('../hooks/useKeywords', () => ({
+  useKeywords: () => ({ data: { data: [] } }),
+}))
+
 describe('更新ボタンの動作', () => {
   const testBookmark = TestBookmarkWithKeywords[0]
 

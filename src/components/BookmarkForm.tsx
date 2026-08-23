@@ -1,15 +1,17 @@
 import { useRouter } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import {
   BookmarkUrlSchema,
   BookmarkWithKeywords,
   UpdateBookmarkSchema,
 } from '../../functions/schemas/bookmark'
+import { KeywordWithBookmarkIds } from '../../functions/schemas/keyword'
 import { Button } from '../../shared/components/Button'
 import { FormInput } from '../../shared/components/FormInput'
 import { UI_LABELS, UI_MESSAGES } from '../../shared/constants/uiMessages'
 import { useDeleteBookmark } from '../hooks/useDeleteBookmark'
+import { useKeywords } from '../hooks/useKeywords'
 import { useUpdateBookmark } from '../hooks/useUpdateBookmark'
 import { ListItem } from './ListItem'
 
@@ -31,6 +33,15 @@ export const BookmarkForm = ({ bookmark }: BookmarkFormProps) => {
     isDirty && UpdateBookmarkSchema.safeParse({ title, url }).success
   const isUpdateDisable = !canUpdate || isUpdatePending
   const isBackDisable = router.history.length < 2
+
+  const { data: resJson } = useKeywords() // 💡 呼ぶだけ
+  const keywords = resJson?.data ?? []
+
+  const unassignedKeywords = useMemo<KeywordWithBookmarkIds[]>(() => {
+    return keywords.filter(
+      (keyword) => !bookmark.keywords.some((k) => k.id === keyword.id),
+    )
+  }, [bookmark, keywords])
 
   const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -95,13 +106,37 @@ export const BookmarkForm = ({ bookmark }: BookmarkFormProps) => {
           </Button>
         </div>
       </form>
+
       <div className="mt-5">
         <div className="text-sm">関連付けられているキーワード</div>
         <div className="border-2 border-slate-500 min-h-10 rounded">
           <div className="w-full transition">
             <div className="flex flex-col items-start">
               {bookmark.keywords.map((keyword) => (
-                <ListItem id={keyword.id} to={`/bookmark/${keyword.id}`}>
+                <ListItem
+                  id={keyword.id}
+                  key={keyword.id}
+                  to={`/bookmark/${keyword.id}`}
+                >
+                  {keyword.name}
+                </ListItem>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-5">
+        <div className="text-sm">関連付けられていないキーワード</div>
+        <div className="border-2 border-slate-500 min-h-10 rounded">
+          <div className="w-full transition">
+            <div className="flex flex-col items-start">
+              {unassignedKeywords.map((keyword) => (
+                <ListItem
+                  id={keyword.id}
+                  key={keyword.id}
+                  to={`/bookmark/${keyword.id}`}
+                >
                   {keyword.name}
                 </ListItem>
               ))}

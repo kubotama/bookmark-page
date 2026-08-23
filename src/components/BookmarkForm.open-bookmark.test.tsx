@@ -23,6 +23,10 @@ vi.mock('../hooks/useUpdateBookmark', () => ({
   useUpdateBookmark: () => ({ isPending: false, mutate: vi.fn() }),
 }))
 
+vi.mock('../hooks/useKeywords', () => ({
+  useKeywords: () => ({ data: { data: [] } }),
+}))
+
 describe('開くボタンの動作', () => {
   it('開くボタンをクリックしたときに、正しいURLと属性で window.open が呼び出されること', async () => {
     const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null)

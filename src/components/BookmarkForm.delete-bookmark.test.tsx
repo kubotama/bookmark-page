@@ -26,6 +26,10 @@ vi.mock('../hooks/useUpdateBookmark', () => ({
   useUpdateBookmark: () => ({ isPending: false, mutate: vi.fn() }),
 }))
 
+vi.mock('../hooks/useKeywords', () => ({
+  useKeywords: () => ({ data: { data: [] } }),
+}))
+
 describe('削除ボタンの動作', () => {
   const testBookmark = TestBookmarkWithKeywords[0]
 

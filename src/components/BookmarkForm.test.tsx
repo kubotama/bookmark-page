@@ -18,6 +18,10 @@ vi.mock('../hooks/useUpdateBookmark', () => ({
   useUpdateBookmark: () => ({ isPending: false, mutate: vi.fn() }),
 }))
 
+vi.mock('../hooks/useKeywords', () => ({
+  useKeywords: () => ({ data: { data: [] } }),
+}))
+
 describe('BookmarkForm', () => {
   it('該当するブックマークのurlとタイトルが正しく表示されること', async () => {
     const targetBookmark = TestBookmarkWithKeywords[0]
@@ -32,4 +36,6 @@ describe('BookmarkForm', () => {
     })
     expect(urlElement).toHaveValue(targetBookmark.url)
   })
+
+  it('関連付けられたキーワードが正しく表示されること')
 })

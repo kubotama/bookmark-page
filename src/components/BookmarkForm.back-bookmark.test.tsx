@@ -33,6 +33,10 @@ vi.mock('../hooks/useUpdateBookmark', () => ({
   useUpdateBookmark: () => ({ isPending: false, mutate: vi.fn() }),
 }))
 
+vi.mock('../hooks/useKeywords', () => ({
+  useKeywords: () => ({ data: { data: [] } }),
+}))
+
 describe('戻るボタンの動作', () => {
   beforeEach(() => {
     vi.resetAllMocks()
