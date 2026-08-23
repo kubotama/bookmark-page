@@ -36,6 +36,4 @@ describe('BookmarkForm', () => {
     })
     expect(urlElement).toHaveValue(targetBookmark.url)
   })
-
-  it('関連付けられたキーワードが正しく表示されること')
 })
