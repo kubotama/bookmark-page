@@ -34,8 +34,8 @@ export const BookmarkForm = ({ bookmark }: BookmarkFormProps) => {
   const isUpdateDisable = !canUpdate || isUpdatePending
   const isBackDisable = router.history.length < 2
 
-  const { data: resJson } = useKeywords() // 💡 呼ぶだけ
-  const keywords = resJson?.data ?? []
+  const { data } = useKeywords() // 💡 呼ぶだけ
+  const keywords = data?.data ?? []
 
   const unassignedKeywords = useMemo<KeywordWithBookmarkIds[]>(() => {
     return keywords.filter(
@@ -108,7 +108,7 @@ export const BookmarkForm = ({ bookmark }: BookmarkFormProps) => {
       </form>
 
       <div className="mt-5">
-        <div className="text-sm">関連付けられているキーワード</div>
+        <div className="text-sm">{UI_LABELS.FIELDS.ASSIGNED_KEYWORD}</div>
         <div className="border-2 border-slate-500 min-h-10 rounded">
           <div className="w-full transition">
             <div className="flex flex-col items-start">
@@ -127,7 +127,7 @@ export const BookmarkForm = ({ bookmark }: BookmarkFormProps) => {
       </div>
 
       <div className="mt-5">
-        <div className="text-sm">関連付けられていないキーワード</div>
+        <div className="text-sm">{UI_LABELS.FIELDS.UNASSIGNED_KEYWORD}</div>
         <div className="border-2 border-slate-500 min-h-10 rounded">
           <div className="w-full transition">
             <div className="flex flex-col items-start">

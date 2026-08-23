@@ -27,6 +27,8 @@ export const UI_LABELS = {
     URL: 'URL',
     API_URL: 'APIのURL',
     LINK_TEXT: 'リンク',
+    ASSIGNED_KEYWORD: '関連付けられているキーワード',
+    UNASSIGNED_KEYWORD: '関連付けられていないキーワード',
   },
   HEADER: {
     PAGE_HEADER: 'Bookmark Page',
