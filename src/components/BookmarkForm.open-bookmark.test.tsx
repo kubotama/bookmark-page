@@ -2,12 +2,16 @@ import { render } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
-import { INVALID_STRING, TestBookmarks } from '../../functions/test/fixtures'
+import {
+  INVALID_STRING,
+  TestBookmarkWithKeywords,
+} from '../../functions/test/fixtures'
 import { UI_LABELS } from '../../shared/constants/uiMessages'
 import { clickButton, inputText } from '../test/test-utils'
 import { BookmarkForm } from './BookmarkForm'
 
 vi.mock('@tanstack/react-router', () => ({
+  Link: vi.fn(),
   useRouter: () => ({ history: { back: vi.fn() }, navigate: vi.fn() }),
 }))
 
@@ -24,7 +28,7 @@ describe('開くボタンの動作', () => {
     const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null)
 
     const user = userEvent.setup()
-    const targetBookmark = TestBookmarks[0]
+    const targetBookmark = TestBookmarkWithKeywords[0]
 
     render(<BookmarkForm bookmark={targetBookmark} key={targetBookmark.id} />)
 
@@ -44,8 +48,8 @@ describe('開くボタンの動作', () => {
     const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null)
 
     const user = userEvent.setup()
-    const targetBookmark = TestBookmarks[0]
-    const inputUrl = TestBookmarks[1].url
+    const targetBookmark = TestBookmarkWithKeywords[0]
+    const inputUrl = TestBookmarkWithKeywords[1].url
 
     render(<BookmarkForm bookmark={targetBookmark} key={targetBookmark.id} />)
 
@@ -64,7 +68,7 @@ describe('開くボタンの動作', () => {
 
   it('URLのテキストボックスに不正な文字列が入力されている場合には開くボタンは無効となること', async () => {
     const user = userEvent.setup()
-    const targetBookmark = TestBookmarks[0]
+    const targetBookmark = TestBookmarkWithKeywords[0]
 
     render(<BookmarkForm bookmark={targetBookmark} key={targetBookmark.id} />)
 

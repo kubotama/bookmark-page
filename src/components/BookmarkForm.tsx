@@ -2,8 +2,8 @@ import { useRouter } from '@tanstack/react-router'
 import { useState } from 'react'
 
 import {
-  Bookmark,
   BookmarkUrlSchema,
+  BookmarkWithKeywords,
   UpdateBookmarkSchema,
 } from '../../functions/schemas/bookmark'
 import { Button } from '../../shared/components/Button'
@@ -11,9 +11,10 @@ import { FormInput } from '../../shared/components/FormInput'
 import { UI_LABELS, UI_MESSAGES } from '../../shared/constants/uiMessages'
 import { useDeleteBookmark } from '../hooks/useDeleteBookmark'
 import { useUpdateBookmark } from '../hooks/useUpdateBookmark'
+import { ListItem } from './ListItem'
 
 interface BookmarkFormProps {
-  bookmark: Bookmark
+  bookmark: BookmarkWithKeywords
 }
 
 export const BookmarkForm = ({ bookmark }: BookmarkFormProps) => {
@@ -61,33 +62,53 @@ export const BookmarkForm = ({ bookmark }: BookmarkFormProps) => {
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div className="grid grid-cols-[max-content_1fr] items-center gap-1">
-        <FormInput
-          label={UI_LABELS.FIELDS.TITLE}
-          onChange={(e) => setTitle(e.target.value)}
-          value={title}
-        />
-        <FormInput
-          label={UI_LABELS.FIELDS.URL}
-          onChange={(e) => setUrl(e.target.value)}
-          value={url}
-        />
+    <>
+      <form onSubmit={handleSubmit}>
+        <div className="grid grid-cols-[max-content_1fr] items-center gap-1">
+          <FormInput
+            label={UI_LABELS.FIELDS.TITLE}
+            onChange={(e) => setTitle(e.target.value)}
+            value={title}
+          />
+          <FormInput
+            label={UI_LABELS.FIELDS.URL}
+            onChange={(e) => setUrl(e.target.value)}
+            value={url}
+          />
+        </div>
+        <div className="mt-2 grid grid-cols-4 gap-2">
+          <Button disabled={isSubmitDisable} type="submit">
+            {UI_LABELS.ACTIONS.OPEN}
+          </Button>
+          <Button
+            disabled={isUpdateDisable}
+            onClick={handleUpdate}
+            type="button"
+          >
+            {UI_LABELS.ACTIONS.UPDATE}
+          </Button>
+          <Button disabled={isPending} onClick={handleDelete} type="button">
+            {UI_LABELS.ACTIONS.DELETE}
+          </Button>
+          <Button disabled={isBackDisable} onClick={handleBack} type="button">
+            {UI_LABELS.ACTIONS.BACK}
+          </Button>
+        </div>
+      </form>
+      <div className="mt-5">
+        <div className="text-sm">関連付けられているキーワード</div>
+        <div className="border-2 border-slate-500 min-h-10 rounded">
+          <div className="w-full transition">
+            <div className="flex flex-col items-start">
+              {bookmark.keywords.map((keyword) => (
+                <ListItem id={keyword.id} to={`/bookmark/${keyword.id}`}>
+                  {keyword.name}
+                </ListItem>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
-      <div className="mt-2 grid grid-cols-4 gap-2">
-        <Button disabled={isSubmitDisable} type="submit">
-          {UI_LABELS.ACTIONS.OPEN}
-        </Button>
-        <Button disabled={isUpdateDisable} onClick={handleUpdate} type="button">
-          {UI_LABELS.ACTIONS.UPDATE}
-        </Button>
-        <Button disabled={isPending} onClick={handleDelete} type="button">
-          {UI_LABELS.ACTIONS.DELETE}
-        </Button>
-        <Button disabled={isBackDisable} onClick={handleBack} type="button">
-          {UI_LABELS.ACTIONS.BACK}
-        </Button>
-      </div>
-    </form>
+    </>
   )
 }
