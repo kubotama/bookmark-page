@@ -1,19 +1,22 @@
 import { useRouter } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import {
-  Bookmark,
   BookmarkUrlSchema,
+  BookmarkWithKeywords,
   UpdateBookmarkSchema,
 } from '../../functions/schemas/bookmark'
+import { KeywordWithBookmarkIds } from '../../functions/schemas/keyword'
 import { Button } from '../../shared/components/Button'
 import { FormInput } from '../../shared/components/FormInput'
 import { UI_LABELS, UI_MESSAGES } from '../../shared/constants/uiMessages'
 import { useDeleteBookmark } from '../hooks/useDeleteBookmark'
+import { useKeywords } from '../hooks/useKeywords'
 import { useUpdateBookmark } from '../hooks/useUpdateBookmark'
+import { ListItem } from './ListItem'
 
 interface BookmarkFormProps {
-  bookmark: Bookmark
+  bookmark: BookmarkWithKeywords
 }
 
 export const BookmarkForm = ({ bookmark }: BookmarkFormProps) => {
@@ -30,6 +33,15 @@ export const BookmarkForm = ({ bookmark }: BookmarkFormProps) => {
     isDirty && UpdateBookmarkSchema.safeParse({ title, url }).success
   const isUpdateDisable = !canUpdate || isUpdatePending
   const isBackDisable = router.history.length < 2
+
+  const { data } = useKeywords() // 💡 呼ぶだけ
+  const keywords = data?.data ?? []
+
+  const unassignedKeywords = useMemo<KeywordWithBookmarkIds[]>(() => {
+    return keywords.filter(
+      (keyword) => !bookmark.keywords.some((k) => k.id === keyword.id),
+    )
+  }, [bookmark, keywords])
 
   const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -61,33 +73,77 @@ export const BookmarkForm = ({ bookmark }: BookmarkFormProps) => {
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div className="grid grid-cols-[max-content_1fr] items-center gap-1">
-        <FormInput
-          label={UI_LABELS.FIELDS.TITLE}
-          onChange={(e) => setTitle(e.target.value)}
-          value={title}
-        />
-        <FormInput
-          label={UI_LABELS.FIELDS.URL}
-          onChange={(e) => setUrl(e.target.value)}
-          value={url}
-        />
+    <>
+      <form onSubmit={handleSubmit}>
+        <div className="grid grid-cols-[max-content_1fr] items-center gap-1">
+          <FormInput
+            label={UI_LABELS.FIELDS.TITLE}
+            onChange={(e) => setTitle(e.target.value)}
+            value={title}
+          />
+          <FormInput
+            label={UI_LABELS.FIELDS.URL}
+            onChange={(e) => setUrl(e.target.value)}
+            value={url}
+          />
+        </div>
+        <div className="mt-2 grid grid-cols-4 gap-2">
+          <Button disabled={isSubmitDisable} type="submit">
+            {UI_LABELS.ACTIONS.OPEN}
+          </Button>
+          <Button
+            disabled={isUpdateDisable}
+            onClick={handleUpdate}
+            type="button"
+          >
+            {UI_LABELS.ACTIONS.UPDATE}
+          </Button>
+          <Button disabled={isPending} onClick={handleDelete} type="button">
+            {UI_LABELS.ACTIONS.DELETE}
+          </Button>
+          <Button disabled={isBackDisable} onClick={handleBack} type="button">
+            {UI_LABELS.ACTIONS.BACK}
+          </Button>
+        </div>
+      </form>
+
+      <div className="mt-5">
+        <div className="text-sm">{UI_LABELS.FIELDS.ASSIGNED_KEYWORD}</div>
+        <div className="border-2 border-slate-500 min-h-10 rounded">
+          <div className="w-full transition">
+            <div className="flex flex-col items-start">
+              {bookmark.keywords.map((keyword) => (
+                <ListItem
+                  id={keyword.id}
+                  key={keyword.id}
+                  to={`/bookmark/${keyword.id}`}
+                >
+                  {keyword.name}
+                </ListItem>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
-      <div className="mt-2 grid grid-cols-4 gap-2">
-        <Button disabled={isSubmitDisable} type="submit">
-          {UI_LABELS.ACTIONS.OPEN}
-        </Button>
-        <Button disabled={isUpdateDisable} onClick={handleUpdate} type="button">
-          {UI_LABELS.ACTIONS.UPDATE}
-        </Button>
-        <Button disabled={isPending} onClick={handleDelete} type="button">
-          {UI_LABELS.ACTIONS.DELETE}
-        </Button>
-        <Button disabled={isBackDisable} onClick={handleBack} type="button">
-          {UI_LABELS.ACTIONS.BACK}
-        </Button>
+
+      <div className="mt-5">
+        <div className="text-sm">{UI_LABELS.FIELDS.UNASSIGNED_KEYWORD}</div>
+        <div className="border-2 border-slate-500 min-h-10 rounded">
+          <div className="w-full transition">
+            <div className="flex flex-col items-start">
+              {unassignedKeywords.map((keyword) => (
+                <ListItem
+                  id={keyword.id}
+                  key={keyword.id}
+                  to={`/bookmark/${keyword.id}`}
+                >
+                  {keyword.name}
+                </ListItem>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
-    </form>
+    </>
   )
 }

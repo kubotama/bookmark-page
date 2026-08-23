@@ -34,6 +34,7 @@ function IndexComponent() {
             {bookmarks.map((bookmark) => (
               <ListItem
                 id={bookmark.id}
+                key={bookmark.id}
                 openHref={bookmark.url}
                 to={`/bookmark/${bookmark.id}`}
               >

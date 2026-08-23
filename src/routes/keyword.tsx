@@ -29,7 +29,11 @@ function RouteComponent() {
         <div className="w-full transition">
           <div className="flex flex-col items-start">
             {keywords.map((keyword) => (
-              <ListItem id={keyword.id} to={`/bookmark/${keyword.id}`}>
+              <ListItem
+                id={keyword.id}
+                key={keyword.id}
+                to={`/bookmark/${keyword.id}`}
+              >
                 {keyword.name}
               </ListItem>
             ))}

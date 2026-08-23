@@ -2,12 +2,13 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { TestBookmarks } from '../../functions/test/fixtures'
+import { TestBookmarkWithKeywords } from '../../functions/test/fixtures'
 import { UI_LABELS, UI_MESSAGES } from '../../shared/constants/uiMessages'
 import { clickButton } from '../test/test-utils'
 import { BookmarkForm } from './BookmarkForm'
 
 vi.mock('@tanstack/react-router', () => ({
+  Link: vi.fn(),
   useRouter: () => ({ history: { back: vi.fn() }, navigate: vi.fn() }),
 }))
 
@@ -25,8 +26,12 @@ vi.mock('../hooks/useUpdateBookmark', () => ({
   useUpdateBookmark: () => ({ isPending: false, mutate: vi.fn() }),
 }))
 
+vi.mock('../hooks/useKeywords', () => ({
+  useKeywords: () => ({ data: { data: [] } }),
+}))
+
 describe('削除ボタンの動作', () => {
-  const testBookmark = TestBookmarks[0]
+  const testBookmark = TestBookmarkWithKeywords[0]
 
   beforeEach(() => {
     vi.resetAllMocks()
