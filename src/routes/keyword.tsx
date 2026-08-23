@@ -1,6 +1,7 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 
 import { UI_LABELS } from '../../shared/constants/uiMessages'
+import { ListItem } from '../components/ListItem'
 import { useKeywords } from '../hooks/useKeywords'
 
 export const Route = createFileRoute('/keyword')({
@@ -28,19 +29,9 @@ function RouteComponent() {
         <div className="w-full transition">
           <div className="flex flex-col items-start">
             {keywords.map((keyword) => (
-              <div
-                className="relative w-full p-2 text-slate-700 bg-slate-200 border border-slate-300 hover:bg-indigo-200 flex justify-between items-center"
-                key={keyword.id}
-              >
-                {/* Stretched Link パターンを使用してカード全体をクリック可能にしつつ、キーボード操作も可能にします */}
-                <Link
-                  className="hover:font-semibold flex-1 text-left after:absolute after:inset-0"
-                  params={{ id: keyword.id }}
-                  to="/bookmark/$id"
-                >
-                  {keyword.name}
-                </Link>
-              </div>
+              <ListItem id={keyword.id} to={`/bookmark/${keyword.id}`}>
+                {keyword.name}
+              </ListItem>
             ))}
           </div>
         </div>

@@ -1,7 +1,8 @@
 // src/routes/index.tsx
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 
 import { UI_LABELS } from '../../shared/constants/uiMessages'
+import { ListItem } from '../components/ListItem'
 import { useBookmarks } from '../hooks/useBookmarks'
 
 export const Route = createFileRoute('/')({
@@ -31,27 +32,13 @@ function IndexComponent() {
         <div className="w-full transition">
           <div className="flex flex-col items-start">
             {bookmarks.map((bookmark) => (
-              <div
-                className="relative w-full p-2 text-slate-700 bg-slate-200 border border-slate-300 hover:bg-indigo-200 flex justify-between items-center"
-                key={bookmark.id}
+              <ListItem
+                id={bookmark.id}
+                openHref={bookmark.url}
+                to={`/bookmark/${bookmark.id}`}
               >
-                {/* Stretched Link パターンを使用してカード全体をクリック可能にしつつ、キーボード操作も可能にします */}
-                <Link
-                  className="hover:font-semibold flex-1 text-left after:absolute after:inset-0"
-                  params={{ id: bookmark.id }}
-                  to="/bookmark/$id"
-                >
-                  {bookmark.title}
-                </Link>
-                <a
-                  className="relative z-10 text-shadow-xs text-indigo-400 hover:text-indigo-800 hover:underline hover:font-bold ml-2"
-                  href={bookmark.url}
-                  rel="noreferrer"
-                  target="_blank"
-                >
-                  {UI_LABELS.ACTIONS.OPEN}
-                </a>
-              </div>
+                {bookmark.title}
+              </ListItem>
             ))}
           </div>
         </div>
