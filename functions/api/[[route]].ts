@@ -18,7 +18,11 @@ import {
   CreateBookmarkSchema,
   UpdateBookmarkSchema,
 } from '../schemas/bookmark'
-import { KeywordWithBookmarkIdsSchema } from '../schemas/keyword'
+import {
+  CreateKeywordSchema,
+  Keyword,
+  KeywordWithBookmarkIdsSchema,
+} from '../schemas/keyword'
 
 type Env = {
   Bindings: {
@@ -164,7 +168,43 @@ const routes = app
       }
     },
   )
+  .post(
+    API_PATH.POST_KEYWORD,
+    zValidator('json', CreateKeywordSchema, (result, c) => {
+      return !result.success
+        ? c.json({ error: result.error.issues[0].message, success: false }, 400)
+        : undefined
+    }),
+    async (c) => {
+      const { name } = c.req.valid('json')
+      const id = uuidv7()
 
+      try {
+        const db = c.env.BOOKMARK_PAGE_DB
+        if (!db) {
+          throw new Error(ERROR_MESSAGE.DB_BINDING_ERROR(DATABASE_NAME))
+        }
+        const newKeyword = await db
+          .prepare(KEYWORDS.INSERT)
+          .bind(id, name)
+          .first<Keyword>()
+
+        if (!newKeyword) {
+          throw new Error(ERROR_MESSAGE.INSERT_KEYWORD_ERROR)
+        }
+
+        return c.json(
+          {
+            data: newKeyword,
+            success: true,
+          } as const,
+          201,
+        )
+      } catch (error) {
+        return handleDbError(error, c)
+      }
+    },
+  )
   .delete(
     API_PATH.DELETE_BOOKMARK,
     zValidator('param', BookmarkIdParamSchema, (result, c) => {

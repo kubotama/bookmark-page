@@ -8,6 +8,7 @@ export const ERROR_MESSAGE = {
   FAILED_DELETE_BOOKMARK: 'ブックマークの削除に失敗しました。',
   FAILED_UPDATE_BOOKMARK: 'ブックマークの更新に失敗しました。',
   INVALID_JSON_FORMAT: 'JSON形式が正しくありません。',
+  INSERT_KEYWORD_ERROR: 'キーワードの追加に失敗しました',
 } as const
 
 export const UI_LABELS = {

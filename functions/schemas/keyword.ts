@@ -37,3 +37,10 @@ export const KeywordWithBookmarkIdsSchema = KeywordSchema.extend({
 export type KeywordWithBookmarkIds = z.infer<
   typeof KeywordWithBookmarkIdsSchema
 >
+
+export const CreateKeywordSchema = z.object({
+  bookmark_id: z.uuid({ message: SCHEMA_MESSAGE.INVALID_ID_FORMAT }).optional(),
+  name: KeywordNameSchema,
+})
+
+export type CreateKeywordInput = z.infer<typeof CreateKeywordSchema>
