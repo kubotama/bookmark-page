@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, Mock, vi } from 'vitest'
 import { ERROR_MESSAGE, UI_MESSAGES } from '../../shared/constants/uiMessages'
 import { SCHEMA_MESSAGE } from '../../shared/constants/validation'
 import { BOOKMARKS_KEYWORDS, DATABASE_NAME, KEYWORDS } from '../constants/db'
+import { CreateKeywordInput } from '../schemas/keyword'
 import {
   REQUEST_API_PATH,
   TEST_ERROR_MESSAGE,
@@ -16,7 +17,7 @@ import { app } from './[[route]]'
 
 describe('Hono API - POST /keywords', () => {
   beforeEach(() => {
-    vi.resetAllMocks()
+    vi.clearAllMocks()
   })
 
   const addedKeyword = TestKeywords[0]
@@ -124,8 +125,6 @@ describe('Hono API - POST /keywords', () => {
   })
 
   describe('エラーのテスト', () => {
-    const requestBody = { name: addedKeyword.name }
-
     let consoleSpy: Mock<(...data: unknown[]) => void>
     beforeEach(() => {
       consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -163,6 +162,8 @@ describe('Hono API - POST /keywords', () => {
     })
 
     it('データベースのバインディング（BOOKMARK_PAGE_DB）が未設定の場合、500を返すこと', async () => {
+      const requestBody = { name: addedKeyword.name }
+
       const res = await app.request(
         REQUEST_API_PATH.ADD_KEYWORD,
         {
@@ -187,92 +188,81 @@ describe('Hono API - POST /keywords', () => {
       )
     })
 
-    it('キーワードの登録がエラーの場合', async () => {
-      const firstSpy = vi.fn().mockResolvedValue(undefined)
-      const bindSpy = vi.fn().mockReturnValue({ first: firstSpy })
-      const prepareSpy = vi.fn().mockReturnValue({ bind: bindSpy })
+    type TestCase = {
+      description: string
+      expectedMessage: string
+      prepareSpy: Mock
+      requestBody: CreateKeywordInput
+    }
 
-      const mockD1Database: Partial<D1Database> = {
-        prepare: prepareSpy as D1Database['prepare'],
-      }
-
-      const res = await app.request(
-        REQUEST_API_PATH.ADD_KEYWORD,
-        {
-          body: JSON.stringify(requestBody),
-          headers: { 'Content-Type': 'application/json' },
-          method: 'POST',
-        },
-        {
-          BOOKMARK_PAGE_DB: mockD1Database as D1Database,
-        },
-      )
-
-      expect(res.status).toBe(500)
-
-      const json = await res.json()
-      expect(json.success).toBe(false)
-      expect(json.error).toBe(TEST_ERROR_MESSAGE.DB_ERROR)
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining(ERROR_MESSAGE.INSERT_KEYWORD_ERROR),
-      )
-    })
-
-    it('ブックマークとキーワードの関連付けがエラーの場合', async () => {
-      const targetBookmarkId = TestBookmarks[0].id
-      const newKeywordData = TestKeywordsTableData[0]
-
-      const requestBody = {
-        bookmark_id: targetBookmarkId,
-        name: newKeywordData.name,
-      }
-
-      // 💡 1. 実行される SQL に応じて戻り値を切り替える D1 モック
-      const prepareSpy = vi.fn((sql: string) => {
-        if (sql === KEYWORDS.INSERT) {
-          return {
-            bind: vi.fn().mockReturnValue({
-              first: vi.fn().mockResolvedValue(newKeywordData),
-            }),
+    const testCases: TestCase[] = [
+      {
+        description: 'キーワードの登録',
+        expectedMessage: expect.stringContaining(
+          ERROR_MESSAGE.INSERT_KEYWORD_ERROR,
+        ),
+        prepareSpy: vi.fn().mockReturnValue({
+          bind: vi
+            .fn()
+            .mockReturnValue({ first: vi.fn().mockResolvedValue(undefined) }),
+        }),
+        requestBody: { name: addedKeyword.name },
+      },
+      {
+        description: 'ブックマークとキーワードの関連付け',
+        expectedMessage: expect.stringContaining(
+          ERROR_MESSAGE.INSERT_BKRELATION_ERROR,
+        ),
+        prepareSpy: vi.fn((sql: string) => {
+          if (sql === KEYWORDS.INSERT) {
+            return {
+              bind: vi.fn().mockReturnValue({
+                first: vi.fn().mockResolvedValue(TestKeywordsTableData[0]),
+              }),
+            }
           }
-        }
-        if (sql === BOOKMARKS_KEYWORDS.INSERT) {
-          return {
-            bind: vi.fn().mockReturnValue({
-              first: vi.fn().mockResolvedValue(undefined),
-            }),
+          if (sql === BOOKMARKS_KEYWORDS.INSERT) {
+            return {
+              bind: vi.fn().mockReturnValue({
+                first: vi.fn().mockResolvedValue(undefined),
+              }),
+            }
           }
-        }
-        return { bind: vi.fn().mockReturnValue({ first: vi.fn() }) }
-      })
-      const mockD1Database: Partial<D1Database> = {
-        prepare: prepareSpy as unknown as D1Database['prepare'],
-      }
+          return { bind: vi.fn().mockReturnValue({ first: vi.fn() }) }
+        }),
+        requestBody: {
+          bookmark_id: TestBookmarks[0].id,
+          name: TestKeywordsTableData[0].name,
+        },
+      },
+    ]
 
-      // 💡 2. API を呼び出し
-      const res = await app.request(
-        REQUEST_API_PATH.ADD_KEYWORD,
-        {
-          body: JSON.stringify(requestBody),
-          headers: {
-            'Content-Type': 'application/json',
+    it.each(testCases)(
+      '$description がエラーの場合',
+      async ({ expectedMessage, prepareSpy, requestBody }) => {
+        const mockD1Database: Partial<D1Database> = {
+          prepare: prepareSpy as unknown as D1Database['prepare'],
+        }
+
+        const res = await app.request(
+          REQUEST_API_PATH.ADD_KEYWORD,
+          {
+            body: JSON.stringify(requestBody),
+            headers: { 'Content-Type': 'application/json' },
+            method: 'POST',
           },
-          method: 'POST',
-        },
-        {
-          BOOKMARK_PAGE_DB: mockD1Database as D1Database,
-        },
-      )
+          {
+            BOOKMARK_PAGE_DB: mockD1Database as D1Database,
+          },
+        )
 
-      // 💡 3. ステータスコードとレスポンス内容の検証
-      expect(res.status).toBe(500)
+        expect(res.status).toBe(500)
 
-      const json = await res.json()
-      expect(json.success).toBe(false)
-      expect(json.error).toBe(TEST_ERROR_MESSAGE.DB_ERROR)
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining(ERROR_MESSAGE.INSERT_BKRELATION_ERROR),
-      )
-    })
+        const json = await res.json()
+        expect(json.success).toBe(false)
+        expect(json.error).toBe(TEST_ERROR_MESSAGE.DB_ERROR)
+        expect(consoleSpy).toHaveBeenCalledWith(expectedMessage)
+      },
+    )
   })
 })
