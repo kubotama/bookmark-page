@@ -6,6 +6,7 @@ import { SCHEMA_MESSAGE } from '../../shared/constants/validation'
 import { BOOKMARKS_KEYWORDS, DATABASE_NAME, KEYWORDS } from '../constants/db'
 import {
   REQUEST_API_PATH,
+  TEST_ERROR_MESSAGE,
   TestBookmarks,
   TestKeywords,
   TestKeywordsTableData,
@@ -123,6 +124,8 @@ describe('Hono API - POST /keywords', () => {
   })
 
   describe('エラーのテスト', () => {
+    const requestBody = { name: addedKeyword.name }
+
     let consoleSpy: Mock<(...data: unknown[]) => void>
     beforeEach(() => {
       consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -160,10 +163,6 @@ describe('Hono API - POST /keywords', () => {
     })
 
     it('データベースのバインディング（BOOKMARK_PAGE_DB）が未設定の場合、500を返すこと', async () => {
-      const requestBody = {
-        name: addedKeyword.name,
-      }
-
       const res = await app.request(
         REQUEST_API_PATH.ADD_KEYWORD,
         {
@@ -185,6 +184,37 @@ describe('Hono API - POST /keywords', () => {
       })
       expect(consoleSpy).toHaveBeenCalledWith(
         expect.stringContaining(ERROR_MESSAGE.DB_BINDING_ERROR(DATABASE_NAME)),
+      )
+    })
+
+    it('キーワードの登録がエラーの場合', async () => {
+      const firstSpy = vi.fn().mockResolvedValue(undefined)
+      const bindSpy = vi.fn().mockReturnValue({ first: firstSpy })
+      const prepareSpy = vi.fn().mockReturnValue({ bind: bindSpy })
+
+      const mockD1Database: Partial<D1Database> = {
+        prepare: prepareSpy as D1Database['prepare'],
+      }
+
+      const res = await app.request(
+        REQUEST_API_PATH.ADD_KEYWORD,
+        {
+          body: JSON.stringify(requestBody),
+          headers: { 'Content-Type': 'application/json' },
+          method: 'POST',
+        },
+        {
+          BOOKMARK_PAGE_DB: mockD1Database as D1Database,
+        },
+      )
+
+      expect(res.status).toBe(500)
+
+      const json = await res.json()
+      expect(json.success).toBe(false)
+      expect(json.error).toBe(TEST_ERROR_MESSAGE.DB_ERROR)
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining(ERROR_MESSAGE.INSERT_KEYWORD_ERROR),
       )
     })
   })
