@@ -155,3 +155,5 @@ export const mockTestBookmarkWithKeywords = {
   data: TestBookmarkWithKeywords,
   success: true,
 }
+
+export const TestUuid = '018ed000-0001-7000-8000-000000000088'

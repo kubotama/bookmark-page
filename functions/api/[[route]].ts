@@ -9,7 +9,12 @@ import z from 'zod'
 
 import { API_PATH } from '../../shared/constants/api'
 import { ERROR_MESSAGE, UI_MESSAGES } from '../../shared/constants/uiMessages'
-import { BOOKMARKS, DATABASE_NAME, KEYWORDS } from '../constants/db'
+import {
+  BOOKMARKS,
+  BOOKMARKS_KEYWORDS,
+  DATABASE_NAME,
+  KEYWORDS,
+} from '../constants/db'
 import { LOG_MESSAGE } from '../constants/logMessage'
 import {
   Bookmark,
@@ -20,9 +25,10 @@ import {
 } from '../schemas/bookmark'
 import {
   CreateKeywordSchema,
-  Keyword,
+  KeywordWithBookmarkIds,
   KeywordWithBookmarkIdsSchema,
 } from '../schemas/keyword'
+import { BKRelation } from '../schemas/relations'
 
 type Env = {
   Bindings: {
@@ -176,7 +182,7 @@ const routes = app
         : undefined
     }),
     async (c) => {
-      const { name } = c.req.valid('json')
+      const { bookmark_id, name } = c.req.valid('json')
       const id = uuidv7()
 
       try {
@@ -187,10 +193,24 @@ const routes = app
         const newKeyword = await db
           .prepare(KEYWORDS.INSERT)
           .bind(id, name)
-          .first<Keyword>()
+          .first<KeywordWithBookmarkIds>()
 
         if (!newKeyword) {
           throw new Error(ERROR_MESSAGE.INSERT_KEYWORD_ERROR)
+        }
+
+        if (bookmark_id) {
+          const bk_id = uuidv7()
+          const newBk = await db
+            .prepare(BOOKMARKS_KEYWORDS.INSERT)
+            .bind(bk_id, bookmark_id, id)
+            .first<BKRelation>()
+
+          if (!newBk) {
+            throw new Error(ERROR_MESSAGE.INSERT_BKRELATION_ERROR)
+          }
+
+          newKeyword.bookmark_ids = [newBk.bookmark_id]
         }
 
         return c.json(

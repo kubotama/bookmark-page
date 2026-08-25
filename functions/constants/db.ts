@@ -38,4 +38,9 @@ export const KEYWORDS = {
     ORDER BY k.created_at DESC;`,
 } as const
 
+export const BOOKMARKS_KEYWORDS = {
+  INSERT:
+    'INSERT INTO bookmarks_keywords (id, bookmark_id, keyword_id) VALUES (?, ?, ?) RETURNING id, bookmark_id, keyword_id',
+} as const
+
 export const DATABASE_NAME = 'BOOKMARK_PAGE_DB'

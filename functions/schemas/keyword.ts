@@ -4,12 +4,7 @@ import {
   LENGTH_LIMITATION,
   SCHEMA_MESSAGE,
 } from '../../shared/constants/validation'
-
-export const KeywordIdSchema = z.uuid({
-  message: SCHEMA_MESSAGE.INVALID_ID_FORMAT,
-})
-
-export type KeywordId = z.infer<typeof KeywordIdSchema>
+import { UuidSchema } from './common'
 
 export const KeywordNameSchema = z
   .string({ message: SCHEMA_MESSAGE.TITLE_REQUIRED })
@@ -19,7 +14,7 @@ export const KeywordNameSchema = z
 
 // 1. 基本となるキーワードエンティティ（id, name）
 export const KeywordSchema = z.object({
-  id: KeywordIdSchema,
+  id: UuidSchema,
   name: KeywordNameSchema,
 })
 export type Keyword = z.infer<typeof KeywordSchema>
@@ -39,7 +34,7 @@ export type KeywordWithBookmarkIds = z.infer<
 >
 
 export const CreateKeywordSchema = z.object({
-  bookmark_id: z.uuid({ message: SCHEMA_MESSAGE.INVALID_ID_FORMAT }).optional(),
+  bookmark_id: UuidSchema.optional(),
   name: KeywordNameSchema,
 })
 
