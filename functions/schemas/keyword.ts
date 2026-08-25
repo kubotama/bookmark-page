@@ -7,10 +7,10 @@ import {
 import { UuidSchema } from './common'
 
 export const KeywordNameSchema = z
-  .string({ message: SCHEMA_MESSAGE.TITLE_REQUIRED })
+  .string({ message: SCHEMA_MESSAGE.KEYWORD_REQUIRED })
   .trim()
-  .min(LENGTH_LIMITATION.NAME.MIN, SCHEMA_MESSAGE.MIN_LENGTH_TITLE)
-  .max(LENGTH_LIMITATION.NAME.MAX, SCHEMA_MESSAGE.MAX_LENGTH_TITLE)
+  .min(LENGTH_LIMITATION.KEYWORD.MIN, SCHEMA_MESSAGE.MIN_LENGTH_KEYWORD)
+  .max(LENGTH_LIMITATION.KEYWORD.MAX, SCHEMA_MESSAGE.MAX_LENGTH_KEYWORD)
 
 // 1. 基本となるキーワードエンティティ（id, name）
 export const KeywordSchema = z.object({

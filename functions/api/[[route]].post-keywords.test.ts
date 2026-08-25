@@ -1,6 +1,7 @@
 import { D1Database } from '@cloudflare/workers-types'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { SCHEMA_MESSAGE } from '../../shared/constants/validation'
 import { BOOKMARKS_KEYWORDS, KEYWORDS } from '../constants/db'
 import {
   REQUEST_API_PATH,
@@ -120,5 +121,38 @@ describe('Hono API - POST /keywords', () => {
     // 💡 4. キーワード登録と中間テーブル登録の SQL が両方呼ばれたことを検証
     expect(prepareSpy).toHaveBeenCalledWith(KEYWORDS.INSERT)
     expect(prepareSpy).toHaveBeenCalledWith(BOOKMARKS_KEYWORDS.INSERT)
+  })
+
+  describe('エラーのテスト', () => {
+    it('キーワードの名前が不正な場合', async () => {
+      const requestBody = { name: '' }
+      const firstSpy = vi.fn()
+      const bindSpy = vi.fn().mockReturnValue({ first: firstSpy })
+      const prepareSpy = vi.fn().mockReturnValue({ bind: bindSpy })
+
+      const mockD1Database: Partial<D1Database> = {
+        prepare: prepareSpy as unknown as D1Database['prepare'],
+      }
+
+      const res = await app.request(
+        REQUEST_API_PATH.ADD_KEYWORD,
+        {
+          body: JSON.stringify(requestBody),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          method: 'POST',
+        },
+        {
+          BOOKMARK_PAGE_DB: mockD1Database as D1Database,
+        },
+      )
+
+      expect(res.status).toBe(400)
+
+      const json = await res.json()
+      expect(json.success).toBe(false)
+      expect(json.error).toBe(SCHEMA_MESSAGE.MIN_LENGTH_KEYWORD)
+    })
   })
 })
