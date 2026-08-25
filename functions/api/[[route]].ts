@@ -42,13 +42,22 @@ const handleDbError = (error: unknown, c: Context) => {
     error instanceof Error &&
     error.message.includes('UNIQUE constraint failed')
   ) {
-    return c.json(
-      {
-        error: UI_MESSAGES.API.DUPLICATE_URL,
-        success: false,
-      } as const,
-      409,
-    )
+    if (error.message.includes('bookmarks.url'))
+      return c.json(
+        {
+          error: UI_MESSAGES.API.DUPLICATE_URL,
+          success: false,
+        } as const,
+        409,
+      )
+    else if (error.message.includes('keywords.name'))
+      return c.json(
+        {
+          error: UI_MESSAGES.API.DUPLICATE_KEYWORD,
+          success: false,
+        } as const,
+        409,
+      )
   }
 
   // 💡 それ以外の予期せぬデータベースエラー

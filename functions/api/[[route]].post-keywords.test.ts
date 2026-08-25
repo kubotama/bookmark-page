@@ -195,9 +195,9 @@ describe('Hono API - POST /keywords', () => {
       requestBody: CreateKeywordInput
     }
 
-    const testCases: TestCase[] = [
+    const dbErrorTestCases: TestCase[] = [
       {
-        description: 'キーワードの登録',
+        description: 'キーワードの登録でエラー',
         expectedMessage: expect.stringContaining(
           ERROR_MESSAGE.INSERT_KEYWORD_ERROR,
         ),
@@ -209,7 +209,7 @@ describe('Hono API - POST /keywords', () => {
         requestBody: { name: addedKeyword.name },
       },
       {
-        description: 'ブックマークとキーワードの関連付け',
+        description: 'ブックマークとキーワードの関連付けでエラー',
         expectedMessage: expect.stringContaining(
           ERROR_MESSAGE.INSERT_BKRELATION_ERROR,
         ),
@@ -237,8 +237,8 @@ describe('Hono API - POST /keywords', () => {
       },
     ]
 
-    it.each(testCases)(
-      '$description がエラーの場合',
+    it.each(dbErrorTestCases)(
+      '$description の場合',
       async ({ expectedMessage, prepareSpy, requestBody }) => {
         const mockD1Database: Partial<D1Database> = {
           prepare: prepareSpy as unknown as D1Database['prepare'],
@@ -262,6 +262,51 @@ describe('Hono API - POST /keywords', () => {
         expect(json.success).toBe(false)
         expect(json.error).toBe(TEST_ERROR_MESSAGE.DB_ERROR)
         expect(consoleSpy).toHaveBeenCalledWith(expectedMessage)
+      },
+    )
+
+    const duplicateTestCase: TestCase[] = [
+      {
+        description: 'キーワードの重複でエラー',
+        expectedMessage: UI_MESSAGES.API.DUPLICATE_KEYWORD,
+        prepareSpy: vi.fn().mockReturnValue({
+          bind: vi.fn().mockReturnValue({
+            first: vi
+              .fn()
+              .mockRejectedValue(
+                new Error(TEST_ERROR_MESSAGE.CONSTRAINT_KEYWORD_ERROR),
+              ),
+          }),
+        }),
+        requestBody: { name: addedKeyword.name },
+      },
+    ]
+
+    it.each(duplicateTestCase)(
+      '$description の場合',
+      async ({ expectedMessage, prepareSpy, requestBody }) => {
+        const mockD1Database: Partial<D1Database> = {
+          prepare: prepareSpy as unknown as D1Database['prepare'],
+        }
+
+        const res = await app.request(
+          REQUEST_API_PATH.ADD_KEYWORD,
+          {
+            body: JSON.stringify(requestBody),
+            headers: { 'Content-Type': 'application/json' },
+            method: 'POST',
+          },
+          {
+            BOOKMARK_PAGE_DB: mockD1Database as D1Database,
+          },
+        )
+
+        expect(res.status).toBe(409)
+
+        const json = await res.json()
+        expect(json.success).toBe(false)
+        expect(json.error).toBe(expectedMessage)
+        expect(consoleSpy).not.toHaveBeenCalled()
       },
     )
   })
