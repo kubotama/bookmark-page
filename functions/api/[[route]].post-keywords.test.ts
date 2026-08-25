@@ -217,5 +217,62 @@ describe('Hono API - POST /keywords', () => {
         expect.stringContaining(ERROR_MESSAGE.INSERT_KEYWORD_ERROR),
       )
     })
+
+    it('ブックマークとキーワードの関連付けがエラーの場合', async () => {
+      const targetBookmarkId = TestBookmarks[0].id
+      const newKeywordData = TestKeywordsTableData[0]
+
+      const requestBody = {
+        bookmark_id: targetBookmarkId,
+        name: newKeywordData.name,
+      }
+
+      // 💡 1. 実行される SQL に応じて戻り値を切り替える D1 モック
+      const prepareSpy = vi.fn((sql: string) => {
+        if (sql === KEYWORDS.INSERT) {
+          return {
+            bind: vi.fn().mockReturnValue({
+              first: vi.fn().mockResolvedValue(newKeywordData),
+            }),
+          }
+        }
+        if (sql === BOOKMARKS_KEYWORDS.INSERT) {
+          return {
+            bind: vi.fn().mockReturnValue({
+              first: vi.fn().mockResolvedValue(undefined),
+            }),
+          }
+        }
+        return { bind: vi.fn().mockReturnValue({ first: vi.fn() }) }
+      })
+      const mockD1Database: Partial<D1Database> = {
+        prepare: prepareSpy as unknown as D1Database['prepare'],
+      }
+
+      // 💡 2. API を呼び出し
+      const res = await app.request(
+        REQUEST_API_PATH.ADD_KEYWORD,
+        {
+          body: JSON.stringify(requestBody),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          method: 'POST',
+        },
+        {
+          BOOKMARK_PAGE_DB: mockD1Database as D1Database,
+        },
+      )
+
+      // 💡 3. ステータスコードとレスポンス内容の検証
+      expect(res.status).toBe(500)
+
+      const json = await res.json()
+      expect(json.success).toBe(false)
+      expect(json.error).toBe(TEST_ERROR_MESSAGE.DB_ERROR)
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining(ERROR_MESSAGE.INSERT_BKRELATION_ERROR),
+      )
+    })
   })
 })
