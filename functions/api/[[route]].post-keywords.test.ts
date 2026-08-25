@@ -1,8 +1,9 @@
 import { D1Database } from '@cloudflare/workers-types'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, Mock, vi } from 'vitest'
 
+import { ERROR_MESSAGE, UI_MESSAGES } from '../../shared/constants/uiMessages'
 import { SCHEMA_MESSAGE } from '../../shared/constants/validation'
-import { BOOKMARKS_KEYWORDS, KEYWORDS } from '../constants/db'
+import { BOOKMARKS_KEYWORDS, DATABASE_NAME, KEYWORDS } from '../constants/db'
 import {
   REQUEST_API_PATH,
   TestBookmarks,
@@ -13,10 +14,8 @@ import {
 import { app } from './[[route]]'
 
 describe('Hono API - POST /keywords', () => {
-  //   let consoleSpy: Mock<(...data: unknown[]) => void>
   beforeEach(() => {
     vi.resetAllMocks()
-    // consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
   })
 
   const addedKeyword = TestKeywords[0]
@@ -124,6 +123,11 @@ describe('Hono API - POST /keywords', () => {
   })
 
   describe('エラーのテスト', () => {
+    let consoleSpy: Mock<(...data: unknown[]) => void>
+    beforeEach(() => {
+      consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    })
+
     it('キーワードの名前が不正な場合', async () => {
       const requestBody = { name: '' }
       const firstSpy = vi.fn()
@@ -153,6 +157,35 @@ describe('Hono API - POST /keywords', () => {
       const json = await res.json()
       expect(json.success).toBe(false)
       expect(json.error).toBe(SCHEMA_MESSAGE.MIN_LENGTH_KEYWORD)
+    })
+
+    it('データベースのバインディング（BOOKMARK_PAGE_DB）が未設定の場合、500を返すこと', async () => {
+      const requestBody = {
+        name: addedKeyword.name,
+      }
+
+      const res = await app.request(
+        REQUEST_API_PATH.ADD_KEYWORD,
+        {
+          body: JSON.stringify(requestBody),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          method: 'POST',
+        },
+        {},
+      )
+
+      expect(res.status).toBe(500)
+
+      const body = await res.json()
+      expect(body).toEqual({
+        error: UI_MESSAGES.API.DB_ERROR,
+        success: false,
+      })
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining(ERROR_MESSAGE.DB_BINDING_ERROR(DATABASE_NAME)),
+      )
     })
   })
 })
