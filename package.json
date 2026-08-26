@@ -2,7 +2,7 @@
   "name": "bookmark-page",
   "type": "module",
   "private": true,
-  "version": "0.4.1",
+  "version": "0.10.0",
   "license": "MIT",
   "scripts": {
     "dev:frontend": "vite",
@@ -25,9 +25,11 @@
     "@hono/zod-validator": "^0.8.0",
     "@tanstack/react-query": "^5.101.1",
     "@tanstack/react-router": "^1.170.17",
+    "clsx": "^2.1.1",
     "hono": "4.12.26",
     "react": "19.2.7",
     "react-dom": "19.2.7",
+    "tailwind-merge": "^3.6.0",
     "uuidv7": "^1.2.1",
     "zod": "4.4.3"
   },
@@ -56,6 +58,6 @@
     "typescript": "6.0.3",
     "vite": "8.0.16",
     "vitest": "4.1.9",
-    "wrangler": "^4.4.0"
+    "wrangler": "^4.114.0"
   }
 }

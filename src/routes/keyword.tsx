@@ -1,21 +1,18 @@
-// src/routes/index.tsx
 import { createFileRoute } from '@tanstack/react-router'
 
 import { UI_LABELS } from '../../shared/constants/uiMessages'
 import { ListItem } from '../components/ListItem'
-import { useBookmarks } from '../hooks/useBookmarks'
+import { useKeywords } from '../hooks/useKeywords'
 
-export const Route = createFileRoute('/')({
-  component: IndexComponent,
+export const Route = createFileRoute('/keyword')({
+  component: RouteComponent,
 })
 
-function IndexComponent() {
-  const { data: resJson, error, isLoading } = useBookmarks() // 💡 呼ぶだけ
+function RouteComponent() {
+  const { data: resJson, error, isLoading } = useKeywords() // 💡 呼ぶだけ
 
-  // 💡 早期リターンを廃止し、データを安全に抽出するためのフォールバック
-  const bookmarks = resJson?.data ?? []
+  const keywords = resJson?.data ?? []
 
-  // 💡 常に同じ構造のJSXを最後まで返し、中身だけを三項演算子等で出し分ける
   return (
     <div>
       {isLoading ? (
@@ -24,21 +21,20 @@ function IndexComponent() {
       ) : error ? (
         /* 2. エラー発生時の表示 */
         <div className="p-5 text-red-700">{error.message}</div>
-      ) : bookmarks.length === 0 ? (
+      ) : keywords.length === 0 ? (
         /* 3. データが空の時の表示 */
-        <p>{UI_LABELS.HEADER.NO_BOOKMARKS}</p>
+        <p>{UI_LABELS.HEADER.NO_KEYWORDS}</p>
       ) : (
         /* 4. 通常のデータ一覧表示 */
         <div className="w-full transition">
           <div className="flex flex-col items-start">
-            {bookmarks.map((bookmark) => (
+            {keywords.map((keyword) => (
               <ListItem
-                id={bookmark.id}
-                key={bookmark.id}
-                openHref={bookmark.url}
-                to={`/bookmark/${bookmark.id}`}
+                id={keyword.id}
+                key={keyword.id}
+                to={`/bookmark/${keyword.id}`}
               >
-                {bookmark.title}
+                {keyword.name}
               </ListItem>
             ))}
           </div>

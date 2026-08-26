@@ -1,17 +1,22 @@
 import { useRouter } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import {
-  Bookmark,
   BookmarkUrlSchema,
+  BookmarkWithKeywords,
   UpdateBookmarkSchema,
 } from '../../functions/schemas/bookmark'
+import { KeywordWithBookmarkIds } from '../../functions/schemas/keyword'
+import { Button } from '../../shared/components/Button'
+import { FormInput } from '../../shared/components/FormInput'
 import { UI_LABELS, UI_MESSAGES } from '../../shared/constants/uiMessages'
 import { useDeleteBookmark } from '../hooks/useDeleteBookmark'
+import { useKeywords } from '../hooks/useKeywords'
 import { useUpdateBookmark } from '../hooks/useUpdateBookmark'
+import { ListItem } from './ListItem'
 
 interface BookmarkFormProps {
-  bookmark: Bookmark
+  bookmark: BookmarkWithKeywords
 }
 
 export const BookmarkForm = ({ bookmark }: BookmarkFormProps) => {
@@ -27,6 +32,16 @@ export const BookmarkForm = ({ bookmark }: BookmarkFormProps) => {
   const canUpdate =
     isDirty && UpdateBookmarkSchema.safeParse({ title, url }).success
   const isUpdateDisable = !canUpdate || isUpdatePending
+  const isBackDisable = router.history.length < 2
+
+  const { data } = useKeywords() // 💡 呼ぶだけ
+  const keywords = data?.data ?? []
+
+  const unassignedKeywords = useMemo<KeywordWithBookmarkIds[]>(() => {
+    return keywords.filter(
+      (keyword) => !bookmark.keywords.some((k) => k.id === keyword.id),
+    )
+  }, [bookmark, keywords])
 
   const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -34,11 +49,7 @@ export const BookmarkForm = ({ bookmark }: BookmarkFormProps) => {
   }
 
   const handleBack = () => {
-    if (window.history.length > 1) {
-      router.history.back()
-    } else {
-      router.navigate({ to: '/' })
-    }
+    router.history.back()
   }
 
   const handleDelete = () => {
@@ -62,68 +73,77 @@ export const BookmarkForm = ({ bookmark }: BookmarkFormProps) => {
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div className="w-1/2 m-auto">
+    <>
+      <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-[max-content_1fr] items-center gap-1">
-          <label className="text-sm font-medium text-slate-600">
-            {UI_LABELS.FIELDS.TITLE}
-          </label>
-          <input
-            aria-label={UI_LABELS.FIELDS.TITLE}
-            className="border border-slate-300 text-slate-700 bg-slate-200 rounded px-2 py-1"
+          <FormInput
+            label={UI_LABELS.FIELDS.TITLE}
             onChange={(e) => setTitle(e.target.value)}
-            type="text"
             value={title}
           />
-
-          <label className="text-sm font-medium text-slate-600">
-            {UI_LABELS.FIELDS.URL}
-          </label>
-          <input
-            aria-label={UI_LABELS.FIELDS.URL}
-            className="border border-slate-300 text-slate-700 bg-slate-200 rounded px-2 py-1"
+          <FormInput
+            label={UI_LABELS.FIELDS.URL}
             onChange={(e) => setUrl(e.target.value)}
-            type="text"
             value={url}
           />
         </div>
         <div className="mt-2 grid grid-cols-4 gap-2">
-          <button
-            className={`border border-slate-300 text-slate-700 bg-indigo-200 rounded px-2 py-1 cursor-pointer
-            hover:text-slate-200 hover:bg-indigo-700 hover:font-semibold
-            disabled:bg-slate-200 disabled:text-slate-500`}
-            disabled={isSubmitDisable}
-            type="submit"
-          >
+          <Button disabled={isSubmitDisable} type="submit">
             {UI_LABELS.ACTIONS.OPEN}
-          </button>
-          <button
-            className={`border border-slate-300 text-slate-700 bg-indigo-200 rounded px-2 py-1 cursor-pointer
-            hover:text-slate-200 hover:bg-indigo-700 hover:font-semibold
-            disabled:bg-slate-200 disabled:text-slate-500`}
+          </Button>
+          <Button
             disabled={isUpdateDisable}
             onClick={handleUpdate}
             type="button"
           >
             {UI_LABELS.ACTIONS.UPDATE}
-          </button>
-          <button
-            className="border border-slate-300 text-slate-700 bg-indigo-200 rounded px-2 py-1 cursor-pointer hover:text-slate-200 hover:bg-indigo-700 hover:font-semibold"
-            disabled={isPending} // 削除中は連打できないように無効化
-            onClick={handleDelete}
-            type="button"
-          >
+          </Button>
+          <Button disabled={isPending} onClick={handleDelete} type="button">
             {UI_LABELS.ACTIONS.DELETE}
-          </button>
-          <button
-            className="border border-slate-300 text-slate-700 bg-indigo-200 rounded px-2 py-1 cursor-pointer hover:text-slate-200 hover:bg-indigo-700 hover:font-semibold"
-            onClick={handleBack}
-            type="button"
-          >
+          </Button>
+          <Button disabled={isBackDisable} onClick={handleBack} type="button">
             {UI_LABELS.ACTIONS.BACK}
-          </button>
+          </Button>
+        </div>
+      </form>
+
+      <div className="mt-5">
+        <div className="text-sm">{UI_LABELS.FIELDS.ASSIGNED_KEYWORD}</div>
+        <div className="border-2 border-slate-500 min-h-10 rounded">
+          <div className="w-full transition">
+            <div className="flex flex-col items-start">
+              {bookmark.keywords.map((keyword) => (
+                <ListItem
+                  id={keyword.id}
+                  key={keyword.id}
+                  to={`/bookmark/${keyword.id}`}
+                >
+                  {keyword.name}
+                </ListItem>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
-    </form>
+
+      <div className="mt-5">
+        <div className="text-sm">{UI_LABELS.FIELDS.UNASSIGNED_KEYWORD}</div>
+        <div className="border-2 border-slate-500 min-h-10 rounded">
+          <div className="w-full transition">
+            <div className="flex flex-col items-start">
+              {unassignedKeywords.map((keyword) => (
+                <ListItem
+                  id={keyword.id}
+                  key={keyword.id}
+                  to={`/bookmark/${keyword.id}`}
+                >
+                  {keyword.name}
+                </ListItem>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
   )
 }

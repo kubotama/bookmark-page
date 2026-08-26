@@ -3,8 +3,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
   INVALID_STRING,
-  mockBookmarksData,
-  TestBookmarks,
+  mockTestBookmarkWithKeywords,
+  TestBookmarkWithKeywords,
 } from '../../functions/test/fixtures'
 import { ERROR_MESSAGE } from '../../shared/constants/uiMessages'
 import { createTestQueryClient } from '../test/test-utils'
@@ -55,7 +55,7 @@ describe('useBookmarks Hooks', () => {
   describe('useBookmarks', () => {
     it('正常にデータを取得できること', async () => {
       mockGet.mockResolvedValue({
-        json: async () => mockBookmarksData,
+        json: async () => mockTestBookmarkWithKeywords,
         ok: true,
       })
 
@@ -68,13 +68,10 @@ describe('useBookmarks Hooks', () => {
       await waitFor(() => expect(result.current.isSuccess).toBe(true))
 
       // 取得したデータの内容を検証
-      expect(result.current.data).toEqual(mockBookmarksData)
+      expect(result.current.data).toEqual(mockTestBookmarkWithKeywords)
     })
 
     it('サーバーエラーのときエラーをスローすること', async () => {
-      // console.error のログ出力を抑制
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-
       mockGet.mockResolvedValue({
         ok: false,
       })
@@ -87,8 +84,6 @@ describe('useBookmarks Hooks', () => {
       // 期待通りのエラーメッセージが返ってきているか検証
       expect(result.current.error).toBeInstanceOf(Error)
       expect(result.current.error?.message).toBe(ERROR_MESSAGE.SERVER_ERROR)
-
-      consoleSpy.mockRestore()
     })
   })
 
@@ -98,12 +93,12 @@ describe('useBookmarks Hooks', () => {
   describe('useBookmarkById', () => {
     it('指定したIDのブックマークを正しく抽出できること', async () => {
       mockGet.mockResolvedValue({
-        json: async () => mockBookmarksData,
+        json: async () => mockTestBookmarkWithKeywords,
         ok: true,
       })
 
       // 存在するIDを指定してフックを呼び出す
-      const targetBookmark = TestBookmarks[0]
+      const targetBookmark = TestBookmarkWithKeywords[0]
       const result = renderBookmarkById(targetBookmark.id)
 
       // データが解決するのを待つ
@@ -117,7 +112,7 @@ describe('useBookmarks Hooks', () => {
 
     it('存在しないIDを指定した場合、bookmarkが undefined になること', async () => {
       mockGet.mockResolvedValue({
-        json: async () => mockBookmarksData,
+        json: async () => mockTestBookmarkWithKeywords,
         ok: true,
       })
 

@@ -8,7 +8,7 @@ interface ExpectMutationSuccessOptions {
   mockMutation: Mock
   mockShowErrorMessage?: Mock
   navigate?: { mockNavigate: Mock; path: string }
-  payload: { json?: { title: string; url: string }; param: { id: string }; }
+  payload: { json?: { title: string; url: string }; param: { id: string } }
   result: ResultType
 }
 
@@ -113,4 +113,16 @@ export const inputText = async (
   if (text) {
     await user.type(input, text)
   }
+}
+
+type TextTestType = {
+  link?: string
+  text: string
+}
+
+export const expectText = async (textTest: TextTestType) => {
+  const linkItem = await screen.findByText(textTest.text)
+  expect(linkItem).toBeInTheDocument()
+  if (textTest.link)
+    expect(linkItem.closest('a')).toHaveAttribute('href', textTest.link)
 }

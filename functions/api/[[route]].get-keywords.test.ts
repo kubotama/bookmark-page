@@ -1,27 +1,21 @@
 import { D1Database } from '@cloudflare/workers-types'
-import { beforeEach, describe, expect, it, Mock, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { ERROR_MESSAGE, UI_MESSAGES } from '../../shared/constants/uiMessages'
-import { BOOKMARKS, DATABASE_NAME } from '../constants/db'
+import { DATABASE_NAME, KEYWORDS } from '../constants/db'
 import { LOG_MESSAGE } from '../constants/logMessage'
 import {
   REQUEST_API_PATH,
   TEST_ERROR_MESSAGE,
-  TestBookmarkWithKeywords,
-  TestBookmarkWKWTableData,
+  TestKeywords,
+  TestKeywordsTableData,
 } from '../test/fixtures'
-import { app } from './[[route]]' // 💡 exportしたappをインポート
+import { app } from './[[route]]'
 
-describe('Hono Backend API - app.request', () => {
-  let consoleSpy: Mock<(...data: unknown[]) => void>
-  beforeEach(() => {
-    vi.resetAllMocks()
-    consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-  })
-
-  it('GET /api/bookmarks が正しいJSONを返すこと', async () => {
+describe('Hono API - GET /keywords', () => {
+  it('GET /api/keywords が正しいJSONを返すこと', async () => {
     const allSpy = vi.fn().mockResolvedValue({
-      results: TestBookmarkWKWTableData,
+      results: TestKeywordsTableData,
     })
     const prepareSpy = vi.fn().mockReturnValue({ all: allSpy })
 
@@ -30,13 +24,13 @@ describe('Hono Backend API - app.request', () => {
     }
 
     const res = await app.request(
-      REQUEST_API_PATH.GET_BOOKMARKS,
+      REQUEST_API_PATH.GET_KEYWORDS,
       {},
       {
         BOOKMARK_PAGE_DB: mockD1Database as D1Database,
       },
     )
-    const expectedSQL = BOOKMARKS.SELECT_ALL_WITH_KEYWORDS
+    const expectedSQL = KEYWORDS.SELECT_ALL_WITH_BOOKMARKS
 
     expect(prepareSpy).toHaveBeenCalledWith(expectedSQL)
     expect(allSpy).toHaveBeenCalledOnce()
@@ -45,12 +39,12 @@ describe('Hono Backend API - app.request', () => {
     // レスポンスボディの検証
     const body = await res.json()
     expect(body).toEqual({
-      data: TestBookmarkWithKeywords,
+      data: TestKeywords,
       success: true,
     })
   })
 
-  it('GET /api/bookmarks - DB側で例外が発生した際、適切に500エラーを返すこと', async () => {
+  it('GET /api/keywords - DB側で例外が発生した際、適切に500エラーを返すこと', async () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     const dbError = new Error(TEST_ERROR_MESSAGE.DB_ERROR)
 
@@ -62,7 +56,7 @@ describe('Hono Backend API - app.request', () => {
     }
 
     const res = await app.request(
-      REQUEST_API_PATH.GET_BOOKMARKS,
+      REQUEST_API_PATH.GET_KEYWORDS,
       {},
       {
         BOOKMARK_PAGE_DB: mockFailedDb as D1Database,
@@ -79,14 +73,10 @@ describe('Hono Backend API - app.request', () => {
     expect(consoleSpy).toHaveBeenCalledWith(LOG_MESSAGE.DB_ERROR(dbError))
   })
 
-  it('存在しないパスにアクセスした場合は404になること', async () => {
-    const res = await app.request('/api/unknown-route')
-    expect(res.status).toBe(404)
-  })
-
   it('データベースのバインディング（BOOKMARK_PAGE_DB）が未設定の場合、500を返すこと', async () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     const res = await app.request(
-      REQUEST_API_PATH.GET_BOOKMARKS,
+      REQUEST_API_PATH.GET_KEYWORDS,
       {
         headers: {
           'Content-Type': 'application/json',

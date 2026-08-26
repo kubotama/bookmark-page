@@ -9,9 +9,15 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as KeywordRouteImport } from './routes/keyword'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BookmarkIdRouteImport } from './routes/bookmark.$id'
 
+const KeywordRoute = KeywordRouteImport.update({
+  id: '/keyword',
+  path: '/keyword',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -25,32 +31,43 @@ const BookmarkIdRoute = BookmarkIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/keyword': typeof KeywordRoute
   '/bookmark/$id': typeof BookmarkIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/keyword': typeof KeywordRoute
   '/bookmark/$id': typeof BookmarkIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/keyword': typeof KeywordRoute
   '/bookmark/$id': typeof BookmarkIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/bookmark/$id'
+  fullPaths: '/' | '/keyword' | '/bookmark/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/bookmark/$id'
-  id: '__root__' | '/' | '/bookmark/$id'
+  to: '/' | '/keyword' | '/bookmark/$id'
+  id: '__root__' | '/' | '/keyword' | '/bookmark/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  KeywordRoute: typeof KeywordRoute
   BookmarkIdRoute: typeof BookmarkIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/keyword': {
+      id: '/keyword'
+      path: '/keyword'
+      fullPath: '/keyword'
+      preLoaderRoute: typeof KeywordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -70,6 +87,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  KeywordRoute: KeywordRoute,
   BookmarkIdRoute: BookmarkIdRoute,
 }
 export const routeTree = rootRouteImport

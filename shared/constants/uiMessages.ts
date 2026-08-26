@@ -7,13 +7,14 @@ export const ERROR_MESSAGE = {
   STATUS_CODE: (code: number) => `ステータスコード: ${code}`,
   FAILED_DELETE_BOOKMARK: 'ブックマークの削除に失敗しました。',
   FAILED_UPDATE_BOOKMARK: 'ブックマークの更新に失敗しました。',
+  INVALID_JSON_FORMAT: 'JSON形式が正しくありません。',
 } as const
 
 export const UI_LABELS = {
   ACTIONS: {
     LOADING: '読み込み中...',
-    SAVING: '保存中...',
-    SAVE: '保存する',
+    ADDING_BOOKMARK: 'ブックマークを追加中...',
+    ADD_BOOKMARK: 'ブックマークを追加',
     OPEN: '開く',
     UPDATE: '更新',
     DELETE: '削除',
@@ -25,11 +26,16 @@ export const UI_LABELS = {
     TITLE: 'タイトル',
     URL: 'URL',
     API_URL: 'APIのURL',
+    LINK_TEXT: 'リンク',
+    ASSIGNED_KEYWORD: '関連付けられているキーワード',
+    UNASSIGNED_KEYWORD: '関連付けられていないキーワード',
   },
   HEADER: {
     PAGE_HEADER: 'Bookmark Page',
+    KEYWORD: 'キーワード',
     NO_BOOKMARKS: 'ブックマークがありません。',
     ADD_BOOKMARK: 'ブックマークの追加',
+    NO_KEYWORDS: 'キーワードがありません。',
   },
 } as const
 
@@ -41,7 +47,7 @@ export const UI_MESSAGES = {
       'Zero Trust のログインセッションが見つかりません。先にブラウザでWEB画面を開いてログインしてください。',
   },
   BOOKMARKS: {
-    SAVED_BOOKMARK: 'ブックマークを保存しました！',
+    ADDED_BOOKMARK: 'ブックマークを追加しました！',
     REGISTERED_BOOKMARKS: (count: number) =>
       `${count}件のブックマークが登録されています。`,
     CONFIRM_DELETE: (title: string) =>

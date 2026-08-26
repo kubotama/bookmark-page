@@ -1,4 +1,5 @@
 export const LENGTH_LIMITATION = {
+  NAME: { MIN: 1, MAX: 255 },
   URL: { MAX: 2048 },
   TITLE: { MIN: 1, MAX: 255 },
 } as const

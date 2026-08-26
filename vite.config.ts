@@ -52,6 +52,8 @@ export default defineConfig({
         'src/**/*.{ts,tsx}',
         'functions/**/*.{ts,tsx}',
         'extension/**/*.{ts,tsx}',
+        'shared/lib/**/*.{ts,tsx}',
+        'shared/components/**/*.{ts,tsx}',
       ],
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
@@ -63,6 +65,8 @@ export default defineConfig({
       'src/**/*.test.{ts,tsx}',
       'functions/**/*.test.{ts,tsx}',
       'extension/**/*.test.{ts,tsx}',
+      'shared/lib/**/*.test.{ts,tsx}',
+      'shared/components/**/*.test.{ts,tsx}',
     ],
 
     root: resolve(__dirname, '.'),

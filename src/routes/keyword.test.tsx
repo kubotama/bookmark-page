@@ -1,12 +1,13 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { createRouter, RouterProvider } from '@tanstack/react-router'
+import {
+  createMemoryHistory,
+  createRouter,
+  RouterProvider,
+} from '@tanstack/react-router'
 import { act, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import {
-  mockTestBookmarkWithKeywords,
-  TestBookmarkWithKeywords,
-} from '../../functions/test/fixtures'
+import { mockKeywordsData, TestKeywords } from '../../functions/test/fixtures'
 import { ERROR_MESSAGE, UI_LABELS } from '../../shared/constants/uiMessages'
 import { routeTree } from '../routeTree.gen'
 import { expectText } from '../test/test-utils'
@@ -21,7 +22,7 @@ const mockGet = vi.fn()
 vi.mock('hono/client', () => ({
   hc: () => ({
     api: {
-      bookmarks: {
+      keywords: {
         $get: () => mockGet(),
       },
     },
@@ -31,20 +32,28 @@ vi.mock('hono/client', () => ({
 // ==========================================
 // 2. テスト用レンダリングヘルパー関数
 // ==========================================
-async function renderIndexPage() {
+async function renderKeyword() {
+  const memoryHistory = createMemoryHistory({
+    initialEntries: [`/keyword`],
+  })
+
+  // 本物の routeTree を渡してルーターを初期化
+  const router = createRouter({
+    history: memoryHistory,
+    routeTree,
+  })
+
+  await router.load()
+
   // テストごとにクリーンな QueryClient を作成（キャッシュの混ざりを防ぐ）
   const testQueryClient = new QueryClient({
     defaultOptions: {
       queries: {
+        gcTime: 0, // キャッシュの残り火によるテスト汚染を防止
         retry: false, // テストが失敗した時に何度も再試行して遅くなるのを防ぐ
       },
     },
   })
-
-  // 本物の routeTree を渡してルーターを初期化
-  const router = createRouter({ routeTree })
-
-  await router.load()
 
   return render(
     <QueryClientProvider client={testQueryClient}>
@@ -56,7 +65,7 @@ async function renderIndexPage() {
 // ==========================================
 // 3. テストケース定義
 // ==========================================
-describe('Index Page (Bookmark List)', () => {
+describe('Keyword List Page', () => {
   beforeEach(() => {
     vi.resetAllMocks()
   })
@@ -66,7 +75,7 @@ describe('Index Page (Bookmark List)', () => {
     mockGet.mockReturnValue(new Promise(() => {}))
 
     await act(async () => {
-      await renderIndexPage()
+      await renderKeyword()
     })
 
     // UI_LABELS から読み込み中の文言が表示されているか検証
@@ -76,22 +85,21 @@ describe('Index Page (Bookmark List)', () => {
   it('APIから取得したブックマーク一覧が正常にレンダリングされること', async () => {
     // 正常系データを返すレスポンスをモック
     mockGet.mockResolvedValue({
-      json: async () => mockTestBookmarkWithKeywords,
+      json: async () => mockKeywordsData,
       ok: true,
     })
 
     await act(async () => {
-      await renderIndexPage()
+      await renderKeyword()
     })
 
     await expectText({
-      link: `/bookmark/${TestBookmarkWithKeywords[0].id}`,
-      text: TestBookmarkWithKeywords[0].title,
+      link: `/bookmark/${TestKeywords[0].id}`,
+      text: TestKeywords[0].name,
     })
-
     await expectText({
-      link: `/bookmark/${TestBookmarkWithKeywords[1].id}`,
-      text: TestBookmarkWithKeywords[1].title,
+      link: `/bookmark/${TestKeywords[1].id}`,
+      text: TestKeywords[1].name,
     })
   })
 
@@ -104,7 +112,7 @@ describe('Index Page (Bookmark List)', () => {
   const testCases: TestCase[] = [
     {
       description: 'ブックマークが空の場合に「データなし」の',
-      expectedMessage: UI_LABELS.HEADER.NO_BOOKMARKS,
+      expectedMessage: UI_LABELS.HEADER.NO_KEYWORDS,
       mockData: {
         json: async () => ({ data: [], success: true }),
         ok: true,
@@ -123,9 +131,8 @@ describe('Index Page (Bookmark List)', () => {
       mockGet.mockResolvedValue(mockData)
 
       await act(async () => {
-        await renderIndexPage()
+        await renderKeyword()
       })
-
       await expectText({ text: expectedMessage })
     },
   )

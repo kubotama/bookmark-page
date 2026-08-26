@@ -4,7 +4,13 @@ import perfectionist from 'eslint-plugin-perfectionist'
 
 export default [
   {
-    ignores: ['node_modules/**', 'dist/**', '.wrangler/**', 'coverage/**'],
+    ignores: [
+      'node_modules/**',
+      'dist/**',
+      '.wrangler/**',
+      'coverage/**',
+      'extension/dist-extension/',
+    ],
   },
   {
     // 解析対象にするファイル

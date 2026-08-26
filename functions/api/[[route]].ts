@@ -5,17 +5,20 @@ import { Context, Hono } from 'hono'
 import { handle } from 'hono/cloudflare-pages'
 import { cors } from 'hono/cors'
 import { uuidv7 } from 'uuidv7'
+import z from 'zod'
 
 import { API_PATH } from '../../shared/constants/api'
 import { ERROR_MESSAGE, UI_MESSAGES } from '../../shared/constants/uiMessages'
-import { BOOKMARKS, DATABASE_NAME } from '../constants/db'
+import { BOOKMARKS, DATABASE_NAME, KEYWORDS } from '../constants/db'
 import { LOG_MESSAGE } from '../constants/logMessage'
 import {
   Bookmark,
   BookmarkIdParamSchema,
+  BookmarkWithKeywordsSchema,
   CreateBookmarkSchema,
   UpdateBookmarkSchema,
 } from '../schemas/bookmark'
+import { KeywordWithBookmarkIdsSchema } from '../schemas/keyword'
 
 type Env = {
   Bindings: {
@@ -87,10 +90,37 @@ const routes = app
       if (!db) {
         throw new Error(ERROR_MESSAGE.DB_BINDING_ERROR(DATABASE_NAME))
       }
-      const { results } = await db.prepare(BOOKMARKS.SELECT_ALL).all<Bookmark>()
+      const { results } = await db
+        .prepare(BOOKMARKS.SELECT_ALL_WITH_KEYWORDS)
+        .all()
+
+      const data = z.array(BookmarkWithKeywordsSchema).parse(results)
 
       return c.json({
-        data: results,
+        data,
+        success: true,
+      })
+    } catch (error) {
+      return handleDbError(error, c)
+    }
+  })
+  .get(API_PATH.GET_KEYWORDS, async (c) => {
+    try {
+      const db = c.env.BOOKMARK_PAGE_DB
+      if (!db) {
+        throw new Error(ERROR_MESSAGE.DB_BINDING_ERROR(DATABASE_NAME))
+      }
+
+      // 1. D1 から生データを取得（bookmark_ids は JSON 文字列）
+      const { results } = await db
+        .prepare(KEYWORDS.SELECT_ALL_WITH_BOOKMARKS)
+        .all()
+
+      // 2. Zod スキーマに通して一括でパース・変換
+      const data = z.array(KeywordWithBookmarkIdsSchema).parse(results)
+
+      return c.json({
+        data,
         success: true,
       })
     } catch (error) {
