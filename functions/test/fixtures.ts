@@ -43,7 +43,9 @@ export const INVALID_STRING = {
 
 export const TEST_ERROR_MESSAGE = {
   API_ERROR: 'APIへのアクセスにエラーが発生しました',
-  CONSTRAINT_ERROR: 'UNIQUE constraint failed: bookmarks.url',
+  CONSTRAINT_BKRELATION_ERROR: 'UNIQUE constraint failed: bookmarks_keywords',
+  CONSTRAINT_BOOKMARK_ERROR: 'UNIQUE constraint failed: bookmarks.url',
+  CONSTRAINT_KEYWORD_ERROR: 'UNIQUE constraint failed: keywords.name',
   DB_ERROR: 'データベースにエラーが発生しました',
   NETWORK_ERROR: 'ネットワークにエラーが発生しました',
   SAVE_ERROR: '保存できませんでした',
@@ -68,6 +70,7 @@ export const getExpectedText = (
 
 export const REQUEST_API_PATH = {
   ADD_BOOKMARK: '/api/bookmarks',
+  ADD_KEYWORD: '/api/keywords',
   DELETE_BOOKMARK: (id: string) => `/api/bookmarks/${id}`,
   GET_BOOKMARKS: '/api/bookmarks',
   GET_KEYWORDS: '/api/keywords',
@@ -154,3 +157,5 @@ export const mockTestBookmarkWithKeywords = {
   data: TestBookmarkWithKeywords,
   success: true,
 }
+
+export const TestUuid = '018ed000-0001-7000-8000-000000000088'

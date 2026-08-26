@@ -5,9 +5,11 @@ export const ERROR_MESSAGE = {
     `データベース ${binding} のバインディングが設定されていません`,
   INSERT_BOOKMARK_ERROR: 'ブックマークの追加に失敗しました',
   STATUS_CODE: (code: number) => `ステータスコード: ${code}`,
-  FAILED_DELETE_BOOKMARK: 'ブックマークの削除に失敗しました。',
-  FAILED_UPDATE_BOOKMARK: 'ブックマークの更新に失敗しました。',
-  INVALID_JSON_FORMAT: 'JSON形式が正しくありません。',
+  FAILED_DELETE_BOOKMARK: 'ブックマークの削除に失敗しました',
+  FAILED_UPDATE_BOOKMARK: 'ブックマークの更新に失敗しました',
+  INVALID_JSON_FORMAT: 'JSON形式が正しくありません',
+  INSERT_KEYWORD_ERROR: 'キーワードの追加に失敗しました',
+  INSERT_BKRELATION_ERROR: 'ブックマークとキーワードの関連付けに失敗しました',
 } as const
 
 export const UI_LABELS = {
@@ -63,6 +65,9 @@ export const UI_MESSAGES = {
       '接続がタイムアウトしました。URLが正しいか確認してください。',
     NOT_FOUND_BOOKMARK: '指定されたブックマークが見つかりません。',
     DUPLICATE_URL: 'このURLは既に登録されています。',
+    DUPLICATE_KEYWORD: 'このキーワードは既に登録されています。',
+    DUPLICATE_BKRELATION:
+      'このブックマークとキーワードは既に関連付けられています。',
   },
   OTHER: {
     UNEXPECTED_ERROR: '予期せぬエラーが発生しました。',

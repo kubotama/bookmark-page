@@ -24,6 +24,7 @@ export const BOOKMARKS = {
 } as const
 
 export const KEYWORDS = {
+  INSERT: 'INSERT INTO keywords (id, name) VALUES (?, ?) RETURNING id, name',
   SELECT_ALL_WITH_BOOKMARKS: `SELECT
       k.id,
       k.name,
@@ -35,6 +36,11 @@ export const KEYWORDS = {
     LEFT JOIN bookmarks_keywords bk ON k.id = bk.keyword_id
     GROUP BY k.id
     ORDER BY k.created_at DESC;`,
-}
+} as const
+
+export const BOOKMARKS_KEYWORDS = {
+  INSERT:
+    'INSERT INTO bookmarks_keywords (id, bookmark_id, keyword_id) VALUES (?, ?, ?) RETURNING id, bookmark_id, keyword_id',
+} as const
 
 export const DATABASE_NAME = 'BOOKMARK_PAGE_DB'

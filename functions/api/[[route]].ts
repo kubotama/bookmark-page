@@ -9,7 +9,12 @@ import z from 'zod'
 
 import { API_PATH } from '../../shared/constants/api'
 import { ERROR_MESSAGE, UI_MESSAGES } from '../../shared/constants/uiMessages'
-import { BOOKMARKS, DATABASE_NAME, KEYWORDS } from '../constants/db'
+import {
+  BOOKMARKS,
+  BOOKMARKS_KEYWORDS,
+  DATABASE_NAME,
+  KEYWORDS,
+} from '../constants/db'
 import { LOG_MESSAGE } from '../constants/logMessage'
 import {
   Bookmark,
@@ -18,7 +23,12 @@ import {
   CreateBookmarkSchema,
   UpdateBookmarkSchema,
 } from '../schemas/bookmark'
-import { KeywordWithBookmarkIdsSchema } from '../schemas/keyword'
+import {
+  CreateKeywordSchema,
+  KeywordWithBookmarkIds,
+  KeywordWithBookmarkIdsSchema,
+} from '../schemas/keyword'
+import { BKRelation } from '../schemas/relations'
 
 type Env = {
   Bindings: {
@@ -32,13 +42,30 @@ const handleDbError = (error: unknown, c: Context) => {
     error instanceof Error &&
     error.message.includes('UNIQUE constraint failed')
   ) {
-    return c.json(
-      {
-        error: UI_MESSAGES.API.DUPLICATE_URL,
-        success: false,
-      } as const,
-      409,
-    )
+    if (error.message.includes('bookmarks.url'))
+      return c.json(
+        {
+          error: UI_MESSAGES.API.DUPLICATE_URL,
+          success: false,
+        } as const,
+        409,
+      )
+    else if (error.message.includes('keywords.name'))
+      return c.json(
+        {
+          error: UI_MESSAGES.API.DUPLICATE_KEYWORD,
+          success: false,
+        } as const,
+        409,
+      )
+    else if (error.message.includes('bookmarks_keywords'))
+      return c.json(
+        {
+          error: UI_MESSAGES.API.DUPLICATE_BKRELATION,
+          success: false,
+        } as const,
+        409,
+      )
   }
 
   // 💡 それ以外の予期せぬデータベースエラー
@@ -164,7 +191,57 @@ const routes = app
       }
     },
   )
+  .post(
+    API_PATH.POST_KEYWORD,
+    zValidator('json', CreateKeywordSchema, (result, c) => {
+      return !result.success
+        ? c.json({ error: result.error.issues[0].message, success: false }, 400)
+        : undefined
+    }),
+    async (c) => {
+      const { bookmark_id, name } = c.req.valid('json')
+      const id = uuidv7()
 
+      try {
+        const db = c.env.BOOKMARK_PAGE_DB
+        if (!db) {
+          throw new Error(ERROR_MESSAGE.DB_BINDING_ERROR(DATABASE_NAME))
+        }
+        const newKeyword = await db
+          .prepare(KEYWORDS.INSERT)
+          .bind(id, name)
+          .first<KeywordWithBookmarkIds>()
+
+        if (!newKeyword) {
+          throw new Error(ERROR_MESSAGE.INSERT_KEYWORD_ERROR)
+        }
+
+        if (bookmark_id) {
+          const bk_id = uuidv7()
+          const newBk = await db
+            .prepare(BOOKMARKS_KEYWORDS.INSERT)
+            .bind(bk_id, bookmark_id, id)
+            .first<BKRelation>()
+
+          if (!newBk) {
+            throw new Error(ERROR_MESSAGE.INSERT_BKRELATION_ERROR)
+          }
+
+          newKeyword.bookmark_ids = [newBk.bookmark_id]
+        }
+
+        return c.json(
+          {
+            data: newKeyword,
+            success: true,
+          } as const,
+          201,
+        )
+      } catch (error) {
+        return handleDbError(error, c)
+      }
+    },
+  )
   .delete(
     API_PATH.DELETE_BOOKMARK,
     zValidator('param', BookmarkIdParamSchema, (result, c) => {

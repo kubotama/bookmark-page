@@ -200,7 +200,9 @@ describe('Hono API - POST /api/bookmarks', () => {
       // 💡 D1 (SQLite) が UNIQUE 制約違反エラーを投げた状況をシミュレート
       const firstSpy = vi
         .fn()
-        .mockRejectedValue(new Error(TEST_ERROR_MESSAGE.CONSTRAINT_ERROR))
+        .mockRejectedValue(
+          new Error(TEST_ERROR_MESSAGE.CONSTRAINT_BOOKMARK_ERROR),
+        )
       const bindSpy = vi.fn().mockReturnValue({ first: firstSpy })
       const prepareSpy = vi.fn().mockReturnValue({ bind: bindSpy })
 
