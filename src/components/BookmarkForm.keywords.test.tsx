@@ -9,6 +9,7 @@ import {
   TestKeywords,
 } from '../../functions/test/fixtures'
 import { UI_LABELS } from '../../shared/constants/uiMessages'
+import { expectText } from '../test/test-utils'
 import { BookmarkForm } from './BookmarkForm'
 
 // 💡 1. Router の Link をモック化（ListItem 内で使用されるため）
@@ -44,6 +45,8 @@ vi.mock('../hooks/useUpdateBookmark', () => ({
 }))
 
 describe('BookmarkForm - キーワード表示', () => {
+  const targetBookmark = TestBookmarkWithKeywords[0]
+
   beforeEach(() => {
     vi.resetAllMocks()
     // 全キーワードとして TestKeywords を返すように設定
@@ -54,12 +57,6 @@ describe('BookmarkForm - キーワード表示', () => {
 
   it('関連付けられているキーワードが正しいエリアに表示されること', async () => {
     // キーワード1 のみが関連付けられているブックマークデータ
-    const targetBookmark = TestBookmarkWithKeywords[0]
-
-    mockUseKeywords.mockReturnValue({
-      data: { data: TestKeywords, success: true },
-    })
-
     render(<BookmarkForm bookmark={targetBookmark} />)
 
     // await waitFor(() => {
@@ -93,5 +90,14 @@ describe('BookmarkForm - キーワード表示', () => {
       within(unassignedSection).getByText(TestKeywords[1].name),
     ).toBeInTheDocument()
     // })
+  })
+
+  describe('キーワードの登録', () => {
+    it('登録ボタンの表示', async () => {
+      render(<BookmarkForm bookmark={targetBookmark} />)
+
+      await expectText({ text: UI_LABELS.FIELDS.ADD_KEYWORD })
+      await expectText({ text: UI_LABELS.ACTIONS.ADD_KEYWORD })
+    })
   })
 })

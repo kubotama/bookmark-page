@@ -23,6 +23,7 @@ export const UI_LABELS = {
     BACK: '戻る',
     SAVE_API_URL: 'APIのURLを保存',
     VERIFY_API_URL: 'APIのURLを検証',
+    ADD_KEYWORD: '登録',
   },
   FIELDS: {
     TITLE: 'タイトル',

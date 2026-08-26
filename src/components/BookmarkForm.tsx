@@ -109,7 +109,7 @@ export const BookmarkForm = ({ bookmark }: BookmarkFormProps) => {
 
       <div className="mt-4 grid grid-cols-[max-content_1fr_max-content] items-center gap-3">
         <FormInput label={UI_LABELS.FIELDS.ADD_KEYWORD} onChange={() => {}} />
-        <Button>登録</Button>
+        <Button>{UI_LABELS.ACTIONS.ADD_KEYWORD}</Button>
       </div>
 
       <div className="mt-5">
