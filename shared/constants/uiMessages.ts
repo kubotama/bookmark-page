@@ -66,6 +66,8 @@ export const UI_MESSAGES = {
     NOT_FOUND_BOOKMARK: '指定されたブックマークが見つかりません。',
     DUPLICATE_URL: 'このURLは既に登録されています。',
     DUPLICATE_KEYWORD: 'このキーワードは既に登録されています。',
+    DUPLICATE_BKRELATION:
+      'このブックマークとキーワードは既に関連付けられています。',
   },
   OTHER: {
     UNEXPECTED_ERROR: '予期せぬエラーが発生しました。',

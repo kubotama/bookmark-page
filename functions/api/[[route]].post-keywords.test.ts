@@ -280,6 +280,35 @@ describe('Hono API - POST /keywords', () => {
         }),
         requestBody: { name: addedKeyword.name },
       },
+      {
+        description: 'ブックマークとキーワードの関連付けで重複のエラー',
+        expectedMessage: UI_MESSAGES.API.DUPLICATE_BKRELATION,
+        prepareSpy: vi.fn((sql: string) => {
+          if (sql === KEYWORDS.INSERT) {
+            return {
+              bind: vi.fn().mockReturnValue({
+                first: vi.fn().mockResolvedValue(TestKeywordsTableData[0]),
+              }),
+            }
+          }
+          if (sql === BOOKMARKS_KEYWORDS.INSERT) {
+            return {
+              bind: vi.fn().mockReturnValue({
+                first: vi
+                  .fn()
+                  .mockRejectedValue(
+                    new Error(TEST_ERROR_MESSAGE.CONSTRAINT_BKRELATION_ERROR),
+                  ),
+              }),
+            }
+          }
+          return { bind: vi.fn().mockReturnValue({ first: vi.fn() }) }
+        }),
+        requestBody: {
+          bookmark_id: TestBookmarks[0].id,
+          name: TestKeywordsTableData[0].name,
+        },
+      },
     ]
 
     it.each(duplicateTestCase)(

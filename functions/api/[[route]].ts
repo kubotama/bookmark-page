@@ -58,6 +58,14 @@ const handleDbError = (error: unknown, c: Context) => {
         } as const,
         409,
       )
+    else if (error.message.includes('bookmarks_keywords'))
+      return c.json(
+        {
+          error: UI_MESSAGES.API.DUPLICATE_BKRELATION,
+          success: false,
+        } as const,
+        409,
+      )
   }
 
   // 💡 それ以外の予期せぬデータベースエラー

@@ -43,6 +43,7 @@ export const INVALID_STRING = {
 
 export const TEST_ERROR_MESSAGE = {
   API_ERROR: 'APIへのアクセスにエラーが発生しました',
+  CONSTRAINT_BKRELATION_ERROR: 'UNIQUE constraint failed: bookmarks_keywords',
   CONSTRAINT_BOOKMARK_ERROR: 'UNIQUE constraint failed: bookmarks.url',
   CONSTRAINT_KEYWORD_ERROR: 'UNIQUE constraint failed: keywords.name',
   DB_ERROR: 'データベースにエラーが発生しました',
