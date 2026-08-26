@@ -31,6 +31,7 @@ export const UI_LABELS = {
     LINK_TEXT: 'リンク',
     ASSIGNED_KEYWORD: '関連付けられているキーワード',
     UNASSIGNED_KEYWORD: '関連付けられていないキーワード',
+    ADD_KEYWORD: '登録するキーワード',
   },
   HEADER: {
     PAGE_HEADER: 'Bookmark Page',
