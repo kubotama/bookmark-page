@@ -8,7 +8,11 @@ interface ExpectMutationSuccessOptions {
   mockMutation: Mock
   mockShowErrorMessage?: Mock
   navigate?: { mockNavigate: Mock; path: string }
-  payload: { json?: { title: string; url: string }; param: { id: string } }
+  payload: {
+    json?: { name: string } | { title: string; url: string }
+    param?: { id: string }
+  }
+  queryKey: string[]
   result: ResultType
 }
 
@@ -25,6 +29,7 @@ export const expectMutationSuccess = ({
   mockShowErrorMessage,
   navigate,
   payload,
+  queryKey,
   result,
 }: ExpectMutationSuccessOptions) => {
   expect(result.current.isSuccess).toBe(true)
@@ -33,7 +38,7 @@ export const expectMutationSuccess = ({
   // // 検証: キャッシュ更新(invalidate)が走ったか
   if (mockInvalidateQueries) {
     expect(mockInvalidateQueries).toHaveBeenCalledWith({
-      queryKey: ['bookmarks'],
+      queryKey,
     })
   }
   // // 検証: 画面遷移したか

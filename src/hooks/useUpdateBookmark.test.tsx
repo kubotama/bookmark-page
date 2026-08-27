@@ -80,6 +80,7 @@ describe('useUpdateBookmark', () => {
           },
           param: { id: updatedPayload.id },
         },
+        queryKey: ['bookmarks'],
         result,
       })
     })
