@@ -22,6 +22,10 @@ vi.mock('../hooks/useKeywords', () => ({
   useKeywords: () => ({ data: { data: [] } }),
 }))
 
+vi.mock('../hooks/useAddKeyword', () => ({
+  useAddKeyword: () => ({ isPending: false, mutate: vi.fn() }),
+}))
+
 describe('BookmarkForm', () => {
   it('該当するブックマークのurlとタイトルが正しく表示されること', async () => {
     const targetBookmark = TestBookmarkWithKeywords[0]

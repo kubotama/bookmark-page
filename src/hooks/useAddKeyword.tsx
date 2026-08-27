@@ -12,9 +12,9 @@ export const useAddKeyword = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ name }: CreateKeywordInput) => {
+    mutationFn: async ({ bookmark_id, name }: CreateKeywordInput) => {
       const res = await client.api.keywords.$post({
-        json: { name },
+        json: { bookmark_id, name },
       })
 
       const json = await res.json()
@@ -28,7 +28,8 @@ export const useAddKeyword = () => {
       showErrorMessage(error.message)
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['bookmarks', 'keywords'] })
+      queryClient.invalidateQueries({ queryKey: ['bookmarks'] })
+      queryClient.invalidateQueries({ queryKey: ['keywords'] })
     },
   })
 }

@@ -37,9 +37,11 @@ export const expectMutationSuccess = ({
   expect(mockMutation).toHaveBeenCalledWith(payload)
   // // 検証: キャッシュ更新(invalidate)が走ったか
   if (mockInvalidateQueries) {
-    expect(mockInvalidateQueries).toHaveBeenCalledWith({
-      queryKey,
-    })
+    queryKey.forEach((key) =>
+      expect(mockInvalidateQueries).toHaveBeenCalledWith({
+        queryKey: [key],
+      }),
+    )
   }
   // // 検証: 画面遷移したか
   if (navigate) {
