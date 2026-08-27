@@ -33,6 +33,7 @@ export const BookmarksTableData = {
 
 export const TEST_STRING = {
   BUTTON_LABEL: 'ボタン',
+  NEW_KEYWORD: '新しいキーワード',
 } as const
 
 export const INVALID_STRING = {

@@ -123,6 +123,7 @@ export const inputText = async (
 }
 
 type TextTestType = {
+  disabled?: boolean
   link?: string
   text: string
 }
@@ -132,4 +133,9 @@ export const expectText = async (textTest: TextTestType) => {
   expect(linkItem).toBeInTheDocument()
   if (textTest.link)
     expect(linkItem.closest('a')).toHaveAttribute('href', textTest.link)
+  if (textTest.disabled === true) {
+    expect(linkItem).toBeDisabled()
+  } else if (textTest.disabled === false) {
+    expect(linkItem).toBeEnabled()
+  }
 }

@@ -86,8 +86,6 @@ export const BookmarkForm = ({ bookmark }: BookmarkFormProps) => {
     )
   }
 
-  // const isDisableAddkeyword = isAddKeywordPending || keywordName === ''
-
   return (
     <>
       <form onSubmit={handleSubmit}>

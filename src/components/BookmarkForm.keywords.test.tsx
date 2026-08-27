@@ -2,14 +2,16 @@
 import type { ComponentProps, ReactNode } from 'react'
 
 import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
+  TEST_STRING,
   TestBookmarkWithKeywords,
   TestKeywords,
 } from '../../functions/test/fixtures'
 import { UI_LABELS } from '../../shared/constants/uiMessages'
-import { expectText } from '../test/test-utils'
+import { expectText, inputText } from '../test/test-utils'
 import { BookmarkForm } from './BookmarkForm'
 
 // 💡 1. Router の Link をモック化（ListItem 内で使用されるため）
@@ -101,7 +103,20 @@ describe('BookmarkForm - キーワード表示', () => {
       render(<BookmarkForm bookmark={targetBookmark} />)
 
       await expectText({ text: UI_LABELS.FIELDS.ADD_KEYWORD })
-      await expectText({ text: UI_LABELS.ACTIONS.ADD_KEYWORD })
+      await expectText({ disabled: true, text: UI_LABELS.ACTIONS.ADD_KEYWORD })
+    })
+
+    it('キーワードのテキストボックスに入力', async () => {
+      const user = userEvent.setup()
+
+      render(<BookmarkForm bookmark={targetBookmark} />)
+
+      await inputText(
+        user,
+        UI_LABELS.FIELDS.ADD_KEYWORD,
+        TEST_STRING.NEW_KEYWORD,
+      )
+      await expectText({ disabled: false, text: UI_LABELS.ACTIONS.ADD_KEYWORD })
     })
   })
 })
