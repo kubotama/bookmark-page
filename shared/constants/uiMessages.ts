@@ -10,6 +10,7 @@ export const ERROR_MESSAGE = {
   INVALID_JSON_FORMAT: 'JSON形式が正しくありません',
   INSERT_KEYWORD_ERROR: 'キーワードの追加に失敗しました',
   INSERT_BKRELATION_ERROR: 'ブックマークとキーワードの関連付けに失敗しました',
+  FAILED_ADD_KEYWORD: 'キーワードの登録に失敗しました',
 } as const
 
 export const UI_LABELS = {
