@@ -30,6 +30,10 @@ vi.mock('../hooks/useKeywords', () => ({
   useKeywords: () => ({ data: { data: [] } }),
 }))
 
+vi.mock('../hooks/useAddKeyword', () => ({
+  useAddKeyword: () => ({ isPending: false, mutate: vi.fn() }),
+}))
+
 describe('削除ボタンの動作', () => {
   const testBookmark = TestBookmarkWithKeywords[0]
 

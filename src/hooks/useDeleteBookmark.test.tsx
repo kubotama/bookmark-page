@@ -83,6 +83,7 @@ describe('useDeleteBookmark', () => {
         mockShowErrorMessage,
         navigate: { mockNavigate, path: '/' },
         payload: { param: { id: validId } },
+        queryKey: ['bookmarks'],
         result,
       })
     })

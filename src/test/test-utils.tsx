@@ -8,7 +8,11 @@ interface ExpectMutationSuccessOptions {
   mockMutation: Mock
   mockShowErrorMessage?: Mock
   navigate?: { mockNavigate: Mock; path: string }
-  payload: { json?: { title: string; url: string }; param: { id: string } }
+  payload: {
+    json?: { name: string } | { title: string; url: string }
+    param?: { id: string }
+  }
+  queryKey: string[]
   result: ResultType
 }
 
@@ -25,6 +29,7 @@ export const expectMutationSuccess = ({
   mockShowErrorMessage,
   navigate,
   payload,
+  queryKey,
   result,
 }: ExpectMutationSuccessOptions) => {
   expect(result.current.isSuccess).toBe(true)
@@ -32,9 +37,11 @@ export const expectMutationSuccess = ({
   expect(mockMutation).toHaveBeenCalledWith(payload)
   // // 検証: キャッシュ更新(invalidate)が走ったか
   if (mockInvalidateQueries) {
-    expect(mockInvalidateQueries).toHaveBeenCalledWith({
-      queryKey: ['bookmarks'],
-    })
+    queryKey.forEach((key) =>
+      expect(mockInvalidateQueries).toHaveBeenCalledWith({
+        queryKey: [key],
+      }),
+    )
   }
   // // 検証: 画面遷移したか
   if (navigate) {
@@ -116,6 +123,7 @@ export const inputText = async (
 }
 
 type TextTestType = {
+  disabled?: boolean
   link?: string
   text: string
 }
@@ -125,4 +133,9 @@ export const expectText = async (textTest: TextTestType) => {
   expect(linkItem).toBeInTheDocument()
   if (textTest.link)
     expect(linkItem.closest('a')).toHaveAttribute('href', textTest.link)
+  if (textTest.disabled === true) {
+    expect(linkItem).toBeDisabled()
+  } else if (textTest.disabled === false) {
+    expect(linkItem).toBeEnabled()
+  }
 }

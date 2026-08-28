@@ -2,13 +2,16 @@
 import type { ComponentProps, ReactNode } from 'react'
 
 import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
+  TEST_STRING,
   TestBookmarkWithKeywords,
   TestKeywords,
 } from '../../functions/test/fixtures'
 import { UI_LABELS } from '../../shared/constants/uiMessages'
+import { clickButton, expectText, inputText } from '../test/test-utils'
 import { BookmarkForm } from './BookmarkForm'
 
 // 💡 1. Router の Link をモック化（ListItem 内で使用されるため）
@@ -43,7 +46,17 @@ vi.mock('../hooks/useUpdateBookmark', () => ({
   useUpdateBookmark: () => ({ isPending: false, mutate: vi.fn() }),
 }))
 
+const { mockAddKeyword } = vi.hoisted(() => ({
+  mockAddKeyword: vi.fn(),
+}))
+
+vi.mock('../hooks/useAddKeyword', () => ({
+  useAddKeyword: () => ({ isPending: false, mutate: mockAddKeyword }),
+}))
+
 describe('BookmarkForm - キーワード表示', () => {
+  const targetBookmark = TestBookmarkWithKeywords[0]
+
   beforeEach(() => {
     vi.resetAllMocks()
     // 全キーワードとして TestKeywords を返すように設定
@@ -54,12 +67,6 @@ describe('BookmarkForm - キーワード表示', () => {
 
   it('関連付けられているキーワードが正しいエリアに表示されること', async () => {
     // キーワード1 のみが関連付けられているブックマークデータ
-    const targetBookmark = TestBookmarkWithKeywords[0]
-
-    mockUseKeywords.mockReturnValue({
-      data: { data: TestKeywords, success: true },
-    })
-
     render(<BookmarkForm bookmark={targetBookmark} />)
 
     // await waitFor(() => {
@@ -93,5 +100,56 @@ describe('BookmarkForm - キーワード表示', () => {
       within(unassignedSection).getByText(TestKeywords[1].name),
     ).toBeInTheDocument()
     // })
+  })
+
+  describe('キーワードの登録', () => {
+    it('登録ボタンの表示', async () => {
+      render(<BookmarkForm bookmark={targetBookmark} />)
+
+      await expectText({ text: UI_LABELS.FIELDS.ADD_KEYWORD })
+      await expectText({ disabled: true, text: UI_LABELS.ACTIONS.ADD_KEYWORD })
+    })
+
+    it('キーワードのテキストボックスに入力', async () => {
+      const user = userEvent.setup()
+
+      render(<BookmarkForm bookmark={targetBookmark} />)
+
+      await inputText(
+        user,
+        UI_LABELS.FIELDS.ADD_KEYWORD,
+        TEST_STRING.NEW_KEYWORD,
+      )
+      await expectText({ disabled: false, text: UI_LABELS.ACTIONS.ADD_KEYWORD })
+    })
+
+    it('登録ボタンをクリック', async () => {
+      const user = userEvent.setup()
+
+      mockAddKeyword.mockImplementation((_variables, options) => {
+        options?.onSuccess?.()
+      })
+
+      render(<BookmarkForm bookmark={targetBookmark} />)
+
+      await inputText(
+        user,
+        UI_LABELS.FIELDS.ADD_KEYWORD,
+        TEST_STRING.NEW_KEYWORD,
+      )
+      await clickButton(user, UI_LABELS.ACTIONS.ADD_KEYWORD)
+
+      expect(mockAddKeyword).toHaveBeenCalledWith(
+        {
+          bookmark_id: targetBookmark.id,
+          name: TEST_STRING.NEW_KEYWORD,
+        },
+        expect.any(Object),
+      )
+
+      mockAddKeyword.mockImplementation((_variables, options) => {
+        options?.onSuccess?.()
+      })
+    })
   })
 })

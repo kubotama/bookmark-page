@@ -37,6 +37,10 @@ vi.mock('../hooks/useKeywords', () => ({
   useKeywords: () => ({ data: { data: [] } }),
 }))
 
+vi.mock('../hooks/useAddKeyword', () => ({
+  useAddKeyword: () => ({ isPending: false, mutate: vi.fn() }),
+}))
+
 describe('戻るボタンの動作', () => {
   beforeEach(() => {
     vi.resetAllMocks()

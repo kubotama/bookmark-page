@@ -10,6 +10,7 @@ import { KeywordWithBookmarkIds } from '../../functions/schemas/keyword'
 import { Button } from '../../shared/components/Button'
 import { FormInput } from '../../shared/components/FormInput'
 import { UI_LABELS, UI_MESSAGES } from '../../shared/constants/uiMessages'
+import { useAddKeyword } from '../hooks/useAddKeyword'
 import { useDeleteBookmark } from '../hooks/useDeleteBookmark'
 import { useKeywords } from '../hooks/useKeywords'
 import { useUpdateBookmark } from '../hooks/useUpdateBookmark'
@@ -22,10 +23,12 @@ interface BookmarkFormProps {
 export const BookmarkForm = ({ bookmark }: BookmarkFormProps) => {
   const [title, setTitle] = useState(bookmark.title)
   const [url, setUrl] = useState(bookmark.url)
+  const [keywordName, setKeywordName] = useState<string>('')
   const router = useRouter()
   const { isPending, mutate: deleteBookmark } = useDeleteBookmark()
   const { isPending: isUpdatePending, mutate: updateBookmark } =
     useUpdateBookmark()
+  const { isPending: isAddKeywordPending, mutate: addKeyword } = useAddKeyword()
 
   const isSubmitDisable = !BookmarkUrlSchema.safeParse(url).success
   const isDirty = bookmark.title !== title.trim() || bookmark.url !== url.trim()
@@ -72,6 +75,17 @@ export const BookmarkForm = ({ bookmark }: BookmarkFormProps) => {
     })
   }
 
+  const handleAddKeyword = () => {
+    addKeyword(
+      { bookmark_id: bookmark.id, name: keywordName },
+      {
+        onSuccess: () => {
+          setKeywordName('')
+        },
+      },
+    )
+  }
+
   return (
     <>
       <form onSubmit={handleSubmit}>
@@ -106,6 +120,20 @@ export const BookmarkForm = ({ bookmark }: BookmarkFormProps) => {
           </Button>
         </div>
       </form>
+
+      <div className="mt-4 grid grid-cols-[max-content_1fr_max-content] items-center gap-3">
+        <FormInput
+          label={UI_LABELS.FIELDS.ADD_KEYWORD}
+          onChange={(e) => setKeywordName(e.target.value)}
+          value={keywordName}
+        />
+        <Button
+          disabled={isAddKeywordPending || keywordName === ''}
+          onClick={handleAddKeyword}
+        >
+          {UI_LABELS.ACTIONS.ADD_KEYWORD}
+        </Button>
+      </div>
 
       <div className="mt-5">
         <div className="text-sm">{UI_LABELS.FIELDS.ASSIGNED_KEYWORD}</div>

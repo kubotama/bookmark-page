@@ -1,8 +1,7 @@
 import { renderHook, waitFor } from '@testing-library/react'
-import { uuidv7 } from 'uuidv7'
 import { beforeEach, describe, it, vi } from 'vitest'
 
-import { TestBookmarks } from '../../functions/test/fixtures'
+import { TestKeywords } from '../../functions/test/fixtures'
 import { ERROR_MESSAGE, UI_MESSAGES } from '../../shared/constants/uiMessages'
 import { SCHEMA_MESSAGE } from '../../shared/constants/validation'
 import {
@@ -10,10 +9,10 @@ import {
   expectMutationError,
   expectMutationSuccess,
 } from '../test/test-utils'
-import { useUpdateBookmark } from './useUpdateBookmark'
+import { useAddKeyword } from './useAddKeyword'
 
-const { mockPatch, mockShowErrorMessage } = vi.hoisted(() => ({
-  mockPatch: vi.fn(),
+const { mockPost, mockShowErrorMessage } = vi.hoisted(() => ({
+  mockPost: vi.fn(),
   mockShowErrorMessage: vi.fn(),
 }))
 
@@ -21,10 +20,8 @@ const { mockPatch, mockShowErrorMessage } = vi.hoisted(() => ({
 vi.mock('hono/client', () => ({
   hc: () => ({
     api: {
-      bookmarks: {
-        ':id': {
-          $patch: mockPatch,
-        },
+      keywords: {
+        $post: mockPost,
       },
     },
   }),
@@ -35,18 +32,15 @@ vi.mock('../lib/notification', () => ({
   showErrorMessage: mockShowErrorMessage,
 }))
 
-const renderUpdateBookmark = () => {
+const renderAddKeyword = () => {
   const { mockInvalidateQueries, wrapper } = createTestQueryClient()
-  const { result } = renderHook(() => useUpdateBookmark(), { wrapper })
+  const { result } = renderHook(() => useAddKeyword(), { wrapper })
   return { mockInvalidateQueries, result }
 }
 
-describe('useUpdateBookmark', () => {
-  const validId = uuidv7()
-  const updatedPayload = {
-    id: validId,
-    title: TestBookmarks[0].title,
-    url: TestBookmarks[0].url,
+describe('useAddKeyword', () => {
+  const payload = {
+    name: TestKeywords[0].name,
   }
 
   beforeEach(() => {
@@ -55,32 +49,31 @@ describe('useUpdateBookmark', () => {
   })
 
   it('更新APIが200を返したときにキャッシュが更新されること', async () => {
-    mockPatch.mockResolvedValueOnce({
+    mockPost.mockResolvedValueOnce({
       json: async () => ({
-        data: updatedPayload,
+        data: payload,
         success: true,
       }),
       ok: true,
-      status: 200,
+      status: 201,
     })
 
-    const { mockInvalidateQueries, result } = renderUpdateBookmark()
+    const { mockInvalidateQueries, result } = renderAddKeyword()
 
-    result.current.mutate(updatedPayload)
+    result.current.mutate(payload)
 
     await waitFor(() => {
       expectMutationSuccess({
         mockInvalidateQueries,
-        mockMutation: mockPatch,
+        mockMutation: mockPost,
         mockShowErrorMessage,
         payload: {
           json: {
-            title: updatedPayload.title,
-            url: updatedPayload.url,
+            name: TestKeywords[0].name,
           },
-          param: { id: updatedPayload.id },
         },
-        queryKey: ['bookmarks'],
+        queryKey: ['bookmarks', 'keywords'],
+
         result,
       })
     })
@@ -94,13 +87,14 @@ describe('useUpdateBookmark', () => {
         status: 400,
       },
       {
-        errorName: 'ブックマークが存在しない',
-        errorText: UI_MESSAGES.API.NOT_FOUND_BOOKMARK,
-        status: 404,
+        errorName: '登録済みのキーワードを登録しようとした',
+        errorText: UI_MESSAGES.API.DUPLICATE_KEYWORD,
+        status: 409,
       },
       {
-        errorName: '登録済みのurlを登録しようとした',
-        errorText: UI_MESSAGES.API.DUPLICATE_URL,
+        errorName:
+          '既に関連付けられているブックマークとキーワードを関連付けようとした',
+        errorText: UI_MESSAGES.API.DUPLICATE_BKRELATION,
         status: 409,
       },
       {
@@ -111,7 +105,7 @@ describe('useUpdateBookmark', () => {
     ])(
       `APIが$statusで$errorNameエラーを返したときにエラー処理が行われること`,
       async ({ errorText, status }) => {
-        mockPatch.mockResolvedValueOnce({
+        mockPost.mockResolvedValueOnce({
           json: async () => ({
             error: errorText,
             success: false,
@@ -120,9 +114,9 @@ describe('useUpdateBookmark', () => {
           status,
         })
 
-        const { mockInvalidateQueries, result } = renderUpdateBookmark()
+        const { mockInvalidateQueries, result } = renderAddKeyword()
 
-        result.current.mutate(updatedPayload)
+        result.current.mutate(payload)
 
         await waitFor(() => {
           expectMutationError({
@@ -136,7 +130,7 @@ describe('useUpdateBookmark', () => {
     )
 
     it(`APIが不明なエラーを返したときにエラー処理が行われること`, async () => {
-      mockPatch.mockResolvedValueOnce({
+      mockPost.mockResolvedValueOnce({
         json: async () => ({
           success: false,
         }),
@@ -144,13 +138,13 @@ describe('useUpdateBookmark', () => {
         status: 500,
       })
 
-      const { mockInvalidateQueries, result } = renderUpdateBookmark()
+      const { mockInvalidateQueries, result } = renderAddKeyword()
 
-      result.current.mutate(updatedPayload)
+      result.current.mutate(payload)
 
       await waitFor(() => {
         expectMutationError({
-          errorText: ERROR_MESSAGE.FAILED_UPDATE_BOOKMARK,
+          errorText: ERROR_MESSAGE.FAILED_ADD_KEYWORD,
           mockInvalidateQueries,
           mockShowErrorMessage,
           result,
