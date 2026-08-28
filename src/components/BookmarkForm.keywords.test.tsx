@@ -11,7 +11,7 @@ import {
   TestKeywords,
 } from '../../functions/test/fixtures'
 import { UI_LABELS } from '../../shared/constants/uiMessages'
-import { expectText, inputText } from '../test/test-utils'
+import { clickButton, expectText, inputText } from '../test/test-utils'
 import { BookmarkForm } from './BookmarkForm'
 
 // 💡 1. Router の Link をモック化（ListItem 内で使用されるため）
@@ -46,8 +46,12 @@ vi.mock('../hooks/useUpdateBookmark', () => ({
   useUpdateBookmark: () => ({ isPending: false, mutate: vi.fn() }),
 }))
 
+const { mockAddKeyword } = vi.hoisted(() => ({
+  mockAddKeyword: vi.fn(),
+}))
+
 vi.mock('../hooks/useAddKeyword', () => ({
-  useAddKeyword: () => ({ isPending: false, mutate: vi.fn() }),
+  useAddKeyword: () => ({ isPending: false, mutate: mockAddKeyword }),
 }))
 
 describe('BookmarkForm - キーワード表示', () => {
@@ -117,6 +121,35 @@ describe('BookmarkForm - キーワード表示', () => {
         TEST_STRING.NEW_KEYWORD,
       )
       await expectText({ disabled: false, text: UI_LABELS.ACTIONS.ADD_KEYWORD })
+    })
+
+    it('登録ボタンをクリック', async () => {
+      const user = userEvent.setup()
+
+      mockAddKeyword.mockImplementation((_variables, options) => {
+        options?.onSuccess?.()
+      })
+
+      render(<BookmarkForm bookmark={targetBookmark} />)
+
+      await inputText(
+        user,
+        UI_LABELS.FIELDS.ADD_KEYWORD,
+        TEST_STRING.NEW_KEYWORD,
+      )
+      await clickButton(user, UI_LABELS.ACTIONS.ADD_KEYWORD)
+
+      expect(mockAddKeyword).toHaveBeenCalledWith(
+        {
+          bookmark_id: targetBookmark.id,
+          name: TEST_STRING.NEW_KEYWORD,
+        },
+        expect.any(Object),
+      )
+
+      mockAddKeyword.mockImplementation((_variables, options) => {
+        options?.onSuccess?.()
+      })
     })
   })
 })
