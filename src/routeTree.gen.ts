@@ -9,18 +9,24 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as KeywordRouteImport } from './routes/keyword'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as KeywordIndexRouteImport } from './routes/keyword.index'
+import { Route as KeywordIdRouteImport } from './routes/keyword.$id'
 import { Route as BookmarkIdRouteImport } from './routes/bookmark.$id'
 
-const KeywordRoute = KeywordRouteImport.update({
-  id: '/keyword',
-  path: '/keyword',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KeywordIndexRoute = KeywordIndexRouteImport.update({
+  id: '/keyword/',
+  path: '/keyword/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KeywordIdRoute = KeywordIdRouteImport.update({
+  id: '/keyword/$id',
+  path: '/keyword/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BookmarkIdRoute = BookmarkIdRouteImport.update({
@@ -31,48 +37,59 @@ const BookmarkIdRoute = BookmarkIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/keyword': typeof KeywordRoute
   '/bookmark/$id': typeof BookmarkIdRoute
+  '/keyword/$id': typeof KeywordIdRoute
+  '/keyword/': typeof KeywordIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/keyword': typeof KeywordRoute
   '/bookmark/$id': typeof BookmarkIdRoute
+  '/keyword/$id': typeof KeywordIdRoute
+  '/keyword': typeof KeywordIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/keyword': typeof KeywordRoute
   '/bookmark/$id': typeof BookmarkIdRoute
+  '/keyword/$id': typeof KeywordIdRoute
+  '/keyword/': typeof KeywordIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/keyword' | '/bookmark/$id'
+  fullPaths: '/' | '/bookmark/$id' | '/keyword/$id' | '/keyword/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/keyword' | '/bookmark/$id'
-  id: '__root__' | '/' | '/keyword' | '/bookmark/$id'
+  to: '/' | '/bookmark/$id' | '/keyword/$id' | '/keyword'
+  id: '__root__' | '/' | '/bookmark/$id' | '/keyword/$id' | '/keyword/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  KeywordRoute: typeof KeywordRoute
   BookmarkIdRoute: typeof BookmarkIdRoute
+  KeywordIdRoute: typeof KeywordIdRoute
+  KeywordIndexRoute: typeof KeywordIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/keyword': {
-      id: '/keyword'
-      path: '/keyword'
-      fullPath: '/keyword'
-      preLoaderRoute: typeof KeywordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/keyword/': {
+      id: '/keyword/'
+      path: '/keyword'
+      fullPath: '/keyword/'
+      preLoaderRoute: typeof KeywordIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/keyword/$id': {
+      id: '/keyword/$id'
+      path: '/keyword/$id'
+      fullPath: '/keyword/$id'
+      preLoaderRoute: typeof KeywordIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/bookmark/$id': {
@@ -87,8 +104,9 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  KeywordRoute: KeywordRoute,
   BookmarkIdRoute: BookmarkIdRoute,
+  KeywordIdRoute: KeywordIdRoute,
+  KeywordIndexRoute: KeywordIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
