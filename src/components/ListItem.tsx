@@ -20,11 +20,11 @@ export const ListItem = ({
 }: ListItemProps) => {
   return (
     <div
-      className="relative w-full p-2 text-slate-700 bg-slate-200 border border-slate-300 hover:bg-indigo-200 flex justify-between items-center"
+      className="w-full p-2 text-slate-700 bg-slate-200 border border-slate-300 hover:bg-indigo-200 flex justify-between items-center"
       key={id}
     >
       <Link
-        className="hover:font-semibold flex-1 text-left after:absolute after:inset-0"
+        className="hover:font-semibold hover:underline text-left"
         params={{ id }}
         to={to}
       >
@@ -32,7 +32,7 @@ export const ListItem = ({
       </Link>
       {openHref ? (
         <a
-          className="relative z-10 text-shadow-xs text-indigo-400 hover:text-indigo-800 hover:underline hover:font-bold ml-2"
+          className="text-shadow-xs text-indigo-400 hover:text-indigo-800 hover:underline hover:font-bold ml-2"
           href={openHref}
           rel="noreferrer"
           target="_blank"
