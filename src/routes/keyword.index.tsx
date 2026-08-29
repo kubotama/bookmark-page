@@ -4,7 +4,7 @@ import { UI_LABELS } from '../../shared/constants/uiMessages'
 import { ListItem } from '../components/ListItem'
 import { useKeywords } from '../hooks/useKeywords'
 
-export const Route = createFileRoute('/keyword')({
+export const Route = createFileRoute('/keyword/')({
   component: RouteComponent,
 })
 
@@ -32,7 +32,7 @@ function RouteComponent() {
               <ListItem
                 id={keyword.id}
                 key={keyword.id}
-                to={`/bookmark/${keyword.id}`}
+                to={`/keyword/${keyword.id}`}
               >
                 {keyword.name}
               </ListItem>

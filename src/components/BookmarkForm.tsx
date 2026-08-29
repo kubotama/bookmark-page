@@ -144,7 +144,7 @@ export const BookmarkForm = ({ bookmark }: BookmarkFormProps) => {
                 <ListItem
                   id={keyword.id}
                   key={keyword.id}
-                  to={`/bookmark/${keyword.id}`}
+                  to={`/keyword/${keyword.id}`}
                 >
                   {keyword.name}
                 </ListItem>
@@ -163,7 +163,7 @@ export const BookmarkForm = ({ bookmark }: BookmarkFormProps) => {
                 <ListItem
                   id={keyword.id}
                   key={keyword.id}
-                  to={`/bookmark/${keyword.id}`}
+                  to={`/keyword/${keyword.id}`}
                 >
                   {keyword.name}
                 </ListItem>

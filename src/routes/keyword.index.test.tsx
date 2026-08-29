@@ -94,11 +94,11 @@ describe('Keyword List Page', () => {
     })
 
     await expectText({
-      link: `/bookmark/${TestKeywords[0].id}`,
+      link: `/keyword/${TestKeywords[0].id}`,
       text: TestKeywords[0].name,
     })
     await expectText({
-      link: `/bookmark/${TestKeywords[1].id}`,
+      link: `/keyword/${TestKeywords[1].id}`,
       text: TestKeywords[1].name,
     })
   })

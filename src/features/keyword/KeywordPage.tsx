@@ -12,7 +12,7 @@ export const KeywordPage = ({ keyword }: KeywordPageProps) => {
   const [keywordName, setKeywordName] = useState<string>(keyword.name)
 
   return (
-    <div>
+    <div className="grid grid-cols-[max-content_1fr] items-center gap-1">
       <FormInput
         label={UI_LABELS.FIELDS.KEYWORD_NAME}
         onChange={(e) => setKeywordName(e.target.value)}

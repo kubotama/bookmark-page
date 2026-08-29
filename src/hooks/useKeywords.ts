@@ -18,3 +18,18 @@ export const useKeywords = () => {
     queryKey: ['keywords'],
   })
 }
+
+export function useKeywordById(id: string) {
+  // 全件取得のフックを再利用（すでにキャッシュがあればAPIリクエストは飛ばない！）
+  const { data: resJson, error, isLoading } = useKeywords()
+
+  const keywords = resJson?.data ?? []
+  // 配列からIDが一致するものを探す
+  const keyword = keywords.find((k) => k.id === id)
+
+  return {
+    error,
+    isLoading,
+    keyword,
+  }
+}
