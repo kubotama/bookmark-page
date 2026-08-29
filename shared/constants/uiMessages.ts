@@ -5,31 +5,42 @@ export const ERROR_MESSAGE = {
     `データベース ${binding} のバインディングが設定されていません`,
   INSERT_BOOKMARK_ERROR: 'ブックマークの追加に失敗しました',
   STATUS_CODE: (code: number) => `ステータスコード: ${code}`,
-  FAILED_DELETE_BOOKMARK: 'ブックマークの削除に失敗しました。',
-  FAILED_UPDATE_BOOKMARK: 'ブックマークの更新に失敗しました。',
+  FAILED_DELETE_BOOKMARK: 'ブックマークの削除に失敗しました',
+  FAILED_UPDATE_BOOKMARK: 'ブックマークの更新に失敗しました',
+  INVALID_JSON_FORMAT: 'JSON形式が正しくありません',
+  INSERT_KEYWORD_ERROR: 'キーワードの追加に失敗しました',
+  INSERT_BKRELATION_ERROR: 'ブックマークとキーワードの関連付けに失敗しました',
+  FAILED_ADD_KEYWORD: 'キーワードの登録に失敗しました',
 } as const
 
 export const UI_LABELS = {
   ACTIONS: {
     LOADING: '読み込み中...',
-    SAVING: '保存中...',
-    SAVE: '保存する',
+    ADDING_BOOKMARK: 'ブックマークを追加中...',
+    ADD_BOOKMARK: 'ブックマークを追加',
     OPEN: '開く',
     UPDATE: '更新',
     DELETE: '削除',
     BACK: '戻る',
     SAVE_API_URL: 'APIのURLを保存',
     VERIFY_API_URL: 'APIのURLを検証',
+    ADD_KEYWORD: '登録',
   },
   FIELDS: {
     TITLE: 'タイトル',
     URL: 'URL',
     API_URL: 'APIのURL',
+    LINK_TEXT: 'リンク',
+    ASSIGNED_KEYWORD: '関連付けられているキーワード',
+    UNASSIGNED_KEYWORD: '関連付けられていないキーワード',
+    ADD_KEYWORD: '登録するキーワード',
   },
   HEADER: {
     PAGE_HEADER: 'Bookmark Page',
+    KEYWORD: 'キーワード',
     NO_BOOKMARKS: 'ブックマークがありません。',
     ADD_BOOKMARK: 'ブックマークの追加',
+    NO_KEYWORDS: 'キーワードがありません。',
   },
 } as const
 
@@ -41,7 +52,7 @@ export const UI_MESSAGES = {
       'Zero Trust のログインセッションが見つかりません。先にブラウザでWEB画面を開いてログインしてください。',
   },
   BOOKMARKS: {
-    SAVED_BOOKMARK: 'ブックマークを保存しました！',
+    ADDED_BOOKMARK: 'ブックマークを追加しました！',
     REGISTERED_BOOKMARKS: (count: number) =>
       `${count}件のブックマークが登録されています。`,
     CONFIRM_DELETE: (title: string) =>
@@ -57,6 +68,9 @@ export const UI_MESSAGES = {
       '接続がタイムアウトしました。URLが正しいか確認してください。',
     NOT_FOUND_BOOKMARK: '指定されたブックマークが見つかりません。',
     DUPLICATE_URL: 'このURLは既に登録されています。',
+    DUPLICATE_KEYWORD: 'このキーワードは既に登録されています。',
+    DUPLICATE_BKRELATION:
+      'このブックマークとキーワードは既に関連付けられています。',
   },
   OTHER: {
     UNEXPECTED_ERROR: '予期せぬエラーが発生しました。',

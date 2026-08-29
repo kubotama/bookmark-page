@@ -7,9 +7,13 @@ import {
 import { render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { mockBookmarksData, TestBookmarks } from '../../functions/test/fixtures'
+import {
+  mockTestBookmarkWithKeywords,
+  TestBookmarkWithKeywords,
+} from '../../functions/test/fixtures'
 import { ERROR_MESSAGE, UI_LABELS } from '../../shared/constants/uiMessages'
 import { routeTree } from '../routeTree.gen'
+import { expectText } from '../test/test-utils'
 
 // jsdom環境用に window.scrollTo の警告を黙らせる
 window.scrollTo = vi.fn()
@@ -61,6 +65,11 @@ const renderBookmarkDetailPage = async (id: string) => {
   )
 }
 
+const expectTextbox = async (name: string, value: string) => {
+  const titleElement = await screen.findByRole('textbox', { name })
+  expect(titleElement).toHaveValue(value)
+}
+
 describe('Bookmark Detail Page', () => {
   beforeEach(() => {
     vi.resetAllMocks()
@@ -68,52 +77,49 @@ describe('Bookmark Detail Page', () => {
 
   it('URLパラメータからIDを正しく取得して表示できること', async () => {
     mockGet.mockResolvedValue({
-      json: async () => mockBookmarksData,
+      json: async () => mockTestBookmarkWithKeywords,
       ok: true,
     })
 
-    const targetBookmark = TestBookmarks[0]
+    const targetBookmark = TestBookmarkWithKeywords[0]
 
     renderBookmarkDetailPage(targetBookmark.id)
 
     // カスタムフックを介して取得・表示されたタイトルを非同期で待つ
-    const titleElement = await screen.findByRole('textbox', {
-      name: UI_LABELS.FIELDS.TITLE,
-    })
-    expect(titleElement).toHaveValue(targetBookmark.title)
-    const urlElement = await screen.findByRole('textbox', {
-      name: UI_LABELS.FIELDS.URL,
-    })
-    expect(urlElement).toHaveValue(targetBookmark.url)
+    await expectTextbox(UI_LABELS.FIELDS.TITLE, targetBookmark.title)
+    await expectTextbox(UI_LABELS.FIELDS.URL, targetBookmark.url)
   })
 
-  it('idがブックマークに存在しない場合には正しいメッセージが表示されること', async () => {
-    mockGet.mockResolvedValue({
-      json: async () => [],
-      ok: true,
-    })
+  type TestCase = {
+    description: string
+    expectedMessage: string
+    mockData: object
+  }
 
-    const targetBookmark = TestBookmarks[0]
+  const testCases: TestCase[] = [
+    {
+      description: 'idがブックマークに存在しない場合には正しい',
+      expectedMessage: UI_LABELS.HEADER.NO_BOOKMARKS,
+      mockData: { json: async () => ({}), ok: true },
+    },
+    {
+      description: 'ブックマークの取得がエラーの場合にはエラー',
+      expectedMessage: ERROR_MESSAGE.SERVER_ERROR,
+      mockData: { ok: false },
+    },
+  ]
 
-    renderBookmarkDetailPage(targetBookmark.id)
+  it.each(testCases)(
+    `$descriptionメッセージが表示されること`,
+    async ({ expectedMessage, mockData }) => {
+      mockGet.mockResolvedValue(mockData)
 
-    // カスタムフックを介して取得・表示されたタイトルを非同期で待つ
-    const headerElement = await screen.findByText(UI_LABELS.HEADER.NO_BOOKMARKS)
-    expect(headerElement).toBeInTheDocument()
-  })
+      const targetBookmark = TestBookmarkWithKeywords[0]
 
-  it('ブックマークの取得がエラーの場合にはエラーメッセージが表示されること', async () => {
-    mockGet.mockResolvedValue({
-      error: new Error('error'),
-      ok: false,
-    })
+      renderBookmarkDetailPage(targetBookmark.id)
 
-    const targetBookmark = TestBookmarks[0]
-
-    renderBookmarkDetailPage(targetBookmark.id)
-
-    // カスタムフックを介して取得・表示されたタイトルを非同期で待つ
-    const headerElement = await screen.findByText(ERROR_MESSAGE.SERVER_ERROR)
-    expect(headerElement).toBeInTheDocument()
-  })
+      // カスタムフックを介して取得・表示されたタイトルを非同期で待つ
+      await expectText({ text: expectedMessage })
+    },
+  )
 })

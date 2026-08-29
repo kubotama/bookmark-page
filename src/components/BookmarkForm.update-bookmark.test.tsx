@@ -2,12 +2,17 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
-import { INVALID_STRING, TestBookmarks } from '../../functions/test/fixtures'
+import {
+  INVALID_STRING,
+  TestBookmarks,
+  TestBookmarkWithKeywords,
+} from '../../functions/test/fixtures'
 import { UI_LABELS } from '../../shared/constants/uiMessages'
 import { inputText } from '../test/test-utils'
 import { BookmarkForm } from './BookmarkForm'
 
 vi.mock('@tanstack/react-router', () => ({
+  Link: vi.fn(),
   useRouter: () => ({ history: { back: vi.fn() }, navigate: vi.fn() }),
 }))
 
@@ -25,8 +30,16 @@ vi.mock('../hooks/useUpdateBookmark', () => ({
   }),
 }))
 
+vi.mock('../hooks/useKeywords', () => ({
+  useKeywords: () => ({ data: { data: [] } }),
+}))
+
+vi.mock('../hooks/useAddKeyword', () => ({
+  useAddKeyword: () => ({ isPending: false, mutate: vi.fn() }),
+}))
+
 describe('更新ボタンの動作', () => {
-  const testBookmark = TestBookmarks[0]
+  const testBookmark = TestBookmarkWithKeywords[0]
 
   const testData: { name: string; title?: string; url?: string }[] = [
     { name: 'タイトルもurlも変更しなければ' },

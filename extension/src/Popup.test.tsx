@@ -1,249 +1,156 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
-import { hc } from 'hono/client'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, Mock, vi } from 'vitest'
 
-import {
-  INVALID_STRING,
-  TEST_API_URL,
-  TEST_ERROR_MESSAGE,
-  TestBookmarks,
-} from '../../functions/test/fixtures'
+import { TEST_API_URL, TestBookmarks } from '../../functions/test/fixtures'
+import { MessageBarType } from '../../shared/components/MessageBar'
+import { DEFAULT_API_URL } from '../../shared/constants/api'
 import { UI_LABELS, UI_MESSAGES } from '../../shared/constants/uiMessages'
-import { SCHEMA_MESSAGE } from '../../shared/constants/validation'
-import { STORAGE_KEY } from '../constants/storage'
-import { client } from './lib/hono'
+import { clickButton, inputText } from '../../src/test/test-utils'
 import { Popup } from './Popup'
 
-// 💡 Hono RPC クライアントの通信部分をモック化
-vi.mock('./lib/hono', () => {
-  return {
-    client: {
-      api: {
-        bookmarks: {
-          $get: vi.fn(() => ({
-            json: async () => ({ data: TestBookmarks, success: true }),
-            ok: true,
-          })),
-          $post: vi.fn(() => ({
-            json: async () => ({ success: true }),
-            ok: true,
-          })),
-        },
-      },
-    },
-  }
-})
+const {
+  mockAddBookmark,
+  mockSaveApiUrl,
+  mockSetApiUrl,
+  mockSetTitle,
+  mockSetUrl,
+  mockTestConnection,
+} = vi.hoisted(() => ({
+  mockAddBookmark: vi.fn(),
+  mockSaveApiUrl: vi.fn(),
+  mockSetApiUrl: vi.fn(),
+  mockSetTitle: vi.fn(),
+  mockSetUrl: vi.fn(),
+  mockTestConnection: vi.fn(),
+}))
 
-vi.mock('hono/client', () => {
-  return {
-    hc: vi.fn().mockReturnValue({
-      api: {
-        bookmarks: {
-          $get: vi.fn().mockResolvedValue({
-            json: async () => ({ data: TestBookmarks, success: true }),
-            ok: true,
-          }),
-        },
-      },
-    }),
-  }
-})
+vi.mock('./hooks/useAddBookmark', () => ({
+  useAddBookmark: () => ({
+    addBookmark: mockAddBookmark,
+    setTitle: mockSetTitle,
+    setUrl: mockSetUrl,
+    title: TestBookmarks[0].title,
+    url: TestBookmarks[0].url,
+  }),
+}))
+
+vi.mock('./hooks/useApiUrl', () => ({
+  useApiUrl: () => ({
+    apiUrl: DEFAULT_API_URL,
+    saveApiUrl: mockSaveApiUrl,
+    setApiUrl: mockSetApiUrl,
+    testConnection: mockTestConnection,
+  }),
+}))
+
+type TestDataType = {
+  buttonLabel: string
+  description: string
+  expectedParam: string | undefined
+  message: MessageBarType
+  mockFn: Mock<() => object>
+}
 
 describe('Popup Component', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
-  const getElements = () => {
+  it('起動時に chrome.tabs.query からタイトルとURLを取得して入力欄にセットすること', async () => {
     render(<Popup />)
-    const titleInput = screen.getByLabelText(
+    const titleInput = (await screen.findByLabelText(
       UI_LABELS.FIELDS.TITLE,
-    ) as HTMLInputElement
-    const urlInput = screen.getByLabelText(
+    )) as HTMLInputElement
+    const urlInput = (await screen.findByLabelText(
       UI_LABELS.FIELDS.URL,
-    ) as HTMLInputElement
-    const submitButton = screen.getByRole('button', { name: '保存する' })
-    const apiUrlInput = screen.getByLabelText(
-      UI_LABELS.FIELDS.API_URL,
-    ) as HTMLInputElement
-    const apiUrlSaveButton = screen.getByRole('button', {
-      name: UI_LABELS.ACTIONS.SAVE_API_URL,
-    })
-    const testConnectionButton = screen.getByRole('button', {
-      name: UI_LABELS.ACTIONS.VERIFY_API_URL,
-    })
-
-    return {
-      apiUrlInput,
-      apiUrlSaveButton,
-      submitButton,
-      testConnectionButton,
-      titleInput,
-      urlInput,
-    }
-  }
-
-  it('起動時に chrome.tabs.query からタイトルとURLを取得して入力欄にセットすること', () => {
-    const { titleInput, urlInput } = getElements()
+    )) as HTMLInputElement
 
     expect(titleInput.value).toBe(TestBookmarks[0].title)
     expect(urlInput.value).toBe(TestBookmarks[0].url)
   })
 
-  it('保存するボタンを押した際、Hono RPC APIが正しく呼び出されること', async () => {
-    const { submitButton } = getElements()
+  it('APIのurlを変更したら、文字列の長さ回、変更する関数が呼び出されること', async () => {
+    render(<Popup />)
     const user = userEvent.setup()
-    await user.click(submitButton)
+    await inputText(user, UI_LABELS.FIELDS.API_URL, TEST_API_URL.LOCAL)
 
-    // 保存中の状態を経て、成功メッセージが出ることを検証
-    await waitFor(() => {
-      expect(
-        screen.getByText('ブックマークを保存しました！'),
-      ).toBeInTheDocument()
-    })
+    expect(mockSetApiUrl).toHaveBeenCalledTimes(TEST_API_URL.LOCAL.length + 1)
+  })
 
-    // APIがどんな引数で呼ばれたかを検証
-    expect(client.api.bookmarks.$post).toHaveBeenCalledWith({
-      json: {
-        title: TestBookmarks[0].title,
-        url: TestBookmarks[0].url,
+  const testData: TestDataType[] = [
+    {
+      buttonLabel: UI_LABELS.ACTIONS.ADD_BOOKMARK,
+      description:
+        'ブックマークを追加するボタンを押したら、addBookmarkが正しく呼び出されること',
+      expectedParam: DEFAULT_API_URL,
+      message: { text: UI_MESSAGES.BOOKMARKS.ADDED_BOOKMARK, type: 'success' },
+      mockFn: mockAddBookmark,
+    },
+    {
+      buttonLabel: UI_LABELS.ACTIONS.ADD_BOOKMARK,
+      description:
+        'ブックマークの追加でエラーになったら、エラーメッセージが表示されること',
+      expectedParam: DEFAULT_API_URL,
+      message: { text: UI_MESSAGES.API.FAILED_CONNECT_SERVER, type: 'error' },
+      mockFn: mockAddBookmark,
+    },
+    {
+      buttonLabel: UI_LABELS.ACTIONS.SAVE_API_URL,
+      description:
+        'APIへのurlを保存するボタンを押したら、saveApiUrlが正しく呼び出されること',
+      expectedParam: undefined,
+      message: { text: UI_MESSAGES.API.SAVED_API_URL, type: 'success' },
+      mockFn: mockSaveApiUrl,
+    },
+    {
+      buttonLabel: UI_LABELS.ACTIONS.SAVE_API_URL,
+      description:
+        'APIへのurlの保存でエラーになったら、エラーメッセージが表示されること',
+      expectedParam: undefined,
+      message: { text: UI_MESSAGES.API.FAILED_SAVE_API_URL, type: 'error' },
+      mockFn: mockSaveApiUrl,
+    },
+    {
+      buttonLabel: UI_LABELS.ACTIONS.VERIFY_API_URL,
+      description:
+        'APIへのurlを検証するボタンを押したら、testConnectionが正しく呼び出されること',
+      expectedParam: undefined,
+      message: {
+        text: UI_MESSAGES.BOOKMARKS.REGISTERED_BOOKMARKS(4),
+        type: 'success',
       },
-    })
-  })
+      mockFn: mockTestConnection,
+    },
+    {
+      buttonLabel: UI_LABELS.ACTIONS.VERIFY_API_URL,
+      description:
+        'APIへのurlを検証でエラーになったら、エラーメッセージが表示されること',
+      expectedParam: undefined,
+      message: {
+        text: UI_MESSAGES.API.FAILED_CONNECT_SERVER,
+        type: 'error',
+      },
+      mockFn: mockTestConnection,
+    },
+  ]
 
-  describe('Popup 異常系のテスト', () => {
-    it('サーバー側でバリデーションエラーが発生した場合、エラーメッセージが表示されること', async () => {
-      type InferResponse<T extends (...args: never[]) => unknown> = Awaited<
-        ReturnType<T>
-      >
-      type PostResponse = InferResponse<typeof client.api.bookmarks.$post>
-
-      const mockResponse = {
-        json: async () => ({
-          error: SCHEMA_MESSAGE.INVALID_URL,
-          success: false as const,
-        }),
-        ok: false,
-        status: 400,
-      } as unknown as PostResponse
-
-      vi.mocked(client.api.bookmarks.$post).mockResolvedValueOnce(mockResponse)
-
-      const { submitButton } = getElements()
+  it.each(testData)(
+    `$description`,
+    async ({ buttonLabel, expectedParam, message, mockFn }) => {
+      mockFn.mockResolvedValue(message)
+      render(<Popup />)
       const user = userEvent.setup()
-      await user.click(submitButton)
+      await clickButton(user, buttonLabel)
 
-      // 3. エラーテキストが画面に表示されることを検証
+      // 保存中の状態を経て、成功メッセージが出ることを検証
       await waitFor(() => {
-        expect(screen.getByText(SCHEMA_MESSAGE.INVALID_URL)).toBeInTheDocument()
+        expect(screen.getByText(message.text)).toBeInTheDocument()
       })
-    })
 
-    it('ネットワーク通信自体が失敗（ネットワークエラー）した場合、通信エラーメッセージが表示されること', async () => {
-      // 1. $post が例外（Reject）を投げるように設定
-      vi.mocked(client.api.bookmarks.$post).mockRejectedValueOnce(
-        new Error(TEST_ERROR_MESSAGE.NETWORK_ERROR),
-      )
-
-      const { submitButton } = getElements()
-      const user = userEvent.setup()
-      await user.click(submitButton)
-
-      // 2. 「サーバーへの接続に失敗しました」の文言が表示されることを検証
-      await waitFor(() => {
-        expect(
-          screen.getByText(UI_MESSAGES.API.FAILED_CONNECT_SERVER),
-        ).toBeInTheDocument()
-      })
-    })
-  })
-
-  describe('APIのURLの保存', () => {
-    it('ポップアップ画面が開いたときにAPIのURL関係の項目が表示されること', () => {
-      const { apiUrlInput, apiUrlSaveButton, testConnectionButton } =
-        getElements()
-
-      expect(apiUrlInput.value).toBe('')
-      expect(apiUrlSaveButton).toBeInTheDocument()
-      expect(testConnectionButton).toBeInTheDocument()
-    })
-
-    it('通信確認ボタンをクリックしたら、正しいurlを呼び出すこと', async () => {
-      const { apiUrlInput, testConnectionButton } = getElements()
-
-      const user = userEvent.setup()
-      await user.type(apiUrlInput, TEST_API_URL.LOCAL)
-      await user.click(testConnectionButton)
-
-      await waitFor(() => {
-        expect(
-          screen.getByText(
-            UI_MESSAGES.BOOKMARKS.REGISTERED_BOOKMARKS(TestBookmarks.length),
-          ),
-        ).toBeInTheDocument()
-      })
-      expect(hc).toHaveBeenCalledWith(TEST_API_URL.LOCAL, expect.any(Object))
-    })
-
-    it('APIのurlとして不正なurlを入力して通信確認ボタンをクリックしても、呼び出しが発生しないこと', async () => {
-      const { apiUrlInput, testConnectionButton } = getElements()
-
-      const user = userEvent.setup()
-      await user.type(apiUrlInput, INVALID_STRING.URL)
-      await user.click(testConnectionButton)
-
-      await waitFor(() => {
-        expect(screen.getByText(SCHEMA_MESSAGE.INVALID_URL)).toBeInTheDocument()
-      })
-      expect(hc).not.toHaveBeenCalled()
-    })
-
-    it('urlの保存ボタンをクリックしたら、正しいurlが保存されること', async () => {
-      const setSpy = vi
-        .spyOn(chrome.storage.local, 'set')
-        .mockResolvedValue(undefined)
-      const { apiUrlInput, apiUrlSaveButton } = getElements()
-
-      const user = userEvent.setup()
-      await user.type(apiUrlInput, TEST_API_URL.LOCAL)
-      await user.click(apiUrlSaveButton)
-
-      await waitFor(() => {
-        expect(
-          screen.getByText(UI_MESSAGES.API.SAVED_API_URL),
-        ).toBeInTheDocument()
-      })
-      expect(setSpy).toHaveBeenCalledWith({
-        [STORAGE_KEY.API_URL]: TEST_API_URL.LOCAL,
-      })
-    })
-
-    it('APIのurlとして不正なurlを入力してurlの保存をクリックしても、保存の呼び出しが発生しないこと', async () => {
-      const setSpy = vi
-        .spyOn(chrome.storage.local, 'set')
-        .mockResolvedValue(undefined)
-      const { apiUrlInput, apiUrlSaveButton } = getElements()
-
-      const user = userEvent.setup()
-      await user.type(apiUrlInput, INVALID_STRING.URL)
-      await user.click(apiUrlSaveButton)
-
-      await waitFor(() => {
-        expect(screen.getByText(SCHEMA_MESSAGE.INVALID_URL)).toBeInTheDocument()
-      })
-      expect(setSpy).not.toHaveBeenCalled()
-    })
-
-    it('ポップアップ画面が開いたときに保存されているAPIのurlがテキストボックスに表示されること', async () => {
-      vi.spyOn(chrome.storage.local, 'get').mockImplementation(async () => ({
-        [STORAGE_KEY.API_URL]: TEST_API_URL.LOCAL,
-      }))
-
-      const { apiUrlInput } = getElements()
-      await waitFor(() => {
-        expect(apiUrlInput.value).toBe(TEST_API_URL.LOCAL)
-      })
-    })
-  })
+      // APIがどんな引数で呼ばれたかを検証
+      if (expectedParam) expect(mockFn).toHaveBeenCalledWith(expectedParam)
+      else expect(mockFn).toHaveBeenCalledWith()
+    },
+  )
 })

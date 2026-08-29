@@ -2,7 +2,7 @@
   "name": "bookmark-page",
   "type": "module",
   "private": true,
-  "version": "0.4.1",
+  "version": "0.12.0",
   "license": "MIT",
   "scripts": {
     "dev:frontend": "vite",
@@ -58,6 +58,6 @@
     "typescript": "6.0.3",
     "vite": "8.0.16",
     "vitest": "4.1.9",
-    "wrangler": "^4.4.0"
+    "wrangler": "^4.114.0"
   }
 }
