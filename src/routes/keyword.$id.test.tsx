@@ -8,8 +8,9 @@ import { render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { mockKeywordsData, TestKeywords } from '../../functions/test/fixtures'
-import { UI_LABELS } from '../../shared/constants/uiMessages'
+import { ERROR_MESSAGE, UI_LABELS } from '../../shared/constants/uiMessages'
 import { routeTree } from '../routeTree.gen'
+import { expectText } from '../test/test-utils'
 
 window.scrollTo = vi.fn()
 
@@ -80,4 +81,37 @@ describe('Keyword Detail Page', () => {
     // カスタムフックを介して取得・表示されたタイトルを非同期で待つ
     await expectTextbox(UI_LABELS.FIELDS.KEYWORD_NAME, targetKeyword.name)
   })
+
+  type TestCase = {
+    description: string
+    expectedMessage: string
+    mockData: object
+  }
+
+  const testCases: TestCase[] = [
+    {
+      description: 'idがキーワードに存在しない場合には正しい',
+      expectedMessage: UI_LABELS.HEADER.NO_KEYWORDS,
+      mockData: { json: async () => ({}), ok: true },
+    },
+    {
+      description: 'キーワードの取得がエラーの場合にはエラー',
+      expectedMessage: ERROR_MESSAGE.SERVER_ERROR,
+      mockData: { ok: false },
+    },
+  ]
+
+  it.each(testCases)(
+    `$descriptionメッセージが表示されること`,
+    async ({ expectedMessage, mockData }) => {
+      mockGet.mockResolvedValue(mockData)
+
+      const targetKeyword = TestKeywords[0]
+
+      renderKeywordPage(targetKeyword.id)
+
+      // カスタムフックを介して取得・表示されたタイトルを非同期で待つ
+      await expectText({ text: expectedMessage })
+    },
+  )
 })
