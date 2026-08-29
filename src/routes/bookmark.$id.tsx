@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 
 import { UI_LABELS } from '../../shared/constants/uiMessages'
-import { BookmarkForm } from '../components/BookmarkForm'
+import { BookmarkForm } from '../features/bookmark/BookmarkForm'
 import { useBookmarkById } from '../hooks/useBookmarks'
 
 export const Route = createFileRoute('/bookmark/$id')({

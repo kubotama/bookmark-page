@@ -5,9 +5,9 @@ import { describe, expect, it, vi } from 'vitest'
 import {
   INVALID_STRING,
   TestBookmarkWithKeywords,
-} from '../../functions/test/fixtures'
-import { UI_LABELS } from '../../shared/constants/uiMessages'
-import { clickButton, inputText } from '../test/test-utils'
+} from '../../../functions/test/fixtures'
+import { UI_LABELS } from '../../../shared/constants/uiMessages'
+import { clickButton, inputText } from '../../test/test-utils'
 import { BookmarkForm } from './BookmarkForm'
 
 vi.mock('@tanstack/react-router', () => ({
@@ -15,19 +15,19 @@ vi.mock('@tanstack/react-router', () => ({
   useRouter: () => ({ history: { back: vi.fn() }, navigate: vi.fn() }),
 }))
 
-vi.mock('../hooks/useDeleteBookmark', () => ({
+vi.mock('../../hooks/useDeleteBookmark', () => ({
   useDeleteBookmark: () => ({ isPending: false, mutate: vi.fn() }),
 }))
 
-vi.mock('../hooks/useUpdateBookmark', () => ({
+vi.mock('../../hooks/useUpdateBookmark', () => ({
   useUpdateBookmark: () => ({ isPending: false, mutate: vi.fn() }),
 }))
 
-vi.mock('../hooks/useKeywords', () => ({
+vi.mock('../../hooks/useKeywords', () => ({
   useKeywords: () => ({ data: { data: [] } }),
 }))
 
-vi.mock('../hooks/useAddKeyword', () => ({
+vi.mock('../../hooks/useAddKeyword', () => ({
   useAddKeyword: () => ({ isPending: false, mutate: vi.fn() }),
 }))
 

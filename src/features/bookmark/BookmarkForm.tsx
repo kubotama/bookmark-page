@@ -5,16 +5,16 @@ import {
   BookmarkUrlSchema,
   BookmarkWithKeywords,
   UpdateBookmarkSchema,
-} from '../../functions/schemas/bookmark'
-import { KeywordWithBookmarkIds } from '../../functions/schemas/keyword'
-import { Button } from '../../shared/components/Button'
-import { FormInput } from '../../shared/components/FormInput'
-import { UI_LABELS, UI_MESSAGES } from '../../shared/constants/uiMessages'
-import { useAddKeyword } from '../hooks/useAddKeyword'
-import { useDeleteBookmark } from '../hooks/useDeleteBookmark'
-import { useKeywords } from '../hooks/useKeywords'
-import { useUpdateBookmark } from '../hooks/useUpdateBookmark'
-import { ListItem } from './ListItem'
+} from '../../../functions/schemas/bookmark'
+import { KeywordWithBookmarkIds } from '../../../functions/schemas/keyword'
+import { Button } from '../../../shared/components/Button'
+import { FormInput } from '../../../shared/components/FormInput'
+import { UI_LABELS, UI_MESSAGES } from '../../../shared/constants/uiMessages'
+import { ListItem } from '../../components/ListItem'
+import { useAddKeyword } from '../../hooks/useAddKeyword'
+import { useDeleteBookmark } from '../../hooks/useDeleteBookmark'
+import { useKeywords } from '../../hooks/useKeywords'
+import { useUpdateBookmark } from '../../hooks/useUpdateBookmark'
 
 interface BookmarkFormProps {
   bookmark: BookmarkWithKeywords
