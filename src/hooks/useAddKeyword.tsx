@@ -26,6 +26,7 @@ export const useAddKeyword = () => {
     },
     onError: (error) => {
       showErrorMessage(error.message)
+      queryClient.invalidateQueries({ queryKey: ['keywords'] })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bookmarks'] })
