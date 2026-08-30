@@ -86,6 +86,14 @@ export const BookmarkForm = ({ bookmark }: BookmarkFormProps) => {
     )
   }
 
+  const isDuplicateKeyword = keywords.some(
+    (k) => k.name.trim() === keywordName.trim(),
+  )
+
+  const addKeywordButtonLabel = isDuplicateKeyword
+    ? UI_LABELS.ACTIONS.KEYWORD_REGISTERED
+    : UI_LABELS.ACTIONS.ADD_KEYWORD
+
   return (
     <>
       <form onSubmit={handleSubmit}>
@@ -128,10 +136,13 @@ export const BookmarkForm = ({ bookmark }: BookmarkFormProps) => {
           value={keywordName}
         />
         <Button
-          disabled={isAddKeywordPending || keywordName === ''}
+          className="w-20"
+          disabled={
+            isAddKeywordPending || keywordName === '' || isDuplicateKeyword
+          }
           onClick={handleAddKeyword}
         >
-          {UI_LABELS.ACTIONS.ADD_KEYWORD}
+          {addKeywordButtonLabel}
         </Button>
       </div>
 

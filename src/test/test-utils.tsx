@@ -54,6 +54,7 @@ export const expectMutationSuccess = ({
 
 interface ExpectMutationErrorOptions {
   errorText: string
+  expectedQuery?: { queryKey: string[] }
   mockInvalidateQueries?: Mock
   mockNavigate?: Mock
   mockShowErrorMessage: Mock
@@ -65,6 +66,7 @@ interface ExpectMutationErrorOptions {
  */
 export const expectMutationError = ({
   errorText,
+  expectedQuery,
   mockInvalidateQueries,
   mockNavigate,
   mockShowErrorMessage,
@@ -82,7 +84,11 @@ export const expectMutationError = ({
     expect(mockNavigate).not.toHaveBeenCalled()
   }
   if (mockInvalidateQueries) {
-    expect(mockInvalidateQueries).not.toHaveBeenCalled()
+    if (expectedQuery) {
+      expect(mockInvalidateQueries).toHaveBeenCalledWith(expectedQuery)
+    } else {
+      expect(mockInvalidateQueries).not.toHaveBeenCalled()
+    }
   }
 }
 

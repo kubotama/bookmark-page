@@ -121,6 +121,7 @@ describe('useAddKeyword', () => {
         await waitFor(() => {
           expectMutationError({
             errorText,
+            expectedQuery: { queryKey: ['keywords'] },
             mockInvalidateQueries,
             mockShowErrorMessage,
             result,
@@ -145,6 +146,7 @@ describe('useAddKeyword', () => {
       await waitFor(() => {
         expectMutationError({
           errorText: ERROR_MESSAGE.FAILED_ADD_KEYWORD,
+          expectedQuery: { queryKey: ['keywords'] },
           mockInvalidateQueries,
           mockShowErrorMessage,
           result,
