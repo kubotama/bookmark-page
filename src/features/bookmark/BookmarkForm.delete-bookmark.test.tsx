@@ -15,22 +15,22 @@ vi.mock('@tanstack/react-router', () => ({
 const mockDelete = vi.fn()
 let mockIsPending = false
 
-vi.mock('../../hooks/useDeleteBookmark', () => ({
+vi.mock('./useDeleteBookmark', () => ({
   useDeleteBookmark: () => ({
     isPending: mockIsPending,
     mutate: mockDelete,
   }),
 }))
 
-vi.mock('../../hooks/useUpdateBookmark', () => ({
+vi.mock('./useUpdateBookmark', () => ({
   useUpdateBookmark: () => ({ isPending: false, mutate: vi.fn() }),
 }))
 
-vi.mock('../../hooks/useKeywords', () => ({
+vi.mock('../keyword/useKeywords', () => ({
   useKeywords: () => ({ data: { data: [] } }),
 }))
 
-vi.mock('../../hooks/useAddKeyword', () => ({
+vi.mock('../keyword/useAddKeyword', () => ({
   useAddKeyword: () => ({ isPending: false, mutate: vi.fn() }),
 }))
 

@@ -3,9 +3,9 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from '@tanstack/react-router'
 import { hc } from 'hono/client'
 
-import { AppType } from '../../functions/api/[[route]]'
-import { ERROR_MESSAGE } from '../../shared/constants/uiMessages'
-import { showErrorMessage } from '../lib/notification'
+import { AppType } from '../../../functions/api/[[route]]'
+import { ERROR_MESSAGE } from '../../../shared/constants/uiMessages'
+import { showErrorMessage } from '../../lib/notification'
 
 // HonoのRPCクライアントを作成（型安全なAPI呼び出し用）
 const client = hc<AppType>('/')

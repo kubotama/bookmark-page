@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 
 import { UI_LABELS } from '../../shared/constants/uiMessages'
 import { KeywordPage } from '../features/keyword/KeywordPage'
-import { useKeywordById } from '../hooks/useKeywords'
+import { useKeywordById } from '../features/keyword/useKeywords'
 
 export const Route = createFileRoute('/keyword/$id')({
   component: KeywordDetailComponent,

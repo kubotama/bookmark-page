@@ -34,15 +34,15 @@ vi.mock('@tanstack/react-router', () => ({
 
 // 💡 2. useKeywords フックのモック化（全キーワード一覧を返却）
 const mockUseKeywords = vi.fn()
-vi.mock('../../hooks/useKeywords', () => ({
+vi.mock('../keyword/useKeywords', () => ({
   useKeywords: () => mockUseKeywords(),
 }))
 
-vi.mock('../../hooks/useDeleteBookmark', () => ({
+vi.mock('./useDeleteBookmark', () => ({
   useDeleteBookmark: () => ({ isPending: false, mutate: vi.fn() }),
 }))
 
-vi.mock('../../hooks/useUpdateBookmark', () => ({
+vi.mock('./useUpdateBookmark', () => ({
   useUpdateBookmark: () => ({ isPending: false, mutate: vi.fn() }),
 }))
 
@@ -50,7 +50,7 @@ const { mockAddKeyword } = vi.hoisted(() => ({
   mockAddKeyword: vi.fn(),
 }))
 
-vi.mock('../../hooks/useAddKeyword', () => ({
+vi.mock('../keyword/useAddKeyword', () => ({
   useAddKeyword: () => ({ isPending: false, mutate: mockAddKeyword }),
 }))
 

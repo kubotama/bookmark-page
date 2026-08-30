@@ -1,9 +1,9 @@
 import { renderHook, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { TestKeywords } from '../../functions/test/fixtures'
-import { ERROR_MESSAGE } from '../../shared/constants/uiMessages'
-import { createTestQueryClient } from '../test/test-utils'
+import { TestKeywords } from '../../../functions/test/fixtures'
+import { ERROR_MESSAGE } from '../../../shared/constants/uiMessages'
+import { createTestQueryClient } from '../../test/test-utils'
 import { useKeywords } from './useKeywords'
 
 // ==========================================

@@ -3,7 +3,7 @@ import { createFileRoute } from '@tanstack/react-router'
 
 import { UI_LABELS } from '../../shared/constants/uiMessages'
 import { ListItem } from '../components/ListItem'
-import { useBookmarks } from '../hooks/useBookmarks'
+import { useBookmarks } from '../features/bookmark/useBookmarks'
 
 export const Route = createFileRoute('/')({
   component: IndexComponent,
