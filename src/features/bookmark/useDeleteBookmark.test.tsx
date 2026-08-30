@@ -2,13 +2,13 @@ import { renderHook, waitFor } from '@testing-library/react'
 import { uuidv7 } from 'uuidv7'
 import { beforeEach, describe, it, vi } from 'vitest'
 
-import { ERROR_MESSAGE } from '../../shared/constants/uiMessages'
-import { SCHEMA_MESSAGE } from '../../shared/constants/validation'
+import { ERROR_MESSAGE } from '../../../shared/constants/uiMessages'
+import { SCHEMA_MESSAGE } from '../../../shared/constants/validation'
 import {
   createTestQueryClient,
   expectMutationError,
   expectMutationSuccess,
-} from '../test/test-utils'
+} from '../../test/test-utils'
 import { useDeleteBookmark } from './useDeleteBookmark'
 
 // 💡 1. Hono RPC クライアントと共通のモック関数の準備
@@ -39,7 +39,7 @@ vi.mock('@tanstack/react-router', () => ({
 }))
 
 // notification モジュールのモック化を追加
-vi.mock('../lib/notification', () => ({
+vi.mock('../../lib/notification', () => ({
   showErrorMessage: mockShowErrorMessage,
 }))
 

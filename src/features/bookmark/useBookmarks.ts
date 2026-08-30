@@ -2,8 +2,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { hc } from 'hono/client'
 
-import { AppType } from '../../functions/api/[[route]]'
-import { ERROR_MESSAGE } from '../../shared/constants/uiMessages'
+import { AppType } from '../../../functions/api/[[route]]'
+import { ERROR_MESSAGE } from '../../../shared/constants/uiMessages'
 
 const client = hc<AppType>('/')
 

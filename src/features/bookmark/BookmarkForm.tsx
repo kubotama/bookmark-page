@@ -11,10 +11,10 @@ import { Button } from '../../../shared/components/Button'
 import { FormInput } from '../../../shared/components/FormInput'
 import { UI_LABELS, UI_MESSAGES } from '../../../shared/constants/uiMessages'
 import { ListItem } from '../../components/ListItem'
-import { useAddKeyword } from '../../hooks/useAddKeyword'
-import { useDeleteBookmark } from '../../hooks/useDeleteBookmark'
-import { useKeywords } from '../../hooks/useKeywords'
-import { useUpdateBookmark } from '../../hooks/useUpdateBookmark'
+import { useAddKeyword } from '../keyword/useAddKeyword'
+import { useKeywords } from '../keyword/useKeywords'
+import { useDeleteBookmark } from './useDeleteBookmark'
+import { useUpdateBookmark } from './useUpdateBookmark'
 
 interface BookmarkFormProps {
   bookmark: BookmarkWithKeywords

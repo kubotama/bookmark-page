@@ -5,9 +5,9 @@ import {
   INVALID_STRING,
   mockTestBookmarkWithKeywords,
   TestBookmarkWithKeywords,
-} from '../../functions/test/fixtures'
-import { ERROR_MESSAGE } from '../../shared/constants/uiMessages'
-import { createTestQueryClient } from '../test/test-utils'
+} from '../../../functions/test/fixtures'
+import { ERROR_MESSAGE } from '../../../shared/constants/uiMessages'
+import { createTestQueryClient } from '../../test/test-utils'
 import { useBookmarkById, useBookmarks } from './useBookmarks'
 
 // ==========================================

@@ -15,19 +15,19 @@ vi.mock('@tanstack/react-router', () => ({
   useRouter: () => ({ history: { back: vi.fn() }, navigate: vi.fn() }),
 }))
 
-vi.mock('../../hooks/useDeleteBookmark', () => ({
+vi.mock('./useDeleteBookmark', () => ({
   useDeleteBookmark: () => ({ isPending: false, mutate: vi.fn() }),
 }))
 
-vi.mock('../../hooks/useUpdateBookmark', () => ({
+vi.mock('./useUpdateBookmark', () => ({
   useUpdateBookmark: () => ({ isPending: false, mutate: vi.fn() }),
 }))
 
-vi.mock('../../hooks/useKeywords', () => ({
+vi.mock('../keyword/useKeywords', () => ({
   useKeywords: () => ({ data: { data: [] } }),
 }))
 
-vi.mock('../../hooks/useAddKeyword', () => ({
+vi.mock('../keyword/useAddKeyword', () => ({
   useAddKeyword: () => ({ isPending: false, mutate: vi.fn() }),
 }))
 
