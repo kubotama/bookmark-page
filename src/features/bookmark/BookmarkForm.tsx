@@ -129,9 +129,11 @@ export const BookmarkForm = ({ bookmark }: BookmarkFormProps) => {
         </div>
       </form>
 
-      <div className="mt-4 grid grid-cols-[max-content_1fr_max-content] items-center gap-3">
-        <FormInput
-          label={UI_LABELS.FIELDS.ADD_KEYWORD}
+      <div className="mt-4 text-sm">{UI_LABELS.FIELDS.ADD_KEYWORD}</div>
+      <div className="grid grid-cols-[1fr_max-content] items-center gap-3">
+        <input
+          aria-label={UI_LABELS.FIELDS.ADD_KEYWORD}
+          className={`border border-slate-300 text-slate-700 bg-slate-200 rounded px-2 py-1`}
           onChange={(e) => setKeywordName(e.target.value)}
           value={keywordName}
         />
