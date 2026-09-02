@@ -8,6 +8,7 @@ import { LOG_MESSAGE } from '../constants/logMessage'
 import {
   INVALID_STRING,
   REQUEST_API_PATH,
+  TEST_ERROR_MESSAGE,
   TestKeywords,
 } from '../test/fixtures'
 import { app } from './[[route]]'
@@ -227,6 +228,47 @@ describe('Hono API - POST /api/keywords/:id', () => {
         success: false,
       })
       expect(consoleSpy).toHaveBeenCalledWith(LOG_MESSAGE.DB_ERROR(dbError))
+    })
+  })
+
+  describe('異常系(409): ', () => {
+    it('登録済みのurlを指定した場合にステータス409を返すこと', async () => {
+      // 💡 D1 (SQLite) が UNIQUE 制約違反エラーを投げた状況をシミュレート
+      const firstSpy = vi
+        .fn()
+        .mockRejectedValue(
+          new Error(TEST_ERROR_MESSAGE.CONSTRAINT_KEYWORD_ERROR),
+        )
+      const bindSpy = vi.fn().mockReturnValue({ first: firstSpy })
+      const prepareSpy = vi.fn().mockReturnValue({ bind: bindSpy })
+
+      const mockD1Database: Partial<D1Database> = {
+        prepare: prepareSpy as D1Database['prepare'],
+      }
+
+      const res = await app.request(
+        REQUEST_API_PATH.UPDATE_KEYWORD(updateKeyword.id),
+        {
+          body: JSON.stringify(requestBody),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          method: 'PATCH',
+        },
+        {
+          BOOKMARK_PAGE_DB: mockD1Database as D1Database,
+        },
+      )
+
+      // 💡 409 Conflict の検証
+      expect(res.status).toBe(409)
+
+      const body = await res.json()
+      expect(body).toEqual({
+        error: UI_MESSAGES.API.DUPLICATE_KEYWORD,
+        success: false,
+      })
+      expect(consoleSpy).not.toHaveBeenCalled()
     })
   })
 })
