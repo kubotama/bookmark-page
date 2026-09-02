@@ -143,4 +143,28 @@ describe('useUpdateKeyword', () => {
       })
     },
   )
+
+  it(`APIが不明なエラーを返したときにエラー処理が行われること`, async () => {
+    mockPatch.mockResolvedValueOnce({
+      json: async () => ({
+        success: false,
+      }),
+      ok: false,
+      status: 500,
+    })
+
+    const { mockInvalidateQueries, result } = renderUpdateKeyword()
+
+    result.current.mutate(updatedPayload)
+
+    await waitFor(() => {
+      expectMutationError({
+        errorText: ERROR_MESSAGE.FAILED_UPDATE_KEYWORD,
+        expectedQuery: { queryKey: ['keywords'] },
+        mockInvalidateQueries,
+        mockShowErrorMessage,
+        result,
+      })
+    })
+  })
 })
