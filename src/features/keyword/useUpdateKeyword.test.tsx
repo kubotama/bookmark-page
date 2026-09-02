@@ -135,7 +135,6 @@ describe('useUpdateKeyword', () => {
       await waitFor(() => {
         expectMutationError({
           errorText: errorMessage,
-          expectedQuery: { queryKey: ['keywords'] },
           mockInvalidateQueries,
           mockShowErrorMessage,
           result,
@@ -160,7 +159,6 @@ describe('useUpdateKeyword', () => {
     await waitFor(() => {
       expectMutationError({
         errorText: ERROR_MESSAGE.FAILED_UPDATE_KEYWORD,
-        expectedQuery: { queryKey: ['keywords'] },
         mockInvalidateQueries,
         mockShowErrorMessage,
         result,
