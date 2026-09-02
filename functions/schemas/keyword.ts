@@ -4,7 +4,11 @@ import {
   LENGTH_LIMITATION,
   SCHEMA_MESSAGE,
 } from '../../shared/constants/validation'
-import { UuidSchema } from './common'
+import { Uuid, UuidSchema } from './common'
+
+export const KeywordIdParamSchema = z.object({
+  id: UuidSchema,
+})
 
 export const KeywordNameSchema = z
   .string({ message: SCHEMA_MESSAGE.KEYWORD_REQUIRED })
@@ -39,3 +43,11 @@ export const CreateKeywordSchema = z.object({
 })
 
 export type CreateKeywordInput = z.infer<typeof CreateKeywordSchema>
+
+export const UpdateKeywordSchema = z.object({
+  name: KeywordNameSchema,
+})
+
+export type UpdateKeywordPayload = z.infer<typeof UpdateKeywordSchema> & {
+  id: Uuid
+}

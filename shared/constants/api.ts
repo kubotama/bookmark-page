@@ -5,6 +5,7 @@ export const API_PATH = {
   UPDATE_BOOKMARK: `/bookmarks/:id`,
   GET_KEYWORDS: '/keywords',
   POST_KEYWORD: '/keywords',
+  UPDATE_KEYWORD: '/keywords/:id',
 } as const
 
 // フォールバック用のデフォルトURL（未設定時の挙動対策）

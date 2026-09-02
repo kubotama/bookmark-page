@@ -73,6 +73,7 @@ export const UI_MESSAGES = {
     DUPLICATE_KEYWORD: 'このキーワードは既に登録されています。',
     DUPLICATE_BKRELATION:
       'このブックマークとキーワードは既に関連付けられています。',
+    NOT_FOUND_KEYWORD: '指定されたキーワードが見つかりません。',
   },
   OTHER: {
     UNEXPECTED_ERROR: '予期せぬエラーが発生しました。',

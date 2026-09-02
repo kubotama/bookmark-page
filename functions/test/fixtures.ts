@@ -76,6 +76,7 @@ export const REQUEST_API_PATH = {
   GET_BOOKMARKS: '/api/bookmarks',
   GET_KEYWORDS: '/api/keywords',
   UPDATE_BOOKMARK: (id: string) => `/api/bookmarks/${id}`,
+  UPDATE_KEYWORD: (id: string) => `/api/keywords/${id}`,
 } as const
 
 export const TestKeywordsTableData = [
