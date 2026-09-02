@@ -25,8 +25,11 @@ import {
 } from '../schemas/bookmark'
 import {
   CreateKeywordSchema,
+  Keyword,
+  KeywordIdParamSchema,
   KeywordWithBookmarkIds,
   KeywordWithBookmarkIdsSchema,
+  UpdateKeywordSchema,
 } from '../schemas/keyword'
 import { BKRelation } from '../schemas/relations'
 
@@ -308,6 +311,50 @@ const routes = app
         }
         return c.json({
           data: updatedBookmark,
+          success: true,
+        } as const)
+      } catch (error) {
+        return handleDbError(error, c)
+      }
+    },
+  )
+  .patch(
+    API_PATH.UPDATE_KEYWORD,
+    zValidator('param', KeywordIdParamSchema, (result, c) => {
+      return !result.success
+        ? c.json({ error: result.error.issues[0].message, success: false }, 400)
+        : undefined
+    }),
+    zValidator('json', UpdateKeywordSchema, (result, c) => {
+      return !result.success
+        ? c.json({ error: result.error.issues[0].message, success: false }, 400)
+        : undefined
+    }),
+    async (c) => {
+      const { id } = c.req.valid('param')
+      const updates = c.req.valid('json')
+
+      try {
+        const db = c.env.BOOKMARK_PAGE_DB
+        if (!db) {
+          throw new Error(ERROR_MESSAGE.DB_BINDING_ERROR(DATABASE_NAME))
+        }
+
+        const updatedKeyword = await db
+          .prepare(KEYWORDS.UPDATE)
+          .bind(updates.name, id)
+          .first<Keyword>()
+        if (!updatedKeyword) {
+          return c.json(
+            {
+              error: UI_MESSAGES.API.NOT_FOUND_KEYWORD,
+              success: false,
+            } as const,
+            404,
+          )
+        }
+        return c.json({
+          data: updatedKeyword,
           success: true,
         } as const)
       } catch (error) {

@@ -36,6 +36,7 @@ export const KEYWORDS = {
     LEFT JOIN bookmarks_keywords bk ON k.id = bk.keyword_id
     GROUP BY k.id
     ORDER BY k.created_at DESC;`,
+  UPDATE: 'UPDATE keywords SET name = ? WHERE id = ? RETURNING id, name',
 } as const
 
 export const BOOKMARKS_KEYWORDS = {
