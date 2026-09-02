@@ -1,6 +1,7 @@
 import { D1Database } from '@cloudflare/workers-types'
 import { beforeEach, describe, expect, it, Mock, vi } from 'vitest'
 
+import { UI_MESSAGES } from '../../shared/constants/uiMessages'
 import { SCHEMA_MESSAGE } from '../../shared/constants/validation'
 import { KEYWORDS } from '../constants/db'
 import {
@@ -120,5 +121,52 @@ describe('Hono API - POST /api/keywords/:id', () => {
         expect(mockPrepare).not.toHaveBeenCalled()
       },
     )
+  })
+
+  describe('異常系(404): ', () => {
+    it('データベースの更新結果が0件の場合', async () => {
+      mockFirst.mockResolvedValueOnce(null)
+
+      const mockD1Database: Partial<D1Database> = {
+        prepare: mockPrepare as D1Database['prepare'],
+      }
+
+      const res = await app.request(
+        REQUEST_API_PATH.UPDATE_KEYWORD(updateKeyword.id),
+        {
+          body: JSON.stringify(requestBody),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          method: 'PATCH',
+        },
+        {
+          BOOKMARK_PAGE_DB: mockD1Database as D1Database,
+        },
+      )
+
+      expect(res.status).toBe(404)
+
+      const body = await res.json()
+      expect(body).toEqual({
+        error: UI_MESSAGES.API.NOT_FOUND_KEYWORD,
+        success: false,
+      })
+    })
+
+    it('IDを指定せずにUPDATEを呼び出した場合、Hono標準の404を返すこと', async () => {
+      const mockD1Database: Partial<D1Database> = {
+        prepare: mockPrepare as D1Database['prepare'],
+      }
+
+      const res = await app.request(
+        REQUEST_API_PATH.UPDATE_KEYWORD(''),
+        { method: 'PATCH' },
+        { BOOKMARK_PAGE_DB: mockD1Database as D1Database },
+      )
+
+      expect(res.status).toBe(404)
+      expect(res.statusText).toBe('')
+    })
   })
 })
