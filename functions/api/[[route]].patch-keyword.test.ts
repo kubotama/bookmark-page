@@ -1,9 +1,10 @@
 import { D1Database } from '@cloudflare/workers-types'
 import { beforeEach, describe, expect, it, Mock, vi } from 'vitest'
 
-import { UI_MESSAGES } from '../../shared/constants/uiMessages'
+import { ERROR_MESSAGE, UI_MESSAGES } from '../../shared/constants/uiMessages'
 import { SCHEMA_MESSAGE } from '../../shared/constants/validation'
-import { KEYWORDS } from '../constants/db'
+import { DATABASE_NAME, KEYWORDS } from '../constants/db'
+import { LOG_MESSAGE } from '../constants/logMessage'
 import {
   INVALID_STRING,
   REQUEST_API_PATH,
@@ -167,6 +168,65 @@ describe('Hono API - POST /api/keywords/:id', () => {
 
       expect(res.status).toBe(404)
       expect(res.statusText).toBe('')
+    })
+  })
+
+  describe('異常系(500): ', () => {
+    it('データベースのバインディング（BOOKMARK_PAGE_DB）が未設定の場合、500を返すこと', async () => {
+      const res = await app.request(
+        REQUEST_API_PATH.UPDATE_KEYWORD(updateKeyword.id),
+        {
+          body: JSON.stringify(requestBody),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          method: 'PATCH',
+        },
+        {},
+      )
+
+      expect(res.status).toBe(500)
+
+      const body = await res.json()
+      expect(body).toEqual({
+        error: UI_MESSAGES.API.DB_ERROR,
+        success: false,
+      })
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining(ERROR_MESSAGE.DB_BINDING_ERROR(DATABASE_NAME)),
+      )
+    })
+
+    it('データベースの更新エラーの場合', async () => {
+      const dbError = new Error(ERROR_MESSAGE.FAILED_UPDATE_BOOKMARK)
+      mockFirst.mockRejectedValueOnce(dbError)
+
+      const mockD1Database: Partial<D1Database> = {
+        prepare: mockPrepare as D1Database['prepare'],
+      }
+
+      const res = await app.request(
+        REQUEST_API_PATH.UPDATE_KEYWORD(updateKeyword.id),
+        {
+          body: JSON.stringify(requestBody),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          method: 'PATCH',
+        },
+        {
+          BOOKMARK_PAGE_DB: mockD1Database as D1Database,
+        },
+      )
+
+      expect(res.status).toBe(500)
+
+      const body = await res.json()
+      expect(body).toEqual({
+        error: UI_MESSAGES.API.DB_ERROR,
+        success: false,
+      })
+      expect(consoleSpy).toHaveBeenCalledWith(LOG_MESSAGE.DB_ERROR(dbError))
     })
   })
 })
