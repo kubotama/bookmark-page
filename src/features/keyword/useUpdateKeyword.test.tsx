@@ -4,7 +4,13 @@ import { beforeEach, describe, it, vi } from 'vitest'
 
 import { TestKeywords } from '../../../functions/test/fixtures'
 import {
+  ERROR_MESSAGE,
+  UI_MESSAGES,
+} from '../../../shared/constants/uiMessages'
+import { SCHEMA_MESSAGE } from '../../../shared/constants/validation'
+import {
   createTestQueryClient,
+  expectMutationError,
   expectMutationSuccess,
 } from '../../test/test-utils'
 import { useUpdateKeyword } from './useUpdateKeyword'
@@ -80,4 +86,61 @@ describe('useUpdateKeyword', () => {
       })
     })
   })
+
+  type TestCase = {
+    description: string
+    errorMessage: string
+    statusCode: number
+  }
+
+  const testCases: TestCase[] = [
+    {
+      description: 'バリデーション',
+      errorMessage: SCHEMA_MESSAGE.INVALID_ID_FORMAT,
+      statusCode: 400,
+    },
+    {
+      description: 'キーワードが存在しない',
+      errorMessage: UI_MESSAGES.API.NOT_FOUND_KEYWORD,
+      statusCode: 404,
+    },
+    {
+      description: '登録済みのキーワードを登録しようとした',
+      errorMessage: UI_MESSAGES.API.DUPLICATE_KEYWORD,
+      statusCode: 409,
+    },
+    {
+      description: '一般的な',
+      errorMessage: ERROR_MESSAGE.SERVER_ERROR,
+      statusCode: 500,
+    },
+  ]
+
+  it.each(testCases)(
+    `APIが$statusCodeで$errorMessageエラーを返したときにエラー処理が行われること`,
+    async ({ errorMessage, statusCode }) => {
+      mockPatch.mockResolvedValueOnce({
+        json: async () => ({
+          error: errorMessage,
+          success: false,
+        }),
+        ok: false,
+        status: statusCode,
+      })
+
+      const { mockInvalidateQueries, result } = renderUpdateKeyword()
+
+      result.current.mutate(updatedPayload)
+
+      await waitFor(() => {
+        expectMutationError({
+          errorText: errorMessage,
+          expectedQuery: { queryKey: ['keywords'] },
+          mockInvalidateQueries,
+          mockShowErrorMessage,
+          result,
+        })
+      })
+    },
+  )
 })
