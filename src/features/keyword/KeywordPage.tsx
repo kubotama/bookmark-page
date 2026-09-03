@@ -8,7 +8,7 @@ import {
 import { Button } from '../../../shared/components/Button'
 import { FormInput } from '../../../shared/components/FormInput'
 import { UI_LABELS } from '../../../shared/constants/uiMessages'
-import { isResigteredKeyword } from '../../lib/keywords'
+import { isRegisteredKeyword } from '../../lib/keywords'
 import { useKeywords } from './useKeywords'
 import { useUpdateKeyword } from './useUpdateKeyword'
 
@@ -34,10 +34,10 @@ export const KeywordPage = ({ keyword }: KeywordPageProps) => {
     updateKeyword({ id: keyword.id, name: keywordName })
   }
 
-  const isDuplicateKeyword = isResigteredKeyword(keywords, keywordName)
-  const isInvalidKeyord = !KeywordNameSchema.safeParse(keywordName).success
+  const isDuplicateKeyword = isRegisteredKeyword(keywords, keywordName)
+  const isInvalidKeyword = !KeywordNameSchema.safeParse(keywordName).success
   const isDisableUpdate =
-    isDuplicateKeyword || isUpdatePending || isInvalidKeyord
+    isDuplicateKeyword || isUpdatePending || isInvalidKeyword
 
   const labelUpdate = isDuplicateKeyword
     ? UI_LABELS.ACTIONS.KEYWORD_REGISTERED
