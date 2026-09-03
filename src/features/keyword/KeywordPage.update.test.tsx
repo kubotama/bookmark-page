@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import userEvent, { UserEvent } from '@testing-library/user-event'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { TestKeywords } from '../../../functions/test/fixtures'
+import { TEST_STRING, TestKeywords } from '../../../functions/test/fixtures'
 import { UI_LABELS } from '../../../shared/constants/uiMessages'
 import { inputText } from '../../test/test-utils'
 import { KeywordPage } from './KeywordPage'
@@ -25,8 +25,9 @@ vi.mock('@tanstack/react-router', () => ({
   }),
 }))
 
-vi.mock('./useKeywords', () => ({
-  useKeywords: () => ({ data: { data: [] } }),
+const mockUseKeywords = vi.fn()
+vi.mock('../keyword/useKeywords', () => ({
+  useKeywords: () => mockUseKeywords(),
 }))
 
 const mockUpdate = vi.fn()
@@ -41,13 +42,25 @@ vi.mock('./useUpdateKeyword', () => ({
 
 describe('キーワードの更新', () => {
   const testKeyword = TestKeywords[0]
+  let user: UserEvent
+
+  beforeEach(() => {
+    vi.resetAllMocks()
+    // 全キーワードとして TestKeywords を返すように設定
+    mockUseKeywords.mockReturnValue({
+      data: { data: TestKeywords, success: true },
+    })
+    user = userEvent.setup()
+  })
 
   it('更新ボタンをクリックしたらupdateKeyword()が呼び出されること', async () => {
-    const user = userEvent.setup()
-
     render(<KeywordPage keyword={testKeyword} />)
 
-    await inputText(user, UI_LABELS.FIELDS.KEYWORD_NAME, TestKeywords[1].name)
+    await inputText(
+      user,
+      UI_LABELS.FIELDS.KEYWORD_NAME,
+      TEST_STRING.NEW_KEYWORD,
+    )
 
     await user.click(
       await screen.findByRole('button', {
@@ -58,7 +71,19 @@ describe('キーワードの更新', () => {
     // 検証: フックの削除関数が、正しいIDを引数にして呼ばれたか
     expect(mockUpdate).toHaveBeenCalledWith({
       id: testKeyword.id,
-      name: TestKeywords[1].name,
+      name: TEST_STRING.NEW_KEYWORD,
     })
+  })
+
+  it('文字列が空の場合には無効になること', async () => {
+    render(<KeywordPage keyword={testKeyword} />)
+
+    await inputText(user, UI_LABELS.FIELDS.KEYWORD_NAME, '')
+
+    const updateButton = await screen.findByRole('button', {
+      name: UI_LABELS.ACTIONS.UPDATE,
+    })
+
+    expect(updateButton).toBeDisabled()
   })
 })

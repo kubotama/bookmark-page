@@ -1,7 +1,10 @@
 import { useRouter } from '@tanstack/react-router'
 import { useState } from 'react'
 
-import { KeywordWithBookmarkIds } from '../../../functions/schemas/keyword'
+import {
+  KeywordNameSchema,
+  KeywordWithBookmarkIds,
+} from '../../../functions/schemas/keyword'
 import { Button } from '../../../shared/components/Button'
 import { FormInput } from '../../../shared/components/FormInput'
 import { UI_LABELS } from '../../../shared/constants/uiMessages'
@@ -32,7 +35,9 @@ export const KeywordPage = ({ keyword }: KeywordPageProps) => {
   }
 
   const isDuplicateKeyword = isResigteredKeyword(keywords, keywordName)
-  const isDisableUpdate = isDuplicateKeyword || isUpdatePending
+  const isInvalidKeyord = !KeywordNameSchema.safeParse(keywordName).success
+  const isDisableUpdate =
+    isDuplicateKeyword || isUpdatePending || isInvalidKeyord
 
   return (
     <form>
