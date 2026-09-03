@@ -5,6 +5,9 @@ import { KeywordWithBookmarkIds } from '../../../functions/schemas/keyword'
 import { Button } from '../../../shared/components/Button'
 import { FormInput } from '../../../shared/components/FormInput'
 import { UI_LABELS } from '../../../shared/constants/uiMessages'
+import { isResigteredKeyword } from '../../lib/keywords'
+import { useKeywords } from './useKeywords'
+import { useUpdateKeyword } from './useUpdateKeyword'
 
 interface KeywordPageProps {
   keyword: KeywordWithBookmarkIds
@@ -13,12 +16,23 @@ interface KeywordPageProps {
 export const KeywordPage = ({ keyword }: KeywordPageProps) => {
   const [keywordName, setKeywordName] = useState<string>(keyword.name)
   const router = useRouter()
+  const { data } = useKeywords() // 💡 呼ぶだけ
+  const keywords = data?.data ?? []
+  const { isPending: isUpdatePending, mutate: updateKeyword } =
+    useUpdateKeyword()
 
   const isBackDisable = router.history.length < 2
 
   const handleBack = () => {
     router.history.back()
   }
+
+  const handleUpdate = () => {
+    updateKeyword({ id: keyword.id, name: keywordName })
+  }
+
+  const isDuplicateKeyword = isResigteredKeyword(keywords, keywordName)
+  const isDisableUpdate = isDuplicateKeyword || isUpdatePending
 
   return (
     <form>
@@ -33,7 +47,7 @@ export const KeywordPage = ({ keyword }: KeywordPageProps) => {
         <Button disabled type="submit">
           {UI_LABELS.ACTIONS.OPEN}
         </Button>
-        <Button disabled type="button">
+        <Button disabled={isDisableUpdate} onClick={handleUpdate} type="button">
           {UI_LABELS.ACTIONS.UPDATE}
         </Button>
         <Button disabled type="button">

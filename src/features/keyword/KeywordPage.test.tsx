@@ -25,6 +25,17 @@ vi.mock('@tanstack/react-router', () => ({
   }),
 }))
 
+vi.mock('./useKeywords', () => ({
+  useKeywords: () => ({ data: { data: [] } }),
+}))
+
+vi.mock('./useUpdateKeyword', () => ({
+  useUpdateKeyword: () => ({
+    isPending: false,
+    mutate: vi.fn(),
+  }),
+}))
+
 describe('KeywordPage', () => {
   it('キーワードの名前が正しく表示されていること', async () => {
     // arrange
