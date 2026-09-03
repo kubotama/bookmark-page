@@ -39,6 +39,10 @@ export const KeywordPage = ({ keyword }: KeywordPageProps) => {
   const isDisableUpdate =
     isDuplicateKeyword || isUpdatePending || isInvalidKeyord
 
+  const labelUpdate = isDuplicateKeyword
+    ? UI_LABELS.ACTIONS.KEYWORD_REGISTERED
+    : UI_LABELS.ACTIONS.UPDATE
+
   return (
     <form>
       <div className="grid grid-cols-[max-content_1fr] items-center gap-1">
@@ -53,7 +57,7 @@ export const KeywordPage = ({ keyword }: KeywordPageProps) => {
           {UI_LABELS.ACTIONS.OPEN}
         </Button>
         <Button disabled={isDisableUpdate} onClick={handleUpdate} type="button">
-          {UI_LABELS.ACTIONS.UPDATE}
+          {labelUpdate}
         </Button>
         <Button disabled type="button">
           {UI_LABELS.ACTIONS.DELETE}

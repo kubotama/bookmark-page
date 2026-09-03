@@ -86,4 +86,16 @@ describe('キーワードの更新', () => {
 
     expect(updateButton).toBeDisabled()
   })
+
+  it('既に登録済みの文字列の場合には登録済にラベルが変更されて無効になること', async () => {
+    render(<KeywordPage keyword={testKeyword} />)
+
+    await inputText(user, UI_LABELS.FIELDS.KEYWORD_NAME, TestKeywords[1].name)
+
+    const updateButton = await screen.findByRole('button', {
+      name: UI_LABELS.ACTIONS.KEYWORD_REGISTERED,
+    })
+
+    expect(updateButton).toBeDisabled()
+  })
 })
