@@ -85,12 +85,12 @@ describe('Index Page (Bookmark List)', () => {
     })
 
     await expectText({
-      link: `/bookmark/${TestBookmarkWithKeywords[0].id}`,
+      link: TestBookmarkWithKeywords[0].url,
       text: TestBookmarkWithKeywords[0].title,
     })
 
     await expectText({
-      link: `/bookmark/${TestBookmarkWithKeywords[1].id}`,
+      link: TestBookmarkWithKeywords[1].url,
       text: TestBookmarkWithKeywords[1].title,
     })
   })

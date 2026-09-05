@@ -4,7 +4,7 @@ import {
   createRouter,
   RouterProvider,
 } from '@tanstack/react-router'
-import { act, render, screen } from '@testing-library/react'
+import { act, render, screen, within } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { mockKeywordsData, TestKeywords } from '../../functions/test/fixtures'
@@ -94,12 +94,22 @@ describe('Keyword List Page', () => {
     })
 
     await expectText({
-      link: `/keyword/${TestKeywords[0].id}`,
       text: TestKeywords[0].name,
     })
     await expectText({
-      link: `/keyword/${TestKeywords[1].id}`,
       text: TestKeywords[1].name,
+    })
+
+    TestKeywords.forEach((keyword) => {
+      // キーワード名が表示されている要素の親要素（行）を取得
+      const row = screen.getByText(keyword.name).closest('div')!
+
+      // その行の中にある「詳細」リンクを取得して検証
+      const link = within(row).getByRole('link', {
+        name: UI_LABELS.ACTIONS.DETAIL,
+      })
+      expect(link).toHaveTextContent(UI_LABELS.ACTIONS.DETAIL)
+      expect(link).toHaveAttribute('href', `/keyword/${keyword.id}`)
     })
   })
 
