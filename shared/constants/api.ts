@@ -2,6 +2,7 @@ export const API_PATH = {
   ROOT: '/api',
   GET_BOOKMARKS: '/bookmarks',
   DELETE_BOOKMARK: `/bookmarks/:id`,
+  DELETE_KEYWORD: '/keywords/:id',
   UPDATE_BOOKMARK: `/bookmarks/:id`,
   GET_KEYWORDS: '/keywords',
   POST_KEYWORD: '/keywords',
