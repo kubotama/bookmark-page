@@ -2,9 +2,15 @@ import { D1Database } from '@cloudflare/workers-types'
 import { uuidv7 } from 'uuidv7'
 import { beforeEach, describe, expect, it, Mock, vi } from 'vitest'
 
+import { UI_MESSAGES } from '../../shared/constants/uiMessages'
 import { SCHEMA_MESSAGE } from '../../shared/constants/validation'
 import { KEYWORDS } from '../constants/db'
-import { INVALID_STRING, REQUEST_API_PATH } from '../test/fixtures'
+import { LOG_MESSAGE } from '../constants/logMessage'
+import {
+  INVALID_STRING,
+  REQUEST_API_PATH,
+  TEST_ERROR_MESSAGE,
+} from '../test/fixtures'
 import { app } from './[[route]]'
 
 const mockPrepare = vi.fn()
@@ -104,6 +110,30 @@ describe('DELETE /api/keywords', () => {
       )
 
       expect(res.status).toBe(404)
+    })
+
+    // -------------------------------------------------------------
+    // データベースの削除処理中に例外が発生した場合 (500)
+    // -------------------------------------------------------------
+    it('データベースの削除処理中に例外が発生した場合、500を返すこと', async () => {
+      // 削除処理の段階で例外エラーをスローさせる
+      const dbError = new Error(UI_MESSAGES.API.DB_ERROR)
+
+      mockRun.mockRejectedValueOnce(dbError)
+
+      const res = await app.request(
+        REQUEST_API_PATH.DELETE_KEYWORD(validId),
+        { method: 'DELETE' },
+        { BOOKMARK_PAGE_DB: mockDb as unknown as D1Database },
+      )
+
+      expect(res.status).toBe(500)
+      const body = await res.json()
+      expect(body).toEqual({
+        error: UI_MESSAGES.API.DB_ERROR,
+        success: false,
+      })
+      expect(consoleSpy).toHaveBeenCalledWith(LOG_MESSAGE.DB_ERROR(dbError))
     })
   })
 })
