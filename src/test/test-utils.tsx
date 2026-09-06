@@ -4,6 +4,7 @@ import { UserEvent } from '@testing-library/user-event'
 import { expect, Mock, vi } from 'vitest'
 
 interface ExpectMutationSuccessOptions {
+  back?: Mock
   mockInvalidateQueries?: Mock
   mockMutation: Mock
   mockShowErrorMessage?: Mock
@@ -24,6 +25,7 @@ type ResultType = {
 }
 
 export const expectMutationSuccess = ({
+  back,
   mockInvalidateQueries,
   mockMutation,
   mockShowErrorMessage,
@@ -44,6 +46,9 @@ export const expectMutationSuccess = ({
     )
   }
   // // 検証: 画面遷移したか
+  if (back) {
+    expect(back).toHaveBeenCalledWith()
+  }
   if (navigate) {
     expect(navigate.mockNavigate).toHaveBeenCalledWith({ to: navigate.path })
   }
