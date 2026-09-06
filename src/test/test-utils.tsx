@@ -4,6 +4,7 @@ import { UserEvent } from '@testing-library/user-event'
 import { expect, Mock, vi } from 'vitest'
 
 interface ExpectMutationSuccessOptions {
+  back?: Mock
   mockInvalidateQueries?: Mock
   mockMutation: Mock
   mockShowErrorMessage?: Mock
@@ -24,6 +25,7 @@ type ResultType = {
 }
 
 export const expectMutationSuccess = ({
+  back,
   mockInvalidateQueries,
   mockMutation,
   mockShowErrorMessage,
@@ -44,6 +46,9 @@ export const expectMutationSuccess = ({
     )
   }
   // // 検証: 画面遷移したか
+  if (back) {
+    expect(back).toHaveBeenCalledWith()
+  }
   if (navigate) {
     expect(navigate.mockNavigate).toHaveBeenCalledWith({ to: navigate.path })
   }
@@ -53,7 +58,8 @@ export const expectMutationSuccess = ({
 }
 
 interface ExpectMutationErrorOptions {
-  errorText: string
+  back?: Mock
+  errorText?: string
   expectedQuery?: { queryKey: string[] }
   mockInvalidateQueries?: Mock
   mockNavigate?: Mock
@@ -65,6 +71,7 @@ interface ExpectMutationErrorOptions {
  * Mutationフックでエラーが発生した際の共通アサーションヘルパー
  */
 export const expectMutationError = ({
+  back,
   errorText,
   expectedQuery,
   mockInvalidateQueries,
@@ -80,6 +87,9 @@ export const expectMutationError = ({
   // 2. サイドエフェクトの検証
   expect(mockShowErrorMessage).toHaveBeenCalledWith(errorText)
 
+  if (back) {
+    expect(back).not.toHaveBeenCalled()
+  }
   if (mockNavigate) {
     expect(mockNavigate).not.toHaveBeenCalled()
   }
