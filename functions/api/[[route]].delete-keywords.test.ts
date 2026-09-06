@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, Mock, vi } from 'vitest'
 
 import { ERROR_MESSAGE, UI_MESSAGES } from '../../shared/constants/uiMessages'
 import { SCHEMA_MESSAGE } from '../../shared/constants/validation'
-import { KEYWORDS } from '../constants/db'
+import { DATABASE_NAME, KEYWORDS } from '../constants/db'
 import { LOG_MESSAGE } from '../constants/logMessage'
 import { INVALID_STRING, REQUEST_API_PATH } from '../test/fixtures'
 import { app } from './[[route]]'
@@ -133,7 +133,7 @@ describe('DELETE /api/keywords', () => {
     })
 
     it('データベースの削除処理結果が失敗（success: false）を返した場合、500を返すこと', async () => {
-      // 削除処理の段階で例外エラーをスローさせる
+      // 削除処理の段階で success: false を返させる
       mockRun.mockResolvedValueOnce({ success: false })
 
       const res = await app.request(
@@ -150,6 +150,25 @@ describe('DELETE /api/keywords', () => {
       })
       expect(consoleSpy).toHaveBeenCalledWith(
         expect.stringContaining(ERROR_MESSAGE.FAILED_DELETE_KEYWORD),
+      )
+    })
+
+    it('データベースのバインディング（BOOKMARK_PAGE_DB）が未設定の場合、500を返すこと', async () => {
+      const res = await app.request(
+        REQUEST_API_PATH.DELETE_KEYWORD(validId),
+        { method: 'DELETE' },
+        {},
+      )
+
+      expect(res.status).toBe(500)
+
+      const body = await res.json()
+      expect(body).toEqual({
+        error: UI_MESSAGES.API.DB_ERROR,
+        success: false,
+      })
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining(ERROR_MESSAGE.DB_BINDING_ERROR(DATABASE_NAME)),
       )
     })
   })
