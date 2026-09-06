@@ -96,25 +96,27 @@ describe('useDeleteKeyword', () => {
 
   const testCases: TestCase[] = [
     {
-      errorMessage: SCHEMA_MESSAGE.INVALID_ID_FORMAT,
       errorName: 'バリデーション',
+      payload: { error: SCHEMA_MESSAGE.INVALID_ID_FORMAT, success: false },
       status: 400,
     },
     {
-      errorMessage: ERROR_MESSAGE.SERVER_ERROR,
       errorName: '一般的な',
+      payload: { error: ERROR_MESSAGE.SERVER_ERROR, success: false },
+      status: 500,
+    },
+    {
+      errorName: 'APIが不明な',
+      payload: { success: false },
       status: 500,
     },
   ]
 
   it.each(testCases)(
     `APIが$statusで$errorNameエラーを返したときにエラー処理が行われること`,
-    async ({ errorMessage, status }) => {
+    async ({ payload, status }) => {
       mockDelete.mockResolvedValueOnce({
-        json: async () => ({
-          error: errorMessage,
-          success: false,
-        }),
+        json: async () => payload,
         ok: false,
         status: status,
       })
@@ -126,7 +128,7 @@ describe('useDeleteKeyword', () => {
       await waitFor(() => {
         expectMutationError({
           back: mockBack,
-          errorText: errorMessage,
+          errorText: payload?.error ?? ERROR_MESSAGE.FAILED_DELETE_KEYWORD,
           mockInvalidateQueries,
           mockShowErrorMessage,
           result,

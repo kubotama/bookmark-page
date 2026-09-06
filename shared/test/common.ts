@@ -1,5 +1,5 @@
 export type TestCase = {
   errorName: string
   status?: number
-  errorMessage?: string
+  payload?: { error?: string; success: boolean }
 }
