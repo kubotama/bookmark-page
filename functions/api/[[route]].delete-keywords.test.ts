@@ -92,5 +92,18 @@ describe('DELETE /api/keywords', () => {
       })
       expect(consoleSpy).toHaveBeenCalledTimes(0)
     })
+
+    // -------------------------------------------------------------
+    // パスパラメータ（ID）が指定されていない場合 (404)
+    // -------------------------------------------------------------
+    it('IDを指定せずにDELETEを呼び出した場合、Hono標準の404を返すこと', async () => {
+      const res = await app.request(
+        REQUEST_API_PATH.DELETE_KEYWORD(''),
+        { method: 'DELETE' },
+        { BOOKMARK_PAGE_DB: mockDb as unknown as D1Database },
+      )
+
+      expect(res.status).toBe(404)
+    })
   })
 })
