@@ -61,7 +61,11 @@ export const UI_MESSAGES = {
     REGISTERED_BOOKMARKS: (count: number) =>
       `${count}件のブックマークが登録されています。`,
     CONFIRM_DELETE: (title: string) =>
-      `「${title}」を削除してもよろしいですか？`,
+      `ブックマーク「${title}」を削除してもよろしいですか？`,
+  },
+  KEYWORDS: {
+    CONFIRM_DELETE: (title: string) =>
+      `キーワード「${title}」を削除してもよろしいですか？`,
   },
   API: {
     DB_ERROR: 'データベースにエラーが発生しました',

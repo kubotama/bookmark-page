@@ -7,8 +7,9 @@ import {
 } from '../../../functions/schemas/keyword'
 import { Button } from '../../../shared/components/Button'
 import { FormInput } from '../../../shared/components/FormInput'
-import { UI_LABELS } from '../../../shared/constants/uiMessages'
+import { UI_LABELS, UI_MESSAGES } from '../../../shared/constants/uiMessages'
 import { isRegisteredKeyword } from '../../lib/keywords'
+import { useDeleteKeyword } from './useDeleteKeyword'
 import { useKeywords } from './useKeywords'
 import { useUpdateKeyword } from './useUpdateKeyword'
 
@@ -23,6 +24,8 @@ export const KeywordPage = ({ keyword }: KeywordPageProps) => {
   const keywords = data?.data ?? []
   const { isPending: isUpdatePending, mutate: updateKeyword } =
     useUpdateKeyword()
+  const { isPending: isDeletePending, mutate: deleteKeyword } =
+    useDeleteKeyword()
 
   const isBackDisable = router.history.length < 2
 
@@ -43,6 +46,18 @@ export const KeywordPage = ({ keyword }: KeywordPageProps) => {
     ? UI_LABELS.ACTIONS.KEYWORD_REGISTERED
     : UI_LABELS.ACTIONS.UPDATE
 
+  const handleDelete = () => {
+    // ユーザーへの最終確認（誤操作防止）
+    const isConfirmed = window.confirm(
+      UI_MESSAGES.KEYWORDS.CONFIRM_DELETE(keyword.name),
+    )
+
+    if (isConfirmed) {
+      // バリデーション済みのIDを渡してAPI実行をトリガー
+      deleteKeyword(keyword.id)
+    }
+  }
+
   return (
     <form>
       <div className="grid grid-cols-[max-content_1fr] items-center gap-1">
@@ -59,7 +74,7 @@ export const KeywordPage = ({ keyword }: KeywordPageProps) => {
         <Button disabled={isDisableUpdate} onClick={handleUpdate} type="button">
           {labelUpdate}
         </Button>
-        <Button disabled type="button">
+        <Button disabled={isDeletePending} onClick={handleDelete} type="button">
           {UI_LABELS.ACTIONS.DELETE}
         </Button>
         <Button disabled={isBackDisable} onClick={handleBack} type="button">

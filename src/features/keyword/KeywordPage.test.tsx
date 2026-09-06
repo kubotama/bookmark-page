@@ -36,6 +36,10 @@ vi.mock('./useUpdateKeyword', () => ({
   }),
 }))
 
+vi.mock('./useDeleteKeyword', () => ({
+  useDeleteKeyword: () => ({ isPending: false, mutate: vi.fn() }),
+}))
+
 describe('KeywordPage', () => {
   it('キーワードの名前が正しく表示されていること', async () => {
     // arrange
