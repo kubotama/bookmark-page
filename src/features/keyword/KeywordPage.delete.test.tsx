@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -74,5 +74,22 @@ describe('削除ボタンの動作', () => {
 
     // 検証: 削除関数が呼び出されていないこと
     expect(mockDelete).not.toHaveBeenCalled()
+  })
+
+  // -------------------------------------------------------------
+  // ケース3: 削除通信中（isPending = true）のとき
+  // -------------------------------------------------------------
+  it('削除処理中（isPendingがtrue）の場合、ボタンが非活性になること', () => {
+    // 💡 テストケース実行前にローディング状態を再現
+    mockIsPending = true
+
+    render(<KeywordPage keyword={testKeyword} />)
+
+    const deleteButton = screen.getByRole('button', {
+      name: UI_LABELS.ACTIONS.DELETE,
+    })
+
+    // 検証: ボタンが disabled（非活性）になっていること
+    expect(deleteButton).toBeDisabled()
   })
 })
