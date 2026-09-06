@@ -2,8 +2,12 @@ import { renderHook, waitFor } from '@testing-library/react'
 import { uuidv7 } from 'uuidv7'
 import { beforeEach, describe, it, vi } from 'vitest'
 
+import { ERROR_MESSAGE } from '../../../shared/constants/uiMessages'
+import { SCHEMA_MESSAGE } from '../../../shared/constants/validation'
+import { TestCase } from '../../../shared/test/common'
 import {
   createTestQueryClient,
+  expectMutationError,
   expectMutationSuccess,
 } from '../../test/test-utils'
 import { useDeleteKeyword } from './useDeleteKeyword'
@@ -85,4 +89,49 @@ describe('useDeleteKeyword', () => {
       })
     })
   })
+
+  // -------------------------------------------------------------
+  // 2. 異常系：その他の通信エラー（500など）の場合
+  // -------------------------------------------------------------
+
+  const testCases: TestCase[] = [
+    {
+      errorMessage: SCHEMA_MESSAGE.INVALID_ID_FORMAT,
+      errorName: 'バリデーション',
+      status: 400,
+    },
+    {
+      errorMessage: ERROR_MESSAGE.SERVER_ERROR,
+      errorName: '一般的な',
+      status: 500,
+    },
+  ]
+
+  it.each(testCases)(
+    `APIが$statusで$errorNameエラーを返したときにエラー処理が行われること`,
+    async ({ errorMessage, status }) => {
+      mockDelete.mockResolvedValueOnce({
+        json: async () => ({
+          error: errorMessage,
+          success: false,
+        }),
+        ok: false,
+        status: status,
+      })
+
+      const { mockInvalidateQueries, result } = renderDeleteKeyword()
+
+      result.current.mutate(validId)
+
+      await waitFor(() => {
+        expectMutationError({
+          back: mockBack,
+          errorText: errorMessage,
+          mockInvalidateQueries,
+          mockShowErrorMessage,
+          result,
+        })
+      })
+    },
+  )
 })
