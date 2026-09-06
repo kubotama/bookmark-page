@@ -24,6 +24,7 @@ export const BOOKMARKS = {
 } as const
 
 export const KEYWORDS = {
+  DELETE: 'DELETE FROM keywords WHERE id = ?',
   INSERT: 'INSERT INTO keywords (id, name) VALUES (?, ?) RETURNING id, name',
   SELECT_ALL_WITH_BOOKMARKS: `SELECT
       k.id,

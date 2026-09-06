@@ -12,6 +12,7 @@ export const ERROR_MESSAGE = {
   INSERT_BKRELATION_ERROR: 'ブックマークとキーワードの関連付けに失敗しました',
   FAILED_ADD_KEYWORD: 'キーワードの登録に失敗しました',
   FAILED_UPDATE_KEYWORD: 'キーワードの更新に失敗しました',
+  FAILED_DELETE_KEYWORD: 'キーワードの削除に失敗しました',
 } as const
 
 export const UI_LABELS = {
