@@ -58,4 +58,21 @@ describe('削除ボタンの動作', () => {
     // 検証: フックの削除関数が、正しいIDを引数にして呼ばれたか
     expect(mockDelete).toHaveBeenCalledWith(testKeyword.id)
   })
+
+  // -------------------------------------------------------------
+  // ケース2: 確認ダイアログで「キャンセル」を選んだとき
+  // -------------------------------------------------------------
+  it('削除ボタンを押し、ダイアログでキャンセルを押した場合、削除処理が中断されること', async () => {
+    const user = userEvent.setup()
+
+    // 💡 window.confirm が呼び出されたら「false（キャンセル）」を返すように偽装
+    vi.spyOn(window, 'confirm').mockReturnValue(false)
+
+    render(<KeywordPage keyword={testKeyword} />)
+
+    await clickButton(user, UI_LABELS.ACTIONS.DELETE)
+
+    // 検証: 削除関数が呼び出されていないこと
+    expect(mockDelete).not.toHaveBeenCalled()
+  })
 })
