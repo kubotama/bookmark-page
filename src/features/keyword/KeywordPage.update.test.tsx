@@ -40,6 +40,10 @@ vi.mock('./useUpdateKeyword', () => ({
   }),
 }))
 
+vi.mock('./useDeleteKeyword', () => ({
+  useDeleteKeyword: () => ({ isPending: false, mutate: vi.fn() }),
+}))
+
 describe('キーワードの更新', () => {
   const testKeyword = TestKeywords[0]
   let user: UserEvent
