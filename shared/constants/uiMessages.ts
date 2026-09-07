@@ -37,6 +37,8 @@ export const UI_LABELS = {
     LINK_TEXT: 'リンク',
     ASSIGNED_KEYWORD: '関連付けられているキーワード',
     UNASSIGNED_KEYWORD: '関連付けられていないキーワード',
+    ASSIGNED_BOOKMARK: '関連付けられているブックマーク',
+    UNASSIGNED_BOOKMARK: '関連付けられていないブックマーク',
     ADD_KEYWORD: '登録するキーワード',
     KEYWORD_NAME: 'キーワード名',
   },

@@ -2,7 +2,11 @@ import { render, screen } from '@testing-library/react'
 import userEvent, { UserEvent } from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { TEST_STRING, TestKeywords } from '../../../functions/test/fixtures'
+import {
+  TEST_STRING,
+  TestBookmarkWithKeywords,
+  TestKeywords,
+} from '../../../functions/test/fixtures'
 import { UI_LABELS } from '../../../shared/constants/uiMessages'
 import { inputText } from '../../test/test-utils'
 import { KeywordPage } from './KeywordPage'
@@ -42,6 +46,12 @@ vi.mock('./useUpdateKeyword', () => ({
 
 vi.mock('./useDeleteKeyword', () => ({
   useDeleteKeyword: () => ({ isPending: false, mutate: vi.fn() }),
+}))
+
+vi.mock('../bookmark/useBookmarks', () => ({
+  useBookmarks: () => {
+    return { data: { data: TestBookmarkWithKeywords, success: true } }
+  },
 }))
 
 describe('キーワードの更新', () => {
