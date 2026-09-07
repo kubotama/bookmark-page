@@ -136,9 +136,7 @@ export const TestBookmarkWKWTableData = [
 export const TestBookmarkWithKeywords: BookmarkWithKeywords[] = [
   {
     id: '018ed000-0001-7000-8000-000000000001',
-    keywords: [
-      { id: '018ed000-0001-7000-8000-000000000001', name: 'キーワード1' },
-    ],
+    keywords: [{ id: TestKeywords[0].id, name: TestKeywords[0].name }],
     title: 'Hono',
     url: 'https://hono.dev/',
   },
