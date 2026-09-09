@@ -169,4 +169,28 @@ describe('Hono API - POST /api/bookmarks/:bookmark_id/keywords', () => {
 
     expect(consoleSpy).toHaveBeenCalledTimes(0)
   })
+
+  it('IDを指定せずにキーワードの関連付けを呼び出した場合、Hono標準の404を返すこと', async () => {
+    const mockD1Database: Partial<D1Database> = {
+      prepare: prepareSpy as D1Database['prepare'],
+    }
+
+    const res = await app.request(
+      REQUEST_API_PATH.ASSIGN_KEYWORD(''),
+      {
+        body: JSON.stringify({ keyword_id: k1.id }),
+        headers: { 'Content-Type': 'application/json' },
+        method: 'POST',
+      },
+      { BOOKMARK_PAGE_DB: mockD1Database as D1Database },
+    )
+
+    expect(res.status).toBe(404)
+    const text = await res.text()
+    expect(text).toBe('404 Not Found')
+
+    expect(prepareSpy).toHaveBeenCalledTimes(0)
+
+    expect(consoleSpy).toHaveBeenCalledTimes(0)
+  })
 })
