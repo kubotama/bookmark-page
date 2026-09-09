@@ -2,10 +2,13 @@ import { D1Database } from '@cloudflare/workers-types'
 import { uuidv7 } from 'uuidv7'
 import { beforeEach, describe, expect, it, Mock, vi } from 'vitest'
 
+import { SCHEMA_MESSAGE } from '../../shared/constants/validation'
 import { BOOKMARKS, BOOKMARKS_KEYWORDS, KEYWORDS } from '../constants/db'
 import { Uuid } from '../schemas/common'
 import {
+  INVALID_STRING,
   REQUEST_API_PATH,
+  TEST_STRING,
   TestBookmarkWithKeywords,
   TestKeywords,
 } from '../test/fixtures'
@@ -62,6 +65,32 @@ describe('Hono API - POST /api/bookmarks/:bookmark_id/keywords', () => {
     expect(prepareSpy).toHaveBeenNthCalledWith(1, BOOKMARKS.SELECT_ID)
     expect(prepareSpy).toHaveBeenNthCalledWith(2, KEYWORDS.SELECT_ID)
     expect(prepareSpy).toHaveBeenNthCalledWith(3, BOOKMARKS_KEYWORDS.INSERT)
+
+    expect(consoleSpy).toHaveBeenCalledTimes(0)
+  })
+
+  it('ブックマークidが不正な場合', async () => {
+    const mockD1Database: Partial<D1Database> = {
+      prepare: prepareSpy as D1Database['prepare'],
+    }
+
+    const res = await app.request(
+      REQUEST_API_PATH.ASSIGN_KEYWORD(INVALID_STRING.ID),
+      {
+        body: JSON.stringify({ keyword_id: k1.id }),
+        headers: { 'Content-Type': 'application/json' },
+        method: 'POST',
+      },
+      { BOOKMARK_PAGE_DB: mockD1Database as D1Database },
+    )
+
+    expect(res.status).toBe(400)
+
+    const json = await res.json()
+    expect(json.success).toBe(false)
+    expect(json.error).toBe(SCHEMA_MESSAGE.INVALID_ID_FORMAT)
+
+    expect(prepareSpy).toHaveBeenCalledTimes(0)
 
     expect(consoleSpy).toHaveBeenCalledTimes(0)
   })
