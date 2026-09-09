@@ -1,6 +1,6 @@
 import { D1Database } from '@cloudflare/workers-types'
 import { uuidv7 } from 'uuidv7'
-import { beforeEach, describe, expect, it, Mock, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { UI_MESSAGES } from '../../shared/constants/uiMessages'
 import { SCHEMA_MESSAGE } from '../../shared/constants/validation'
@@ -19,6 +19,8 @@ const bindSpy = vi.fn()
 const prepareSpy = vi.fn()
 const b1 = TestBookmarkWithKeywords[0]
 const k1 = TestKeywords[0]
+
+const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
 type ApiAssignParam = {
   bookmark_id?: string
@@ -50,17 +52,39 @@ const helperApiAssign = async (param?: ApiAssignParam) => {
   return { expectedData: { bookmark_id, id, keyword_id: body.keyword_id }, res }
 }
 
+type ApiAssignErrorParam = {
+  consoleCalled?: number
+  message: string
+  prepareCalled?: number
+  status: number
+}
+
+const expectApiAssignError = async (
+  res: Response,
+  param: ApiAssignErrorParam,
+) => {
+  expect(res.status).toBe(param.status)
+
+  const json = await res.json()
+  expect(json.success).toBe(false)
+  expect(json.error).toBe(param.message)
+
+  const prepareCalled = param.prepareCalled ?? 0
+  const consoleCalled = param.consoleCalled ?? 0
+
+  expect(prepareSpy).toHaveBeenCalledTimes(prepareCalled)
+  expect(consoleSpy).toHaveBeenCalledTimes(consoleCalled)
+}
+
 describe('Hono API - POST /api/bookmarks/:bookmark_id/keywords', () => {
-  let consoleSpy: Mock
   let validId: Uuid
 
   beforeEach(() => {
-    vi.resetAllMocks()
+    vi.clearAllMocks()
     prepareSpy.mockReturnValue({ bind: bindSpy })
     bindSpy.mockReturnValue({
       first: firstSpy,
     })
-    consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     validId = uuidv7()
   })
 
@@ -89,6 +113,17 @@ describe('Hono API - POST /api/bookmarks/:bookmark_id/keywords', () => {
     expect(consoleSpy).toHaveBeenCalledTimes(0)
   })
 
+  it('IDを指定せずにキーワードの関連付けを呼び出した場合、Hono標準の404を返すこと', async () => {
+    const { res } = await helperApiAssign({ bookmark_id: '' })
+
+    expect(res.status).toBe(404)
+
+    const text = await res.text()
+    expect(text).toBe('404 Not Found')
+    expect(prepareSpy).toHaveBeenCalledTimes(0)
+    expect(consoleSpy).toHaveBeenCalledTimes(0)
+  })
+
   type TestCase = {
     bookmark_id?: string
     errorName: string
@@ -109,14 +144,10 @@ describe('Hono API - POST /api/bookmarks/:bookmark_id/keywords', () => {
   it.each(testCases)(`$errorName`, async ({ bookmark_id, keyword_id }) => {
     const { res } = await helperApiAssign({ bookmark_id, keyword_id })
 
-    expect(res.status).toBe(400)
-
-    const json = await res.json()
-    expect(json.success).toBe(false)
-    expect(json.error).toBe(SCHEMA_MESSAGE.INVALID_ID_FORMAT)
-
-    expect(prepareSpy).toHaveBeenCalledTimes(0)
-    expect(consoleSpy).toHaveBeenCalledTimes(0)
+    await expectApiAssignError(res, {
+      message: SCHEMA_MESSAGE.INVALID_ID_FORMAT,
+      status: 400,
+    })
   })
 
   it('指定されたidのブックマークが存在しない場合', async () => {
@@ -124,14 +155,11 @@ describe('Hono API - POST /api/bookmarks/:bookmark_id/keywords', () => {
 
     const { res } = await helperApiAssign()
 
-    expect(res.status).toBe(404)
-
-    const json = await res.json()
-    expect(json.success).toBe(false)
-    expect(json.error).toBe(UI_MESSAGES.API.NOT_FOUND_BOOKMARK)
-
-    expect(prepareSpy).toHaveBeenCalledTimes(1)
-    expect(consoleSpy).toHaveBeenCalledTimes(0)
+    await expectApiAssignError(res, {
+      message: UI_MESSAGES.API.NOT_FOUND_BOOKMARK,
+      prepareCalled: 1,
+      status: 404,
+    })
   })
 
   it('指定されたidのキーワードが存在しない場合', async () => {
@@ -139,36 +167,19 @@ describe('Hono API - POST /api/bookmarks/:bookmark_id/keywords', () => {
 
     const { res } = await helperApiAssign()
 
-    expect(res.status).toBe(404)
-
-    const json = await res.json()
-    expect(json.success).toBe(false)
-    expect(json.error).toBe(UI_MESSAGES.API.NOT_FOUND_KEYWORD)
-
-    expect(prepareSpy).toHaveBeenCalledTimes(2)
-    expect(consoleSpy).toHaveBeenCalledTimes(0)
-  })
-
-  it('IDを指定せずにキーワードの関連付けを呼び出した場合、Hono標準の404を返すこと', async () => {
-    const { res } = await helperApiAssign({ bookmark_id: '' })
-
-    expect(res.status).toBe(404)
-    const text = await res.text()
-    expect(text).toBe('404 Not Found')
-
-    expect(prepareSpy).toHaveBeenCalledTimes(0)
-    expect(consoleSpy).toHaveBeenCalledTimes(0)
+    await expectApiAssignError(res, {
+      message: UI_MESSAGES.API.NOT_FOUND_KEYWORD,
+      prepareCalled: 2,
+      status: 404,
+    })
   })
 
   it('リクエストボディに keyword_id が含まれていない場合、400エラーを返すこと', async () => {
     const { res } = await helperApiAssign({ omitKeywordId: true })
 
-    expect(res.status).toBe(400)
-
-    const json = await res.json()
-    expect(json.success).toBe(false)
-
-    expect(prepareSpy).toHaveBeenCalledTimes(0)
-    expect(consoleSpy).toHaveBeenCalledTimes(0)
+    await expectApiAssignError(res, {
+      message: SCHEMA_MESSAGE.INVALID_ID_FORMAT,
+      status: 400,
+    })
   })
 })
