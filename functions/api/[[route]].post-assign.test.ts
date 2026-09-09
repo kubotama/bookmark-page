@@ -24,12 +24,15 @@ type ApiAssignParam = {
   bookmark_id?: string
   id?: string
   keyword_id?: string
+  omitKeywordId?: boolean
 }
 
 const helperApiAssign = async (param?: ApiAssignParam) => {
   const id = param?.id ?? uuidv7()
   const bookmark_id = param?.bookmark_id ?? TestBookmarkWithKeywords[0].id
-  const keyword_id = param?.keyword_id ?? TestKeywords[0].id
+  const body = param?.omitKeywordId
+    ? {}
+    : { keyword_id: param?.keyword_id ?? TestKeywords[0].id }
 
   const mockD1Database: Partial<D1Database> = {
     prepare: prepareSpy as D1Database['prepare'],
@@ -38,13 +41,13 @@ const helperApiAssign = async (param?: ApiAssignParam) => {
   const res = await app.request(
     REQUEST_API_PATH.ASSIGN_KEYWORD(bookmark_id),
     {
-      body: JSON.stringify({ keyword_id }),
+      body: JSON.stringify(body),
       headers: { 'Content-Type': 'application/json' },
       method: 'POST',
     },
     { BOOKMARK_PAGE_DB: mockD1Database as D1Database },
   )
-  return { expectedData: { bookmark_id, id, keyword_id }, res }
+  return { expectedData: { bookmark_id, id, keyword_id: body.keyword_id }, res }
 }
 
 describe('Hono API - POST /api/bookmarks/:bookmark_id/keywords', () => {
@@ -152,6 +155,18 @@ describe('Hono API - POST /api/bookmarks/:bookmark_id/keywords', () => {
     expect(res.status).toBe(404)
     const text = await res.text()
     expect(text).toBe('404 Not Found')
+
+    expect(prepareSpy).toHaveBeenCalledTimes(0)
+    expect(consoleSpy).toHaveBeenCalledTimes(0)
+  })
+
+  it('リクエストボディに keyword_id が含まれていない場合、400エラーを返すこと', async () => {
+    const { res } = await helperApiAssign({ omitKeywordId: true })
+
+    expect(res.status).toBe(400)
+
+    const json = await res.json()
+    expect(json.success).toBe(false)
 
     expect(prepareSpy).toHaveBeenCalledTimes(0)
     expect(consoleSpy).toHaveBeenCalledTimes(0)
