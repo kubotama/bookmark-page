@@ -141,4 +141,32 @@ describe('Hono API - POST /api/bookmarks/:bookmark_id/keywords', () => {
 
     expect(consoleSpy).toHaveBeenCalledTimes(0)
   })
+
+  it('指定されたidのキーワードが存在しない場合', async () => {
+    firstSpy.mockResolvedValueOnce({ id: b1.id }).mockResolvedValueOnce(null)
+
+    const mockD1Database: Partial<D1Database> = {
+      prepare: prepareSpy as D1Database['prepare'],
+    }
+
+    const res = await app.request(
+      REQUEST_API_PATH.ASSIGN_KEYWORD(b1.id),
+      {
+        body: JSON.stringify({ keyword_id: k1.id }),
+        headers: { 'Content-Type': 'application/json' },
+        method: 'POST',
+      },
+      { BOOKMARK_PAGE_DB: mockD1Database as D1Database },
+    )
+
+    expect(res.status).toBe(404)
+
+    const json = await res.json()
+    expect(json.success).toBe(false)
+    expect(json.error).toBe(UI_MESSAGES.API.NOT_FOUND_KEYWORD)
+
+    expect(prepareSpy).toHaveBeenCalledTimes(2)
+
+    expect(consoleSpy).toHaveBeenCalledTimes(0)
+  })
 })
