@@ -2,6 +2,7 @@ import { D1Database } from '@cloudflare/workers-types'
 import { uuidv7 } from 'uuidv7'
 import { beforeEach, describe, expect, it, Mock, vi } from 'vitest'
 
+import { UI_MESSAGES } from '../../shared/constants/uiMessages'
 import { SCHEMA_MESSAGE } from '../../shared/constants/validation'
 import { BOOKMARKS, BOOKMARKS_KEYWORDS, KEYWORDS } from '../constants/db'
 import { Uuid } from '../schemas/common'
@@ -109,6 +110,34 @@ describe('Hono API - POST /api/bookmarks/:bookmark_id/keywords', () => {
     expect(json.error).toBe(SCHEMA_MESSAGE.INVALID_ID_FORMAT)
 
     expect(prepareSpy).toHaveBeenCalledTimes(0)
+
+    expect(consoleSpy).toHaveBeenCalledTimes(0)
+  })
+
+  it('指定されたidのブックマークが存在しない場合', async () => {
+    firstSpy.mockResolvedValueOnce(null)
+
+    const mockD1Database: Partial<D1Database> = {
+      prepare: prepareSpy as D1Database['prepare'],
+    }
+
+    const res = await app.request(
+      REQUEST_API_PATH.ASSIGN_KEYWORD(b1.id),
+      {
+        body: JSON.stringify({ keyword_id: k1.id }),
+        headers: { 'Content-Type': 'application/json' },
+        method: 'POST',
+      },
+      { BOOKMARK_PAGE_DB: mockD1Database as D1Database },
+    )
+
+    expect(res.status).toBe(404)
+
+    const json = await res.json()
+    expect(json.success).toBe(false)
+    expect(json.error).toBe(UI_MESSAGES.API.NOT_FOUND_BOOKMARK)
+
+    expect(prepareSpy).toHaveBeenCalledTimes(1)
 
     expect(consoleSpy).toHaveBeenCalledTimes(0)
   })
