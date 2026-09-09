@@ -8,7 +8,6 @@ import { Uuid } from '../schemas/common'
 import {
   INVALID_STRING,
   REQUEST_API_PATH,
-  TEST_STRING,
   TestBookmarkWithKeywords,
   TestKeywords,
 } from '../test/fixtures'
@@ -69,15 +68,34 @@ describe('Hono API - POST /api/bookmarks/:bookmark_id/keywords', () => {
     expect(consoleSpy).toHaveBeenCalledTimes(0)
   })
 
-  it('ブックマークidが不正な場合', async () => {
+  type TestCase = {
+    bookmark_id: string
+    errorName: string
+    keyword_id: string
+  }
+
+  const testCases: TestCase[] = [
+    {
+      bookmark_id: INVALID_STRING.ID,
+      errorName: 'ブックマークidが不正な場合',
+      keyword_id: k1.id,
+    },
+    {
+      bookmark_id: b1.id,
+      errorName: 'キーワードidが不正な場合',
+      keyword_id: INVALID_STRING.ID,
+    },
+  ]
+
+  it.each(testCases)(`$errorName`, async ({ bookmark_id, keyword_id }) => {
     const mockD1Database: Partial<D1Database> = {
       prepare: prepareSpy as D1Database['prepare'],
     }
 
     const res = await app.request(
-      REQUEST_API_PATH.ASSIGN_KEYWORD(INVALID_STRING.ID),
+      REQUEST_API_PATH.ASSIGN_KEYWORD(bookmark_id),
       {
-        body: JSON.stringify({ keyword_id: k1.id }),
+        body: JSON.stringify({ keyword_id }),
         headers: { 'Content-Type': 'application/json' },
         method: 'POST',
       },
