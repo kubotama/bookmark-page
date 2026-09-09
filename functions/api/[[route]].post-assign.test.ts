@@ -5,10 +5,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { UI_MESSAGES } from '../../shared/constants/uiMessages'
 import { SCHEMA_MESSAGE } from '../../shared/constants/validation'
 import { BOOKMARKS, BOOKMARKS_KEYWORDS, KEYWORDS } from '../constants/db'
+import { LOG_MESSAGE } from '../constants/logMessage'
 import { Uuid } from '../schemas/common'
 import {
   INVALID_STRING,
   REQUEST_API_PATH,
+  TEST_ERROR_MESSAGE,
   TestBookmarkWithKeywords,
   TestKeywords,
 } from '../test/fixtures'
@@ -53,9 +55,9 @@ const helperApiAssign = async (param?: ApiAssignParam) => {
 }
 
 type ApiAssignErrorParam = {
-  consoleCalled?: number
+  consoleCalledWith?: string[]
   message: string
-  prepareCalled?: number
+  prepareCalledCount?: number
   status: number
 }
 
@@ -69,11 +71,16 @@ const expectApiAssignError = async (
   expect(json.success).toBe(false)
   expect(json.error).toBe(param.message)
 
-  const prepareCalled = param.prepareCalled ?? 0
-  const consoleCalled = param.consoleCalled ?? 0
+  const prepareCalled = param.prepareCalledCount ?? 0
 
   expect(prepareSpy).toHaveBeenCalledTimes(prepareCalled)
-  expect(consoleSpy).toHaveBeenCalledTimes(consoleCalled)
+
+  const expectedConsoleCount = param.consoleCalledWith?.length ?? 0
+  expect(consoleSpy).toHaveBeenCalledTimes(expectedConsoleCount)
+
+  param.consoleCalledWith?.forEach((text, index) =>
+    expect(consoleSpy).toHaveBeenNthCalledWith(index + 1, text),
+  )
 }
 
 describe('Hono API - POST /api/bookmarks/:bookmark_id/keywords', () => {
@@ -157,7 +164,7 @@ describe('Hono API - POST /api/bookmarks/:bookmark_id/keywords', () => {
 
     await expectApiAssignError(res, {
       message: UI_MESSAGES.API.NOT_FOUND_BOOKMARK,
-      prepareCalled: 1,
+      prepareCalledCount: 1,
       status: 404,
     })
   })
@@ -169,7 +176,7 @@ describe('Hono API - POST /api/bookmarks/:bookmark_id/keywords', () => {
 
     await expectApiAssignError(res, {
       message: UI_MESSAGES.API.NOT_FOUND_KEYWORD,
-      prepareCalled: 2,
+      prepareCalledCount: 2,
       status: 404,
     })
   })
@@ -180,6 +187,24 @@ describe('Hono API - POST /api/bookmarks/:bookmark_id/keywords', () => {
     await expectApiAssignError(res, {
       message: SCHEMA_MESSAGE.INVALID_ID_FORMAT,
       status: 400,
+    })
+  })
+
+  it('異常系: データベースへのインサート（または再取得）で例外が発生したとき、ステータス500を返すこと', async () => {
+    const dbError = new Error(TEST_ERROR_MESSAGE.DB_ERROR)
+
+    firstSpy
+      .mockResolvedValueOnce({ id: b1.id })
+      .mockResolvedValueOnce({ id: k1.id })
+      .mockRejectedValue(dbError)
+
+    const { res } = await helperApiAssign()
+
+    await expectApiAssignError(res, {
+      consoleCalledWith: [LOG_MESSAGE.DB_ERROR(dbError)],
+      message: TEST_ERROR_MESSAGE.DB_ERROR,
+      prepareCalledCount: 3,
+      status: 500,
     })
   })
 })
