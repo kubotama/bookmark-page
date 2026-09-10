@@ -211,6 +211,23 @@ describe('Hono API - POST /api/bookmarks/:bookmark_id/keywords', () => {
     })
   })
 
+  it('異常系: 既に割り当て済みのキーワードを登録しようとしたとき、ステータス409を返すこと', async () => {
+    const dbError = new Error(TEST_ERROR_MESSAGE.CONSTRAINT_BKRELATION_ERROR)
+
+    firstSpy
+      .mockResolvedValueOnce({ id: b1.id })
+      .mockResolvedValueOnce({ id: k1.id })
+      .mockRejectedValue(dbError)
+
+    const { res } = await helperApiAssign()
+
+    await expectApiAssignError(res, {
+      message: UI_MESSAGES.API.DUPLICATE_BKRELATION,
+      prepareCalledCount: 3,
+      status: 409,
+    })
+  })
+
   it('異常系: データベースへのインサート（または再取得）に失敗したとき、ステータス500を返すこと', async () => {
     firstSpy
       .mockResolvedValueOnce({ id: b1.id })
