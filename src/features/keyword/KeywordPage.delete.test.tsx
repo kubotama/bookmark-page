@@ -2,31 +2,45 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { TestBookmarks } from '../../functions/test/fixtures'
-import { UI_LABELS, UI_MESSAGES } from '../../shared/constants/uiMessages'
-import { clickButton } from '../test/test-utils'
-import { BookmarkForm } from './BookmarkForm'
+import {
+  TestBookmarkWithKeywords,
+  TestKeywords,
+} from '../../../functions/test/fixtures'
+import { UI_LABELS, UI_MESSAGES } from '../../../shared/constants/uiMessages'
+import { clickButton } from '../../test/test-utils'
+import { KeywordPage } from './KeywordPage'
 
 vi.mock('@tanstack/react-router', () => ({
+  Link: vi.fn(),
   useRouter: () => ({ history: { back: vi.fn() }, navigate: vi.fn() }),
 }))
 
 const mockDelete = vi.fn()
 let mockIsPending = false
 
-vi.mock('../hooks/useDeleteBookmark', () => ({
-  useDeleteBookmark: () => ({
+vi.mock('./useDeleteKeyword', () => ({
+  useDeleteKeyword: () => ({
     isPending: mockIsPending,
     mutate: mockDelete,
   }),
 }))
 
-vi.mock('../hooks/useUpdateBookmark', () => ({
-  useUpdateBookmark: () => ({ isPending: false, mutate: vi.fn() }),
+vi.mock('./useUpdateKeyword', () => ({
+  useUpdateKeyword: () => ({ isPending: false, mutate: vi.fn() }),
+}))
+
+vi.mock('./useKeywords', () => ({
+  useKeywords: () => ({ data: { data: [] } }),
+}))
+
+vi.mock('../bookmark/useBookmarks', () => ({
+  useBookmarks: () => {
+    return { data: { data: TestBookmarkWithKeywords, success: true } }
+  },
 }))
 
 describe('削除ボタンの動作', () => {
-  const testBookmark = TestBookmarks[0]
+  const testKeyword = TestKeywords[0]
 
   beforeEach(() => {
     vi.resetAllMocks()
@@ -36,22 +50,22 @@ describe('削除ボタンの動作', () => {
   // -------------------------------------------------------------
   // ケース1: 確認ダイアログで「OK」を選んだとき
   // -------------------------------------------------------------
-  it('削除ボタンを押し、ダイアログでOKを押した場合、deleteBookmarkが実行されること', async () => {
+  it('削除ボタンを押し、ダイアログでOKを押した場合、deleteKeywordが実行されること', async () => {
     const user = userEvent.setup()
 
     // 💡 window.confirm が呼び出されたら「true（OK）」を返すように偽装
     const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
 
-    render(<BookmarkForm bookmark={testBookmark} />)
+    render(<KeywordPage keyword={testKeyword} />)
 
     await clickButton(user, UI_LABELS.ACTIONS.DELETE)
 
     // 検証: 確認ダイアログが正しい文言で開かれたか
     expect(confirmSpy).toHaveBeenCalledWith(
-      UI_MESSAGES.BOOKMARKS.CONFIRM_DELETE(testBookmark.title),
+      UI_MESSAGES.KEYWORDS.CONFIRM_DELETE(testKeyword.name),
     )
     // 検証: フックの削除関数が、正しいIDを引数にして呼ばれたか
-    expect(mockDelete).toHaveBeenCalledWith(testBookmark.id)
+    expect(mockDelete).toHaveBeenCalledWith(testKeyword.id)
   })
 
   // -------------------------------------------------------------
@@ -63,7 +77,7 @@ describe('削除ボタンの動作', () => {
     // 💡 window.confirm が呼び出されたら「false（キャンセル）」を返すように偽装
     vi.spyOn(window, 'confirm').mockReturnValue(false)
 
-    render(<BookmarkForm bookmark={testBookmark} />)
+    render(<KeywordPage keyword={testKeyword} />)
 
     await clickButton(user, UI_LABELS.ACTIONS.DELETE)
 
@@ -78,7 +92,7 @@ describe('削除ボタンの動作', () => {
     // 💡 テストケース実行前にローディング状態を再現
     mockIsPending = true
 
-    render(<BookmarkForm bookmark={testBookmark} />)
+    render(<KeywordPage keyword={testKeyword} />)
 
     const deleteButton = screen.getByRole('button', {
       name: UI_LABELS.ACTIONS.DELETE,

@@ -7,7 +7,8 @@ import { LOG_MESSAGE } from '../constants/logMessage'
 import {
   REQUEST_API_PATH,
   TEST_ERROR_MESSAGE,
-  TestBookmarks,
+  TestBookmarkWithKeywords,
+  TestBookmarkWKWTableData,
 } from '../test/fixtures'
 import { app } from './[[route]]' // 💡 exportしたappをインポート
 
@@ -20,7 +21,7 @@ describe('Hono Backend API - app.request', () => {
 
   it('GET /api/bookmarks が正しいJSONを返すこと', async () => {
     const allSpy = vi.fn().mockResolvedValue({
-      results: TestBookmarks,
+      results: TestBookmarkWKWTableData,
     })
     const prepareSpy = vi.fn().mockReturnValue({ all: allSpy })
 
@@ -35,7 +36,7 @@ describe('Hono Backend API - app.request', () => {
         BOOKMARK_PAGE_DB: mockD1Database as D1Database,
       },
     )
-    const expectedSQL = BOOKMARKS.SELECT_ALL
+    const expectedSQL = BOOKMARKS.SELECT_ALL_WITH_KEYWORDS
 
     expect(prepareSpy).toHaveBeenCalledWith(expectedSQL)
     expect(allSpy).toHaveBeenCalledOnce()
@@ -44,7 +45,7 @@ describe('Hono Backend API - app.request', () => {
     // レスポンスボディの検証
     const body = await res.json()
     expect(body).toEqual({
-      data: TestBookmarks,
+      data: TestBookmarkWithKeywords,
       success: true,
     })
   })

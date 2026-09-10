@@ -2,14 +2,17 @@ import { renderHook, waitFor } from '@testing-library/react'
 import { uuidv7 } from 'uuidv7'
 import { beforeEach, describe, it, vi } from 'vitest'
 
-import { TestBookmarks } from '../../functions/test/fixtures'
-import { ERROR_MESSAGE, UI_MESSAGES } from '../../shared/constants/uiMessages'
-import { SCHEMA_MESSAGE } from '../../shared/constants/validation'
+import { TestBookmarks } from '../../../functions/test/fixtures'
+import {
+  ERROR_MESSAGE,
+  UI_MESSAGES,
+} from '../../../shared/constants/uiMessages'
+import { SCHEMA_MESSAGE } from '../../../shared/constants/validation'
 import {
   createTestQueryClient,
   expectMutationError,
   expectMutationSuccess,
-} from '../test/test-utils'
+} from '../../test/test-utils'
 import { useUpdateBookmark } from './useUpdateBookmark'
 
 const { mockPatch, mockShowErrorMessage } = vi.hoisted(() => ({
@@ -31,7 +34,7 @@ vi.mock('hono/client', () => ({
 }))
 
 // notification モジュールのモック化を追加
-vi.mock('../lib/notification', () => ({
+vi.mock('../../lib/notification', () => ({
   showErrorMessage: mockShowErrorMessage,
 }))
 
@@ -80,6 +83,7 @@ describe('useUpdateBookmark', () => {
           },
           param: { id: updatedPayload.id },
         },
+        queryKey: ['bookmarks'],
         result,
       })
     })

@@ -10,11 +10,23 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as KeywordIndexRouteImport } from './routes/keyword.index'
+import { Route as KeywordIdRouteImport } from './routes/keyword.$id'
 import { Route as BookmarkIdRouteImport } from './routes/bookmark.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KeywordIndexRoute = KeywordIndexRouteImport.update({
+  id: '/keyword/',
+  path: '/keyword/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KeywordIdRoute = KeywordIdRouteImport.update({
+  id: '/keyword/$id',
+  path: '/keyword/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BookmarkIdRoute = BookmarkIdRouteImport.update({
@@ -26,27 +38,35 @@ const BookmarkIdRoute = BookmarkIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/bookmark/$id': typeof BookmarkIdRoute
+  '/keyword/$id': typeof KeywordIdRoute
+  '/keyword/': typeof KeywordIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/bookmark/$id': typeof BookmarkIdRoute
+  '/keyword/$id': typeof KeywordIdRoute
+  '/keyword': typeof KeywordIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/bookmark/$id': typeof BookmarkIdRoute
+  '/keyword/$id': typeof KeywordIdRoute
+  '/keyword/': typeof KeywordIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/bookmark/$id'
+  fullPaths: '/' | '/bookmark/$id' | '/keyword/$id' | '/keyword/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/bookmark/$id'
-  id: '__root__' | '/' | '/bookmark/$id'
+  to: '/' | '/bookmark/$id' | '/keyword/$id' | '/keyword'
+  id: '__root__' | '/' | '/bookmark/$id' | '/keyword/$id' | '/keyword/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BookmarkIdRoute: typeof BookmarkIdRoute
+  KeywordIdRoute: typeof KeywordIdRoute
+  KeywordIndexRoute: typeof KeywordIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -56,6 +76,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/keyword/': {
+      id: '/keyword/'
+      path: '/keyword'
+      fullPath: '/keyword/'
+      preLoaderRoute: typeof KeywordIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/keyword/$id': {
+      id: '/keyword/$id'
+      path: '/keyword/$id'
+      fullPath: '/keyword/$id'
+      preLoaderRoute: typeof KeywordIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/bookmark/$id': {
@@ -71,6 +105,8 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BookmarkIdRoute: BookmarkIdRoute,
+  KeywordIdRoute: KeywordIdRoute,
+  KeywordIndexRoute: KeywordIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -1,10 +1,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { hc } from 'hono/client'
 
-import { AppType } from '../../functions/api/[[route]]'
-import { UpdateBookmarkPayload } from '../../functions/schemas/bookmark'
-import { ERROR_MESSAGE } from '../../shared/constants/uiMessages'
-import { showErrorMessage } from '../lib/notification'
+import { AppType } from '../../../functions/api/[[route]]'
+import { UpdateBookmarkPayload } from '../../../functions/schemas/bookmark'
+import { ERROR_MESSAGE } from '../../../shared/constants/uiMessages'
+import { showErrorMessage } from '../../lib/notification'
 
 const client = hc<AppType>('/')
 

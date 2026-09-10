@@ -4,11 +4,16 @@ import { UserEvent } from '@testing-library/user-event'
 import { expect, Mock, vi } from 'vitest'
 
 interface ExpectMutationSuccessOptions {
+  back?: Mock
   mockInvalidateQueries?: Mock
   mockMutation: Mock
   mockShowErrorMessage?: Mock
   navigate?: { mockNavigate: Mock; path: string }
-  payload: { json?: { title: string; url: string }; param: { id: string }; }
+  payload: {
+    json?: { name: string } | { title: string; url: string }
+    param?: { id: string }
+  }
+  queryKey: string[]
   result: ResultType
 }
 
@@ -20,11 +25,13 @@ type ResultType = {
 }
 
 export const expectMutationSuccess = ({
+  back,
   mockInvalidateQueries,
   mockMutation,
   mockShowErrorMessage,
   navigate,
   payload,
+  queryKey,
   result,
 }: ExpectMutationSuccessOptions) => {
   expect(result.current.isSuccess).toBe(true)
@@ -32,11 +39,16 @@ export const expectMutationSuccess = ({
   expect(mockMutation).toHaveBeenCalledWith(payload)
   // // 検証: キャッシュ更新(invalidate)が走ったか
   if (mockInvalidateQueries) {
-    expect(mockInvalidateQueries).toHaveBeenCalledWith({
-      queryKey: ['bookmarks'],
-    })
+    queryKey.forEach((key) =>
+      expect(mockInvalidateQueries).toHaveBeenCalledWith({
+        queryKey: [key],
+      }),
+    )
   }
   // // 検証: 画面遷移したか
+  if (back) {
+    expect(back).toHaveBeenCalledWith()
+  }
   if (navigate) {
     expect(navigate.mockNavigate).toHaveBeenCalledWith({ to: navigate.path })
   }
@@ -46,7 +58,9 @@ export const expectMutationSuccess = ({
 }
 
 interface ExpectMutationErrorOptions {
-  errorText: string
+  back?: Mock
+  errorText?: string
+  expectedQuery?: { queryKey: string[] }
   mockInvalidateQueries?: Mock
   mockNavigate?: Mock
   mockShowErrorMessage: Mock
@@ -57,7 +71,9 @@ interface ExpectMutationErrorOptions {
  * Mutationフックでエラーが発生した際の共通アサーションヘルパー
  */
 export const expectMutationError = ({
+  back,
   errorText,
+  expectedQuery,
   mockInvalidateQueries,
   mockNavigate,
   mockShowErrorMessage,
@@ -71,11 +87,18 @@ export const expectMutationError = ({
   // 2. サイドエフェクトの検証
   expect(mockShowErrorMessage).toHaveBeenCalledWith(errorText)
 
+  if (back) {
+    expect(back).not.toHaveBeenCalled()
+  }
   if (mockNavigate) {
     expect(mockNavigate).not.toHaveBeenCalled()
   }
   if (mockInvalidateQueries) {
-    expect(mockInvalidateQueries).not.toHaveBeenCalled()
+    if (expectedQuery) {
+      expect(mockInvalidateQueries).toHaveBeenCalledWith(expectedQuery)
+    } else {
+      expect(mockInvalidateQueries).not.toHaveBeenCalled()
+    }
   }
 }
 
@@ -112,5 +135,23 @@ export const inputText = async (
   await user.clear(input)
   if (text) {
     await user.type(input, text)
+  }
+}
+
+type TextTestType = {
+  disabled?: boolean
+  link?: string
+  text: string
+}
+
+export const expectText = async (textTest: TextTestType) => {
+  const linkItem = await screen.findByText(textTest.text)
+  expect(linkItem).toBeInTheDocument()
+  if (textTest.link)
+    expect(linkItem.closest('a')).toHaveAttribute('href', textTest.link)
+  if (textTest.disabled === true) {
+    expect(linkItem).toBeDisabled()
+  } else if (textTest.disabled === false) {
+    expect(linkItem).toBeEnabled()
   }
 }

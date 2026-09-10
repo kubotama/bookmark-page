@@ -2,7 +2,7 @@
   "name": "bookmark-page",
   "type": "module",
   "private": true,
-  "version": "0.4.3",
+  "version": "0.20.0",
   "license": "MIT",
   "scripts": {
     "dev:frontend": "vite",
@@ -48,7 +48,7 @@
     "@vitejs/plugin-react": "6.0.2",
     "@vitest/coverage-v8": "^4.1.9",
     "chrome-types": "^0.1.429",
-    "concurrently": "^10.0.3",
+    "concurrently": "^10.0.4",
     "eslint": "^10.5.0",
     "eslint-plugin-perfectionist": "^5.10.0",
     "happy-dom": "20.10.6",
@@ -58,6 +58,6 @@
     "typescript": "6.0.3",
     "vite": "8.0.16",
     "vitest": "4.1.9",
-    "wrangler": "^4.4.0"
+    "wrangler": "^4.114.0"
   }
 }

@@ -1,9 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { ZodError } from 'zod'
 
-import { TEST_API_URL } from '../../../functions/test/fixtures'
+import { INVALID_STRING } from '../../../functions/test/fixtures'
 import { DEFAULT_API_URL } from '../../../shared/constants/api'
-import { STORAGE_KEY } from '../../constants/storage'
-import { client } from './hono'
+import { SCHEMA_MESSAGE } from '../../../shared/constants/validation'
+import { createClient } from './hono'
 
 describe('Hono RPC Client', () => {
   beforeEach(() => {
@@ -11,61 +12,43 @@ describe('Hono RPC Client', () => {
   })
 
   it('client が正常に初期化されていること', () => {
+    const client = createClient({ apiUrl: DEFAULT_API_URL })
+
     expect(client).toBeDefined()
     expect(client.api.bookmarks).toBeDefined()
     expect(typeof client.api.bookmarks.$post).toBe('function')
   })
 
-  it.each([
-    {
-      apiUrl: undefined,
-      expectedApiUrl: DEFAULT_API_URL,
-      name: 'ストレージに API URL が保存されていない場合',
-    },
-    {
-      apiUrl: TEST_API_URL.LOCAL,
-      expectedApiUrl: TEST_API_URL.LOCAL,
-      name: 'ストレージに API URL が保存されている場合',
-    },
-  ])(`$name`, async ({ apiUrl, expectedApiUrl }) => {
-    // 1. ストレージのモック（保存されたURLを返すように設定）
-    vi.spyOn(chrome.storage.local, 'get').mockImplementation(async () => ({
-      [STORAGE_KEY.API_URL]: apiUrl,
-    }))
-
-    // 2. グローバル fetch のスパイ化（実際のネットワーク通信を防ぎ、ダミーレスポンスを返す）
-    const fetchSpy = vi
-      .spyOn(globalThis, 'fetch')
-      .mockResolvedValue(new Response(JSON.stringify({ success: true })))
-
-    // 3. クライアント経由で通信を実行
-    await client.api.bookmarks.$get()
-
-    // 4. 呼び出された URL がカスタム URL に差し替わっているかを検証
-    expect(fetchSpy).toHaveBeenCalledWith(
-      `${expectedApiUrl}/api/bookmarks`,
-      expect.any(Object),
-    )
+  it('urlが不正な場合にはclientが作成されない、例外を返すこと', () => {
+    let client
+    try {
+      client = createClient({ apiUrl: INVALID_STRING.URL })
+    } catch (error) {
+      if (error instanceof ZodError) {
+        expect(error.issues[0].message).toBe(SCHEMA_MESSAGE.PROTOCOL_CONSTRAINT)
+        expect(client).not.toBeDefined()
+      } else {
+        expect(error).toBeInstanceOf(ZodError)
+      }
+    }
   })
 
-  it('chrome.storage.local が存在しない環境 (undefined) でもエラーにならずデフォルトURLで通信すること', async () => {
-    const originalStorage = globalThis.chrome.storage
-
-    // @ts-expect-error テスト用に一時的に storage を undefined に設定
-    delete globalThis.chrome.storage
-
+  it('fetch に credentials: include と signal が設定されること', async () => {
     const fetchSpy = vi
       .spyOn(globalThis, 'fetch')
-      .mockResolvedValue(new Response(JSON.stringify({ success: true })))
+      .mockResolvedValue(
+        new Response(JSON.stringify({ data: [], success: true })),
+      )
 
+    const client = createClient({ apiUrl: DEFAULT_API_URL })
     await client.api.bookmarks.$get()
 
     expect(fetchSpy).toHaveBeenCalledWith(
-      `${DEFAULT_API_URL}/api/bookmarks`,
-      expect.any(Object),
+      expect.any(String),
+      expect.objectContaining({
+        credentials: 'include',
+        signal: expect.any(AbortSignal),
+      }),
     )
-
-    // テスト後に元の状態へ復元
-    globalThis.chrome.storage = originalStorage
   })
 })

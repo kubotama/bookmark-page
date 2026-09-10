@@ -1,25 +1,34 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
-import { TestBookmarks } from '../../functions/test/fixtures'
-import { UI_LABELS } from '../../shared/constants/uiMessages'
+import { TestBookmarkWithKeywords } from '../../../functions/test/fixtures'
+import { UI_LABELS } from '../../../shared/constants/uiMessages'
 import { BookmarkForm } from './BookmarkForm'
 
 vi.mock('@tanstack/react-router', () => ({
+  Link: vi.fn(),
   useRouter: () => ({ history: { back: vi.fn() }, navigate: vi.fn() }),
 }))
 
-vi.mock('../hooks/useDeleteBookmark', () => ({
+vi.mock('./useDeleteBookmark', () => ({
   useDeleteBookmark: () => ({ isPending: false, mutate: vi.fn() }),
 }))
 
-vi.mock('../hooks/useUpdateBookmark', () => ({
+vi.mock('./useUpdateBookmark', () => ({
   useUpdateBookmark: () => ({ isPending: false, mutate: vi.fn() }),
+}))
+
+vi.mock('../keyword/useKeywords', () => ({
+  useKeywords: () => ({ data: { data: [] } }),
+}))
+
+vi.mock('../keyword/useAddKeyword', () => ({
+  useAddKeyword: () => ({ isPending: false, mutate: vi.fn() }),
 }))
 
 describe('BookmarkForm', () => {
   it('該当するブックマークのurlとタイトルが正しく表示されること', async () => {
-    const targetBookmark = TestBookmarks[0]
+    const targetBookmark = TestBookmarkWithKeywords[0]
     render(<BookmarkForm bookmark={targetBookmark} key={targetBookmark.id} />)
 
     const titleElement = await screen.findByRole('textbox', {

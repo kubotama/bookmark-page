@@ -1,7 +1,6 @@
-import { hc } from 'hono/client'
 import { useEffect, useState } from 'react'
+import { ZodError } from 'zod'
 
-import { AppType } from '../../../functions/api/[[route]]'
 import { type MessageBarType } from '../../../shared/components/MessageBar'
 import {
   DEFAULT_API_URL,
@@ -13,6 +12,7 @@ import {
 } from '../../../shared/constants/uiMessages'
 import { createErrorMessage, validateUrl } from '../../../shared/lib/utils'
 import { STORAGE_KEY } from '../../constants/storage'
+import { createClient } from '../lib/hono'
 
 export const useApiUrl = () => {
   const [apiUrl, setApiUrl] = useState(DEFAULT_API_URL)
@@ -49,25 +49,10 @@ export const useApiUrl = () => {
   }
 
   const testConnection = async (): Promise<MessageBarType> => {
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MILLISECOND)
-
     try {
-      const validApiUrl = validateUrl(apiUrl)
-      if (!validApiUrl.success) {
-        return createErrorMessage(validApiUrl.error.issues[0].message)
-      }
+      const client = createClient({ apiUrl, timeoutMs: TIMEOUT_MILLISECOND })
 
-      const testClient = hc<AppType>(validApiUrl.data, {
-        fetch: (input: RequestInfo | URL, init: RequestInit | undefined) =>
-          fetch(input, {
-            ...init,
-            credentials: 'include',
-            signal: controller.signal,
-          }),
-      })
-
-      const response = await testClient.api.bookmarks.$get()
+      const response = await client.api.bookmarks.$get()
 
       if (!response.ok) {
         if (response.status === 401 || response.status === 403) {
@@ -89,7 +74,9 @@ export const useApiUrl = () => {
     } catch (error) {
       let errorMessage: string = UI_MESSAGES.API.FAILED_CONNECT_SERVER
 
-      if (error instanceof Error) {
+      if (error instanceof ZodError) {
+        errorMessage = error.issues[0].message
+      } else if (error instanceof Error) {
         if (error.name === 'AbortError') {
           errorMessage = UI_MESSAGES.API.TIMEOUT_CONNECT_SERVER
         } else {
@@ -97,8 +84,6 @@ export const useApiUrl = () => {
         }
       }
       return createErrorMessage(errorMessage)
-    } finally {
-      clearTimeout(timeoutId)
     }
   }
 

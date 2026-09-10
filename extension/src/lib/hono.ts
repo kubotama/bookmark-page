@@ -3,31 +3,33 @@ import { hc } from 'hono/client'
 // バックエンド（functions）のエントリーポイントから型定義（AppType）のみをインポート
 import type { AppType } from '../../../functions/api/[[route]]'
 
-import { DEFAULT_API_URL } from '../../../shared/constants/api'
-import { STORAGE_KEY } from '../../constants/storage'
+import { BookmarkUrlSchema } from '../../../functions/schemas/bookmark'
+import { TIMEOUT_MILLISECOND } from '../../../shared/constants/api'
 
-// 型安全な RPC クライアントを生成してエクスポート
-export const client = hc<AppType>(DEFAULT_API_URL, {
-  fetch: async (input: RequestInfo | URL, init: RequestInit | undefined) => {
-    const chrome = globalThis.chrome
-    const apiUrl = chrome?.storage?.local
-      ? (await chrome.storage.local.get([STORAGE_KEY.API_URL]))[
-          STORAGE_KEY.API_URL
-        ]
-      : undefined
+interface ClientOptions {
+  apiUrl: string
+  /** タイムアウト時間（ミリ秒）。デフォルト: 5000ms */
+  timeoutMs?: number
+}
 
-    if (apiUrl) {
-      const urlStr = typeof input === 'string' ? input : input.toString()
-      const newUrl = urlStr.replace(DEFAULT_API_URL, apiUrl)
-      return fetch(newUrl, {
+export const createClient = (clientOptions: ClientOptions) => {
+  const validUrl = BookmarkUrlSchema.parse(clientOptions.apiUrl)
+  const timeoutMs = clientOptions.timeoutMs ?? TIMEOUT_MILLISECOND
+
+  return hc<AppType>(validUrl, {
+    fetch: (input: RequestInfo | URL, init?: RequestInit) => {
+      const timeoutSignal = AbortSignal.timeout(timeoutMs)
+
+      // 呼び出し元の signal と タイムアウト signal を合成
+      const combinedSignal = init?.signal
+        ? AbortSignal.any([init.signal, timeoutSignal])
+        : timeoutSignal
+
+      return fetch(input, {
         ...init,
         credentials: 'include',
+        signal: combinedSignal,
       })
-    }
-
-    return fetch(input, {
-      ...init,
-      credentials: 'include',
-    })
-  },
-})
+    },
+  })
+}

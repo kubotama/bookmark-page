@@ -2,19 +2,19 @@ import { renderHook, waitFor } from '@testing-library/react'
 import { uuidv7 } from 'uuidv7'
 import { beforeEach, describe, it, vi } from 'vitest'
 
-import { ERROR_MESSAGE } from '../../shared/constants/uiMessages'
-import { SCHEMA_MESSAGE } from '../../shared/constants/validation'
+import { ERROR_MESSAGE } from '../../../shared/constants/uiMessages'
+import { SCHEMA_MESSAGE } from '../../../shared/constants/validation'
+import { TestCase } from '../../../shared/test/common'
 import {
   createTestQueryClient,
   expectMutationError,
   expectMutationSuccess,
-} from '../test/test-utils'
-import { useDeleteBookmark } from './useDeleteBookmark'
+} from '../../test/test-utils'
+import { useDeleteKeyword } from './useDeleteKeyword'
 
-// 💡 1. Hono RPC クライアントと共通のモック関数の準備
-const { mockDelete, mockNavigate, mockShowErrorMessage } = vi.hoisted(() => ({
+const { mockBack, mockDelete, mockShowErrorMessage } = vi.hoisted(() => ({
+  mockBack: vi.fn(),
   mockDelete: vi.fn(),
-  mockNavigate: vi.fn(),
   mockShowErrorMessage: vi.fn(),
 }))
 
@@ -22,7 +22,7 @@ const { mockDelete, mockNavigate, mockShowErrorMessage } = vi.hoisted(() => ({
 vi.mock('hono/client', () => ({
   hc: () => ({
     api: {
-      bookmarks: {
+      keywords: {
         ':id': {
           $delete: mockDelete,
         },
@@ -34,30 +34,31 @@ vi.mock('hono/client', () => ({
 // TanStack Router と共通クエリクライアントのモック化
 vi.mock('@tanstack/react-router', () => ({
   useRouter: () => ({
-    navigate: mockNavigate,
+    history: {
+      back: mockBack,
+    },
   }),
 }))
 
 // notification モジュールのモック化を追加
-vi.mock('../lib/notification', () => ({
+vi.mock('../../lib/notification', () => ({
   showErrorMessage: mockShowErrorMessage,
 }))
 
-const renderDeleteBookmark = () => {
+const renderDeleteKeyword = () => {
   const { mockInvalidateQueries, wrapper } = createTestQueryClient()
 
-  const { result } = renderHook(() => useDeleteBookmark(), {
+  const { result } = renderHook(() => useDeleteKeyword(), {
     wrapper,
   })
   return { mockInvalidateQueries, result }
 }
 
-describe('useDeleteBookmark', () => {
+describe('useDeleteKeyword', () => {
   const validId = uuidv7()
 
   beforeEach(() => {
     vi.resetAllMocks()
-    vi.spyOn(window, 'alert').mockImplementation(() => {}) // alertのポップアップを抑制
   })
 
   // -------------------------------------------------------------
@@ -70,7 +71,7 @@ describe('useDeleteBookmark', () => {
       status: 204,
     })
 
-    const { mockInvalidateQueries, result } = renderDeleteBookmark()
+    const { mockInvalidateQueries, result } = renderDeleteKeyword()
 
     // 💡 フックの mutate を実行
     result.current.mutate(validId)
@@ -78,11 +79,12 @@ describe('useDeleteBookmark', () => {
     // 非同期処理（onSuccess）が完了するまで待機して検証
     await waitFor(() => {
       expectMutationSuccess({
+        back: mockBack,
         mockInvalidateQueries,
         mockMutation: mockDelete,
         mockShowErrorMessage,
-        navigate: { mockNavigate, path: '/' },
         payload: { param: { id: validId } },
+        queryKey: ['bookmarks', 'keywords'],
         result,
       })
     })
@@ -91,67 +93,47 @@ describe('useDeleteBookmark', () => {
   // -------------------------------------------------------------
   // 2. 異常系：その他の通信エラー（500など）の場合
   // -------------------------------------------------------------
-  // it('APIが500などの一般的なエラーを返したとき、エラー処理が行われること', async () => {
-  it.each([
+
+  const testCases: TestCase[] = [
     {
       errorName: 'バリデーション',
-      errorText: SCHEMA_MESSAGE.INVALID_ID_FORMAT,
+      payload: { error: SCHEMA_MESSAGE.INVALID_ID_FORMAT, success: false },
       status: 400,
     },
     {
       errorName: '一般的な',
-      errorText: ERROR_MESSAGE.SERVER_ERROR,
+      payload: { error: ERROR_MESSAGE.SERVER_ERROR, success: false },
       status: 500,
     },
-  ])(
+    {
+      errorName: 'APIが不明な',
+      payload: { success: false },
+      status: 500,
+    },
+  ]
+
+  it.each(testCases)(
     `APIが$statusで$errorNameエラーを返したときにエラー処理が行われること`,
-    async ({ errorText, status }) => {
+    async ({ payload, status }) => {
       mockDelete.mockResolvedValueOnce({
-        json: async () => ({
-          error: errorText,
-          success: false,
-        }),
+        json: async () => payload,
         ok: false,
         status: status,
       })
 
-      const { mockInvalidateQueries, result } = renderDeleteBookmark()
+      const { mockInvalidateQueries, result } = renderDeleteKeyword()
 
       result.current.mutate(validId)
 
       await waitFor(() => {
         expectMutationError({
-          errorText,
+          back: mockBack,
+          errorText: payload?.error ?? ERROR_MESSAGE.FAILED_DELETE_KEYWORD,
           mockInvalidateQueries,
-          mockNavigate,
           mockShowErrorMessage,
           result,
         })
       })
     },
   )
-
-  it(`APIが不明なエラーを返したときにエラー処理が行われること`, async () => {
-    mockDelete.mockResolvedValueOnce({
-      json: async () => ({
-        success: false,
-      }),
-      ok: false,
-      status: 500,
-    })
-
-    const { mockInvalidateQueries, result } = renderDeleteBookmark()
-
-    result.current.mutate(validId)
-
-    await waitFor(() => {
-      expectMutationError({
-        errorText: ERROR_MESSAGE.FAILED_DELETE_BOOKMARK,
-        mockInvalidateQueries,
-        mockNavigate,
-        mockShowErrorMessage,
-        result,
-      })
-    })
-  })
 })

@@ -1,4 +1,4 @@
-import { cn } from '../../shared/lib/utils'
+import { cn } from '../lib/utils'
 
 export const Button: React.FC<
   React.ButtonHTMLAttributes<HTMLButtonElement>
