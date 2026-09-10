@@ -4,7 +4,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ERROR_MESSAGE, UI_MESSAGES } from '../../shared/constants/uiMessages'
 import { SCHEMA_MESSAGE } from '../../shared/constants/validation'
-import { BOOKMARKS, BOOKMARKS_KEYWORDS, KEYWORDS } from '../constants/db'
+import {
+  BOOKMARKS,
+  BOOKMARKS_KEYWORDS,
+  DATABASE_NAME,
+  KEYWORDS,
+} from '../constants/db'
 import { LOG_MESSAGE } from '../constants/logMessage'
 import { Uuid } from '../schemas/common'
 import {
@@ -28,12 +33,14 @@ type ApiAssignParam = {
   bookmark_id?: string
   id?: string
   keyword_id?: string
+  omitDatabaseBinding?: boolean
   omitKeywordId?: boolean
 }
 
 const helperApiAssign = async (param?: ApiAssignParam) => {
   const id = param?.id ?? uuidv7()
   const bookmark_id = param?.bookmark_id ?? TestBookmarkWithKeywords[0].id
+
   const body = param?.omitKeywordId
     ? {}
     : { keyword_id: param?.keyword_id ?? TestKeywords[0].id }
@@ -41,6 +48,9 @@ const helperApiAssign = async (param?: ApiAssignParam) => {
   const mockD1Database: Partial<D1Database> = {
     prepare: prepareSpy as D1Database['prepare'],
   }
+  const databaseBinding = param?.omitDatabaseBinding
+    ? {}
+    : { [DATABASE_NAME]: mockD1Database as D1Database } // DATABASE_NAME 定数を使用
 
   const res = await app.request(
     REQUEST_API_PATH.ASSIGN_KEYWORD(bookmark_id),
@@ -49,7 +59,7 @@ const helperApiAssign = async (param?: ApiAssignParam) => {
       headers: { 'Content-Type': 'application/json' },
       method: 'POST',
     },
-    { BOOKMARK_PAGE_DB: mockD1Database as D1Database },
+    databaseBinding,
   )
   return { expectedData: { bookmark_id, id, keyword_id: body.keyword_id }, res }
 }
@@ -240,6 +250,16 @@ describe('Hono API - POST /api/bookmarks/:bookmark_id/keywords', () => {
       consoleCalledWith: [ERROR_MESSAGE.INSERT_BKRELATION_ERROR],
       message: UI_MESSAGES.API.DB_ERROR,
       prepareCalledCount: 3,
+      status: 500,
+    })
+  })
+
+  it('データベースのバインディング（BOOKMARK_PAGE_DB）が未設定の場合、500を返すこと', async () => {
+    const { res } = await helperApiAssign({ omitDatabaseBinding: true })
+
+    await expectApiAssignError(res, {
+      consoleCalledWith: [ERROR_MESSAGE.DB_BINDING_ERROR(DATABASE_NAME)],
+      message: UI_MESSAGES.API.DB_ERROR,
       status: 500,
     })
   })
