@@ -448,6 +448,11 @@ const routes = app
           .prepare(BOOKMARKS_KEYWORDS.INSERT)
           .bind(id, bookmark_id, keyword_id)
           .first<BKRelation>()
+
+        if (!assigned) {
+          throw new Error(ERROR_MESSAGE.INSERT_BKRELATION_ERROR)
+        }
+
         return c.json(
           {
             data: assigned,

@@ -2,7 +2,7 @@ import { D1Database } from '@cloudflare/workers-types'
 import { uuidv7 } from 'uuidv7'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { UI_MESSAGES } from '../../shared/constants/uiMessages'
+import { ERROR_MESSAGE, UI_MESSAGES } from '../../shared/constants/uiMessages'
 import { SCHEMA_MESSAGE } from '../../shared/constants/validation'
 import { BOOKMARKS, BOOKMARKS_KEYWORDS, KEYWORDS } from '../constants/db'
 import { LOG_MESSAGE } from '../constants/logMessage'
@@ -78,8 +78,11 @@ const expectApiAssignError = async (
   const expectedConsoleCount = param.consoleCalledWith?.length ?? 0
   expect(consoleSpy).toHaveBeenCalledTimes(expectedConsoleCount)
 
-  param.consoleCalledWith?.forEach((text, index) =>
-    expect(consoleSpy).toHaveBeenNthCalledWith(index + 1, text),
+  param.consoleCalledWith?.forEach((errorText, index) =>
+    expect(consoleSpy).toHaveBeenNthCalledWith(
+      index + 1,
+      expect.stringContaining(errorText),
+    ),
   )
 }
 
@@ -203,6 +206,22 @@ describe('Hono API - POST /api/bookmarks/:bookmark_id/keywords', () => {
     await expectApiAssignError(res, {
       consoleCalledWith: [LOG_MESSAGE.DB_ERROR(dbError)],
       message: TEST_ERROR_MESSAGE.DB_ERROR,
+      prepareCalledCount: 3,
+      status: 500,
+    })
+  })
+
+  it('異常系: データベースへのインサート（または再取得）に失敗したとき、ステータス500を返すこと', async () => {
+    firstSpy
+      .mockResolvedValueOnce({ id: b1.id })
+      .mockResolvedValueOnce({ id: k1.id })
+      .mockResolvedValue(null)
+
+    const { res } = await helperApiAssign()
+
+    await expectApiAssignError(res, {
+      consoleCalledWith: [ERROR_MESSAGE.INSERT_BKRELATION_ERROR],
+      message: UI_MESSAGES.API.DB_ERROR,
       prepareCalledCount: 3,
       status: 500,
     })
