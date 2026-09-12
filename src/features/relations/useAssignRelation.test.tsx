@@ -4,7 +4,10 @@ import { beforeEach, describe, it, vi } from 'vitest'
 
 import { AssignRelationPayload } from '../../../functions/schemas/relations'
 import { INVALID_STRING } from '../../../functions/test/fixtures'
-import { UI_MESSAGES } from '../../../shared/constants/uiMessages'
+import {
+  ERROR_MESSAGE,
+  UI_MESSAGES,
+} from '../../../shared/constants/uiMessages'
 import { SCHEMA_MESSAGE } from '../../../shared/constants/validation'
 import {
   createTestQueryClient,
@@ -147,6 +150,11 @@ describe('useAssignRelation', () => {
         expectedMessage: UI_MESSAGES.API.DUPLICATE_BKRELATION,
         status: 409,
       },
+      {
+        errorName: 'データベースなどのエラーが発生した',
+        expectedMessage: ERROR_MESSAGE.SERVER_ERROR,
+        status: 500,
+      },
     ]
     it.each(testCases)(
       `$errorName`,
@@ -176,7 +184,5 @@ describe('useAssignRelation', () => {
     )
   })
 
-  it('指定されたブックマークとキーワードの関連付けが既に登録されている', () => {})
-  it('データベースなどのエラーが発生した', () => {})
   it('APIの呼び出しで例外が発生した', () => {})
 })
