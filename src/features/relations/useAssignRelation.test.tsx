@@ -141,6 +141,12 @@ describe('useAssignRelation', () => {
         param: { bookmark_id, keyword_id: notexistId },
         status: 404,
       },
+      {
+        errorName:
+          '指定されたブックマークとキーワードの関連付けが既に登録されている',
+        expectedMessage: UI_MESSAGES.API.DUPLICATE_BKRELATION,
+        status: 409,
+      },
     ]
     it.each(testCases)(
       `$errorName`,
