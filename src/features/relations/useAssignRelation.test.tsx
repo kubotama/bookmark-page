@@ -2,7 +2,8 @@ import { renderHook, waitFor } from '@testing-library/react'
 import { uuidv7 } from 'uuidv7'
 import { beforeEach, describe, it, vi } from 'vitest'
 
-import { INVALID_STRING, TEST_STRING } from '../../../functions/test/fixtures'
+import { INVALID_STRING } from '../../../functions/test/fixtures'
+import { UI_MESSAGES } from '../../../shared/constants/uiMessages'
 import { SCHEMA_MESSAGE } from '../../../shared/constants/validation'
 import {
   createTestQueryClient,
@@ -50,6 +51,7 @@ describe('useAssignRelation', () => {
   const id = uuidv7()
   const bookmark_id = uuidv7()
   const keyword_id = uuidv7()
+  const notexistId = uuidv7()
   const assignReturn = {
     bookmark_id,
     id,
@@ -114,6 +116,12 @@ describe('useAssignRelation', () => {
         param: { bookmark_id: INVALID_STRING.ID, keyword_id },
         status: 400,
       },
+      {
+        errorName: '指定されたidのブックマークが存在しない',
+        expectedMessage: UI_MESSAGES.API.NOT_FOUND_BOOKMARK,
+        param: { bookmark_id: notexistId, keyword_id },
+        status: 404,
+      },
     ]
     it.each(testCases)(
       `$errorName`,
@@ -143,7 +151,6 @@ describe('useAssignRelation', () => {
     )
   })
 
-  it('指定されたidのブックマークが存在しない', () => {})
   it('キーワードidが指定されていない', () => {})
   it('キーワードidが不正な形式', () => {})
   it('指定されたidのキーワードが存在しない', () => {})
