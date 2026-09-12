@@ -2,6 +2,7 @@ import { renderHook, waitFor } from '@testing-library/react'
 import { uuidv7 } from 'uuidv7'
 import { beforeEach, describe, it, vi } from 'vitest'
 
+import { INVALID_STRING, TEST_STRING } from '../../../functions/test/fixtures'
 import { SCHEMA_MESSAGE } from '../../../shared/constants/validation'
 import {
   createTestQueryClient,
@@ -96,6 +97,7 @@ describe('useAssignRelation', () => {
     type TestCase = {
       errorName: string
       expectedMessage: string
+      param?: { bookmark_id: string; keyword_id: string }
       status: number
     }
 
@@ -103,35 +105,44 @@ describe('useAssignRelation', () => {
       {
         errorName: 'ブックマークidが指定されていない',
         expectedMessage: SCHEMA_MESSAGE.INVALID_ID_FORMAT,
+        param: { bookmark_id: '', keyword_id },
+        status: 400,
+      },
+      {
+        errorName: 'ブックマークidが不正な形式',
+        expectedMessage: SCHEMA_MESSAGE.INVALID_ID_FORMAT,
+        param: { bookmark_id: INVALID_STRING.ID, keyword_id },
         status: 400,
       },
     ]
-    it.each(testCases)(`$errorName`, async ({ expectedMessage, status }) => {
-      mockPost.mockResolvedValueOnce({
-        json: async () => ({
-          error: expectedMessage,
-          success: false,
-        }),
-        ok: false,
-        status: status,
-      })
-
-      const { mockInvalidateQueries, result } = renderAssignRelation()
-
-      result.current.mutate(assignParam)
-
-      await waitFor(() => {
-        expectMutationError({
-          errorText: expectedMessage,
-          mockInvalidateQueries,
-          mockShowErrorMessage,
-          result,
+    it.each(testCases)(
+      `$errorName`,
+      async ({ expectedMessage, param, status }) => {
+        mockPost.mockResolvedValueOnce({
+          json: async () => ({
+            error: expectedMessage,
+            success: false,
+          }),
+          ok: false,
+          status: status,
         })
-      })
-    })
+
+        const { mockInvalidateQueries, result } = renderAssignRelation()
+
+        result.current.mutate(param ?? assignParam)
+
+        await waitFor(() => {
+          expectMutationError({
+            errorText: expectedMessage,
+            mockInvalidateQueries,
+            mockShowErrorMessage,
+            result,
+          })
+        })
+      },
+    )
   })
 
-  it('ブックマークidが不正な形式', () => {})
   it('指定されたidのブックマークが存在しない', () => {})
   it('キーワードidが指定されていない', () => {})
   it('キーワードidが不正な形式', () => {})
