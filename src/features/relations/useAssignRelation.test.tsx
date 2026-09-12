@@ -129,6 +129,12 @@ describe('useAssignRelation', () => {
         param: { bookmark_id },
         status: 400,
       },
+      {
+        errorName: 'キーワードidが不正な形式',
+        expectedMessage: SCHEMA_MESSAGE.INVALID_ID_FORMAT,
+        param: { bookmark_id, keyword_id: INVALID_STRING.ID },
+        status: 400,
+      },
     ]
     it.each(testCases)(
       `$errorName`,
@@ -158,7 +164,6 @@ describe('useAssignRelation', () => {
     )
   })
 
-  it('キーワードidが不正な形式', () => {})
   it('指定されたidのキーワードが存在しない', () => {})
   it('指定されたブックマークとキーワードの関連付けが既に登録されている', () => {})
   it('データベースなどのエラーが発生した', () => {})
