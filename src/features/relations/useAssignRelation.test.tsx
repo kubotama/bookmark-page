@@ -135,6 +135,12 @@ describe('useAssignRelation', () => {
         param: { bookmark_id, keyword_id: INVALID_STRING.ID },
         status: 400,
       },
+      {
+        errorName: '指定されたidのキーワードが存在しない',
+        expectedMessage: UI_MESSAGES.API.NOT_FOUND_KEYWORD,
+        param: { bookmark_id, keyword_id: notexistId },
+        status: 404,
+      },
     ]
     it.each(testCases)(
       `$errorName`,
@@ -164,7 +170,6 @@ describe('useAssignRelation', () => {
     )
   })
 
-  it('指定されたidのキーワードが存在しない', () => {})
   it('指定されたブックマークとキーワードの関連付けが既に登録されている', () => {})
   it('データベースなどのエラーが発生した', () => {})
   it('APIの呼び出しで例外が発生した', () => {})
