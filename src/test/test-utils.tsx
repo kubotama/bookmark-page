@@ -10,8 +10,11 @@ interface ExpectMutationSuccessOptions {
   mockShowErrorMessage?: Mock
   navigate?: { mockNavigate: Mock; path: string }
   payload: {
-    json?: { name: string } | { title: string; url: string }
-    param?: { id: string }
+    json?:
+      | { keyword_id: string }
+      | { name: string }
+      | { title: string; url: string }
+    param?: { bookmark_id: string } | { id: string }
   }
   queryKey: string[]
   result: ResultType
