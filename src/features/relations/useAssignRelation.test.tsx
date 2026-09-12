@@ -2,6 +2,7 @@ import { renderHook, waitFor } from '@testing-library/react'
 import { uuidv7 } from 'uuidv7'
 import { beforeEach, describe, it, vi } from 'vitest'
 
+import { AssignRelationPayload } from '../../../functions/schemas/relations'
 import { INVALID_STRING } from '../../../functions/test/fixtures'
 import { UI_MESSAGES } from '../../../shared/constants/uiMessages'
 import { SCHEMA_MESSAGE } from '../../../shared/constants/validation'
@@ -99,7 +100,7 @@ describe('useAssignRelation', () => {
     type TestCase = {
       errorName: string
       expectedMessage: string
-      param?: { bookmark_id: string; keyword_id: string }
+      param?: { bookmark_id?: string; keyword_id?: string }
       status: number
     }
 
@@ -107,7 +108,7 @@ describe('useAssignRelation', () => {
       {
         errorName: 'ブックマークidが指定されていない',
         expectedMessage: SCHEMA_MESSAGE.INVALID_ID_FORMAT,
-        param: { bookmark_id: '', keyword_id },
+        param: { keyword_id },
         status: 400,
       },
       {
@@ -121,6 +122,12 @@ describe('useAssignRelation', () => {
         expectedMessage: UI_MESSAGES.API.NOT_FOUND_BOOKMARK,
         param: { bookmark_id: notexistId, keyword_id },
         status: 404,
+      },
+      {
+        errorName: 'キーワードidが指定されていない',
+        expectedMessage: SCHEMA_MESSAGE.INVALID_ID_FORMAT,
+        param: { bookmark_id },
+        status: 400,
       },
     ]
     it.each(testCases)(
@@ -137,7 +144,7 @@ describe('useAssignRelation', () => {
 
         const { mockInvalidateQueries, result } = renderAssignRelation()
 
-        result.current.mutate(param ?? assignParam)
+        result.current.mutate((param ?? assignParam) as AssignRelationPayload)
 
         await waitFor(() => {
           expectMutationError({
@@ -151,7 +158,6 @@ describe('useAssignRelation', () => {
     )
   })
 
-  it('キーワードidが指定されていない', () => {})
   it('キーワードidが不正な形式', () => {})
   it('指定されたidのキーワードが存在しない', () => {})
   it('指定されたブックマークとキーワードの関連付けが既に登録されている', () => {})
