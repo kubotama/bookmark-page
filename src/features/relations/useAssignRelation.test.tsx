@@ -184,5 +184,28 @@ describe('useAssignRelation', () => {
     )
   })
 
-  it('APIの呼び出しで例外が発生した', () => {})
+  it('APIのエラーレスポンスにエラーメッセージが含まれない場合、デフォルトエラーメッセージが表示されること', async () => {
+    mockPost.mockResolvedValueOnce({
+      json: async () => ({
+        success: false,
+      }),
+      ok: false,
+      status: 500,
+    })
+
+    const { mockInvalidateQueries, result } = renderAssignRelation()
+
+    result.current.mutate(assignParam)
+
+    await waitFor(() => {
+      expectMutationError({
+        errorText: ERROR_MESSAGE.FAILED_ASSIGN_RELATION,
+        mockInvalidateQueries,
+        mockShowErrorMessage,
+        result,
+      })
+    })
+  })
+
+  it('APIの呼び出しで例外が発生した', async () => {})
 })
