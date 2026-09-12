@@ -3,7 +3,10 @@ import { uuidv7 } from 'uuidv7'
 import { beforeEach, describe, it, vi } from 'vitest'
 
 import { AssignRelationPayload } from '../../../functions/schemas/relations'
-import { INVALID_STRING } from '../../../functions/test/fixtures'
+import {
+  INVALID_STRING,
+  TEST_ERROR_MESSAGE,
+} from '../../../functions/test/fixtures'
 import {
   ERROR_MESSAGE,
   UI_MESSAGES,
@@ -207,5 +210,21 @@ describe('useAssignRelation', () => {
     })
   })
 
-  it('APIの呼び出しで例外が発生した', async () => {})
+  it('APIの呼び出しで例外が発生した', async () => {
+    const error = new Error(TEST_ERROR_MESSAGE.API_ERROR)
+    mockPost.mockRejectedValue(error)
+
+    const { mockInvalidateQueries, result } = renderAssignRelation()
+
+    result.current.mutate(assignParam)
+
+    await waitFor(() => {
+      expectMutationError({
+        errorText: TEST_ERROR_MESSAGE.API_ERROR,
+        mockInvalidateQueries,
+        mockShowErrorMessage,
+        result,
+      })
+    })
+  })
 })
