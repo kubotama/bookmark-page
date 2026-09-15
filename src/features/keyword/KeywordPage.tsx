@@ -114,31 +114,23 @@ export const KeywordPage = ({ keyword }: KeywordPageProps) => {
 
       <div className="mt-5">
         <div className="text-sm">{UI_LABELS.FIELDS.ASSIGNED_BOOKMARK}</div>
-        <div className="border-2 border-slate-500 min-h-10 rounded">
-          <div className="w-full transition">
-            <div className="flex flex-col items-start">
-              {assignedBookmarks.map((b) => (
-                <ListItem id={b.id} key={b.id} to={`/bookmark/${b.id}`}>
-                  {b.title}
-                </ListItem>
-              ))}
-            </div>
-          </div>
+        <div className="flex flex-col items-start border-2 border-slate-500 min-h-10 rounded transition">
+          {assignedBookmarks.map((b) => (
+            <ListItem id={b.id} key={b.id} to={`/bookmark/${b.id}`}>
+              {b.title}
+            </ListItem>
+          ))}
         </div>
       </div>
 
       <div className="mt-5">
         <div className="text-sm">{UI_LABELS.FIELDS.UNASSIGNED_BOOKMARK}</div>
-        <div className="border-2 border-slate-500 min-h-10 rounded">
-          <div className="w-full transition">
-            <div className="flex flex-col items-start">
-              {unassignedBookmarks.map((b) => (
-                <ListItem id={b.id} key={b.id} to={`/bookmark/${b.id}`}>
-                  {b.title}
-                </ListItem>
-              ))}
-            </div>
-          </div>
+        <div className="flex flex-col items-start min-h-10 border-2 border-slate-500 rounded transition">
+          {unassignedBookmarks.map((b) => (
+            <ListItem id={b.id} key={b.id} to={`/bookmark/${b.id}`}>
+              {b.title}
+            </ListItem>
+          ))}
         </div>
       </div>
     </>
