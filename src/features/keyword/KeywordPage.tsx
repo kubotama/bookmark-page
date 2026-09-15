@@ -127,7 +127,17 @@ export const KeywordPage = ({ keyword }: KeywordPageProps) => {
         <div className="text-sm">{UI_LABELS.FIELDS.UNASSIGNED_BOOKMARK}</div>
         <div className="flex flex-col items-start min-h-10 border-2 border-slate-500 rounded transition">
           {unassignedBookmarks.map((b) => (
-            <ListItem id={b.id} key={b.id} to={`/bookmark/${b.id}`}>
+            <ListItem
+              data-testid="unassigned-bookmark-item"
+              draggable
+              id={b.id}
+              key={b.id}
+              onDragStart={(e) => {
+                // 💡 ドラッグするブックマークIDをテキストデータとしてセット
+                e.dataTransfer.setData('text/plain', b.id)
+              }}
+              to={`/bookmark/${b.id}`}
+            >
               {b.title}
             </ListItem>
           ))}
