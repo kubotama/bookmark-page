@@ -11,6 +11,7 @@ import { UI_LABELS, UI_MESSAGES } from '../../../shared/constants/uiMessages'
 import { ListItem } from '../../components/ListItem'
 import { isRegisteredKeyword } from '../../lib/keywords'
 import { useBookmarks } from '../bookmark/useBookmarks'
+import { useDragItem } from '../relations/useDragItem'
 import { useDeleteKeyword } from './useDeleteKeyword'
 import { useKeywords } from './useKeywords'
 import { useUpdateKeyword } from './useUpdateKeyword'
@@ -28,6 +29,7 @@ export const KeywordPage = ({ keyword }: KeywordPageProps) => {
     useUpdateKeyword()
   const { isPending: isDeletePending, mutate: deleteKeyword } =
     useDeleteKeyword()
+  const { handleDragStart } = useDragItem()
   const { data: bookmarkData } = useBookmarks()
   const bookmarks = bookmarkData?.data ?? []
 
@@ -132,10 +134,7 @@ export const KeywordPage = ({ keyword }: KeywordPageProps) => {
               draggable
               id={b.id}
               key={b.id}
-              onDragStart={(e) => {
-                // 💡 ドラッグするブックマークIDをテキストデータとしてセット
-                e.dataTransfer.setData('text/plain', b.id)
-              }}
+              onDragStart={(e) => handleDragStart(e, b.id)}
               to={`/bookmark/${b.id}`}
             >
               {b.title}
