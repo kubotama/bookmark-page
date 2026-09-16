@@ -11,7 +11,9 @@ import { UI_LABELS, UI_MESSAGES } from '../../../shared/constants/uiMessages'
 import { ListItem } from '../../components/ListItem'
 import { isRegisteredKeyword } from '../../lib/keywords'
 import { useBookmarks } from '../bookmark/useBookmarks'
+import { useAssignRelation } from '../relations/useAssignRelation'
 import { useDragItem } from '../relations/useDragItem'
+import { useDropTarget } from '../relations/useDropTarget'
 import { useDeleteKeyword } from './useDeleteKeyword'
 import { useKeywords } from './useKeywords'
 import { useUpdateKeyword } from './useUpdateKeyword'
@@ -30,6 +32,14 @@ export const KeywordPage = ({ keyword }: KeywordPageProps) => {
   const { isPending: isDeletePending, mutate: deleteKeyword } =
     useDeleteKeyword()
   const { handleDragStart } = useDragItem()
+  const {
+    handleDragEnter,
+    handleDragLeave,
+    handleDragOver,
+    handleDrop,
+    isOverAssigned,
+  } = useDropTarget()
+  const { mutate: assignRelation } = useAssignRelation()
   const { data: bookmarkData } = useBookmarks()
   const bookmarks = bookmarkData?.data ?? []
 
@@ -116,7 +126,18 @@ export const KeywordPage = ({ keyword }: KeywordPageProps) => {
 
       <div className="mt-5">
         <div className="text-sm">{UI_LABELS.FIELDS.ASSIGNED_BOOKMARK}</div>
-        <div className="flex flex-col items-start border-2 border-slate-500 min-h-10 rounded transition">
+        <div
+          className={`flex flex-col items-start border-2 border-slate-500 min-h-10 rounded transition ${
+            // 💡 ドラッグ要素が重なったときに枠線と背景をハイライト
+            isOverAssigned
+              ? 'border-indigo-500 bg-indigo-50/50'
+              : 'border-slate-500'
+          }`}
+          onDragEnter={handleDragEnter}
+          onDragLeave={handleDragLeave}
+          onDragOver={(e) => handleDragOver(e)}
+          onDrop={(e) => handleDrop(e, keyword.id, assignRelation)}
+        >
           {assignedBookmarks.map((b) => (
             <ListItem id={b.id} key={b.id} to={`/bookmark/${b.id}`}>
               {b.title}
