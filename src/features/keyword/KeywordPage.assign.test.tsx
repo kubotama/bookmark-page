@@ -48,11 +48,11 @@ vi.mock('../bookmark/useBookmarks', () => ({
   },
 }))
 
-const mockUseAssignRelation = vi.fn()
+const mockAssignRelationMutate = vi.fn()
 vi.mock('../relations/useAssignRelation', () => ({
   useAssignRelation: () => ({
     isPending: false,
-    mutate: mockUseAssignRelation,
+    mutate: mockAssignRelationMutate,
   }),
 }))
 
@@ -64,7 +64,7 @@ describe('ブックマークとキーワードの関連付け', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    mockUseAssignRelation.mockReturnValue({
+    mockAssignRelationMutate.mockReturnValue({
       data: {
         data: { bookmark_id: testBookmark.id, id, keyword_id: testKeyword.id },
         success: true,
@@ -166,8 +166,56 @@ describe('ブックマークとキーワードの関連付け', () => {
     })
 
     describe('ドロップ完了と API 呼び出し（drop）', () => {
-      it('ドロップ領域にドロップした際、dataTransfer.getData("text/plain") から取得したブックマーク ID を使い、assignRelation が正しい引数（bookmark_id, keyword_id）で呼び出されること', async () => {})
-      it('ドロップ完了後、ドロップ領域のハイライト表示が解除されること', async () => {})
+      it('ドロップ領域にドロップした際、dataTransfer.getData("text/plain") から取得したブックマーク ID を使い、assignRelation が正しい引数（bookmark_id, keyword_id）で呼び出されること', () => {
+        render(<KeywordPage keyword={testKeyword} />)
+
+        const dropTarget = screen.getByText(UI_LABELS.FIELDS.ASSIGNED_BOOKMARK)
+          .nextElementSibling as HTMLElement
+
+        const droppedBookmarkId = TestBookmarkWithKeywords[1].id
+
+        // dragStart / drop 時に使用する dataTransfer のモック
+        const getDataMock = vi.fn().mockReturnValue(droppedBookmarkId)
+
+        // drop イベントを発火
+        fireEvent.drop(dropTarget, {
+          dataTransfer: {
+            getData: getDataMock,
+          },
+        })
+
+        // dataTransfer.getData('text/plain') が呼ばれたこと
+        expect(getDataMock).toHaveBeenCalledWith('text/plain')
+
+        // assignRelation (mutate) が正しい引数で呼び出されたことを検証
+        expect(mockAssignRelationMutate).toHaveBeenCalledWith({
+          bookmark_id: droppedBookmarkId,
+          keyword_id: testKeyword.id,
+        })
+      })
+
+      it('ドロップ完了後、ドロップ領域のハイライト表示が解除されること', () => {
+        render(<KeywordPage keyword={testKeyword} />)
+
+        const dropTarget = screen.getByText(UI_LABELS.FIELDS.ASSIGNED_BOOKMARK)
+          .nextElementSibling as HTMLElement
+
+        // 1. ドラッグ要素が進入してハイライト状態にする
+        fireEvent.dragEnter(dropTarget)
+        expect(dropTarget).toHaveClass('border-indigo-500')
+
+        // 2. ドロップを実行
+        fireEvent.drop(dropTarget, {
+          dataTransfer: {
+            getData: vi.fn().mockReturnValue(TestBookmarkWithKeywords[1].id),
+          },
+        })
+
+        // 3. ドロップ後にハイライトクラスが解除され、通常スタイルに戻ることを検証
+        expect(dropTarget).not.toHaveClass('border-indigo-500')
+        expect(dropTarget).not.toHaveClass('bg-indigo-50/50')
+        expect(dropTarget).toHaveClass('border-slate-500')
+      })
     })
   })
 
