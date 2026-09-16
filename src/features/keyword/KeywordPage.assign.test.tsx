@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 // import userEvent, { UserEvent } from '@testing-library/user-event'
 import { uuidv7 } from 'uuidv7'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -95,10 +95,54 @@ describe('ブックマークとキーワードの関連付け', () => {
       it('未関連付けブックマークをドラッグ開始した際、dataTransfer.setData("text/plain", bookmark.id) で対象のブックマーク ID が正しくセットされること', async () => {})
     })
     describe('ドラッグ中・ホバー時の UI フィードバック（dragenter / dragleave / dragover）', () => {
-      it('ドロップ領域上にドラッグ要素が入ったとき（dragenter）、枠線や背景のハイライト用クラスが適用されること', async () => {})
-      it('ドロップ領域からドラッグ要素が出たとき（dragleave）、ハイライト用クラスが解除されること', async () => {})
-      it('ドロップ領域上で dragover が発生した際、デフォルト動作をキャンセルしてドロップが許可されること（preventDefault の実行）', async () => {})
+      it('ドロップ領域上にドラッグ要素が入ったとき（dragenter）、枠線や背景のハイライト用クラスが適用されること', () => {
+        render(<KeywordPage keyword={testKeyword} />)
+
+        const dropTarget = screen.getByText(UI_LABELS.FIELDS.ASSIGNED_BOOKMARK)
+          .nextElementSibling as HTMLElement
+
+        // dragenter 前は通常スタイル
+        expect(dropTarget).toHaveClass('border-slate-500')
+        expect(dropTarget).not.toHaveClass('border-indigo-500')
+
+        // dragenter 発火
+        fireEvent.dragEnter(dropTarget)
+
+        // ハイライト用クラスが適用されること
+        expect(dropTarget).toHaveClass('border-indigo-500')
+        expect(dropTarget).toHaveClass('bg-indigo-50/50')
+      })
+
+      it('ドロップ領域からドラッグ要素が出たとき（dragleave）、ハイライト用クラスが解除されること', () => {
+        render(<KeywordPage keyword={testKeyword} />)
+
+        const dropTarget = screen.getByText(UI_LABELS.FIELDS.ASSIGNED_BOOKMARK)
+          .nextElementSibling as HTMLElement
+
+        // 1. 一度進入してハイライト状態にする
+        fireEvent.dragEnter(dropTarget)
+        expect(dropTarget).toHaveClass('border-indigo-500')
+
+        // 2. 離脱する（dragleave 発火）
+        fireEvent.dragLeave(dropTarget)
+
+        // ハイライト用クラスが解除され、デフォルトに戻ること
+        expect(dropTarget).not.toHaveClass('border-indigo-500')
+        expect(dropTarget).not.toHaveClass('bg-indigo-50/50')
+        expect(dropTarget).toHaveClass('border-slate-500')
+      })
+
+      it('ドロップ領域上で dragover が発生した際、デフォルト動作をキャンセルしてドロップが許可されること（preventDefault の実行）', () => {
+        render(<KeywordPage keyword={testKeyword} />)
+
+        const dropTarget = screen.getByText(UI_LABELS.FIELDS.ASSIGNED_BOOKMARK)
+          .nextElementSibling as HTMLElement
+
+        const isDefaultPrevented = !fireEvent.dragOver(dropTarget)
+        expect(isDefaultPrevented).toBe(true)
+      })
     })
+
     describe('ドロップ完了と API 呼び出し（drop）', () => {
       it('ドロップ領域にドロップした際、dataTransfer.getData("text/plain") から取得したブックマーク ID を使い、assignRelation が正しい引数（bookmark_id, keyword_id）で呼び出されること', async () => {})
       it('ドロップ完了後、ドロップ領域のハイライト表示が解除されること', async () => {})
