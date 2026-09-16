@@ -92,8 +92,30 @@ describe('ブックマークとキーワードの関連付け', () => {
       })
     })
     describe('ドラッグ開始（dragstart）', () => {
-      it('未関連付けブックマークをドラッグ開始した際、dataTransfer.setData("text/plain", bookmark.id) で対象のブックマーク ID が正しくセットされること', async () => {})
+      it('未関連付けブックマークをドラッグ開始した際、dataTransfer.setData("text/plain", bookmark.id) で対象のブックマーク ID が正しくセットされること', () => {
+        render(<KeywordPage keyword={testKeyword} />)
+
+        const unassignedBookmark = screen.getByText(
+          TestBookmarkWithKeywords[1].title,
+        )
+
+        // dataTransfer.setData のモック関数を用意
+        const setDataMock = vi.fn()
+
+        // dragStart イベントを発火
+        fireEvent.dragStart(unassignedBookmark, {
+          dataTransfer: {
+            setData: setDataMock,
+          },
+        })
+
+        expect(setDataMock).toHaveBeenCalledWith(
+          'text/plain',
+          TestBookmarkWithKeywords[1].id,
+        )
+      })
     })
+
     describe('ドラッグ中・ホバー時の UI フィードバック（dragenter / dragleave / dragover）', () => {
       it('ドロップ領域上にドラッグ要素が入ったとき（dragenter）、枠線や背景のハイライト用クラスが適用されること', () => {
         render(<KeywordPage keyword={testKeyword} />)
