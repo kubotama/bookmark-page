@@ -135,8 +135,12 @@ export const KeywordPage = ({ keyword }: KeywordPageProps) => {
           }`}
           onDragEnter={handleDragEnter}
           onDragLeave={handleDragLeave}
-          onDragOver={(e) => handleDragOver(e)}
-          onDrop={(e) => handleDrop(e, keyword.id, assignRelation)}
+          onDragOver={handleDragOver}
+          onDrop={(e) =>
+            handleDrop(e, (bookmark_id) =>
+              assignRelation({ bookmark_id, keyword_id: keyword.id }),
+            )
+          }
         >
           {assignedBookmarks.map((b) => (
             <ListItem id={b.id} key={b.id} to={`/bookmark/${b.id}`}>

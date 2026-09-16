@@ -25,13 +25,10 @@ export const useDropTarget = () => {
     }
   }, [])
 
-  type DropActionParm = { bookmark_id: string; keyword_id: string }
-
   const handleDrop = useCallback(
     (
       e: DragEvent<HTMLElement>,
-      id: string,
-      dropAction: (dropParam: DropActionParm) => void,
+      onDropId: (droppedId: string) => void, // 💡 単にドロップされたIDを返すコールバック
       format = 'text/plain',
     ) => {
       e.preventDefault()
@@ -40,7 +37,7 @@ export const useDropTarget = () => {
 
       const droppedId = e.dataTransfer.getData(format)
       if (droppedId) {
-        dropAction({ bookmark_id: id, keyword_id: droppedId })
+        onDropId(droppedId)
       }
     },
     [],
