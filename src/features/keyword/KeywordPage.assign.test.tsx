@@ -221,14 +221,65 @@ describe('ブックマークとキーワードの関連付け', () => {
 
   describe('異常系', () => {
     describe('無効なデータのドロップ（ID が空・不正な場合）', () => {
-      it('dataTransfer にブックマーク ID が存在しない（空文字または null）状態でドロップされた場合、assignRelation が呼び出されないこと', async () => {})
-    })
-    describe('対象外要素のドラッグ抑止', () => {
-      it('すでに「関連付けられているブックマーク」 の要素には draggable 属性が付与されておらず、ドラッグできないこと', async () => {})
+      it('dataTransfer にブックマーク ID が存在しない（空文字または null）状態でドロップされた場合、assignRelation が呼び出されないこと', () => {
+        render(<KeywordPage keyword={testKeyword} />)
+
+        const dropTarget = screen.getByText(UI_LABELS.FIELDS.ASSIGNED_BOOKMARK)
+          .nextElementSibling as HTMLElement
+
+        // 空文字を返す getData のモック
+        const getDataMock = vi.fn().mockReturnValue('')
+
+        fireEvent.drop(dropTarget, {
+          dataTransfer: {
+            getData: getDataMock,
+          },
+        })
+
+        // getData は呼ばれるが、ID が空のため assignRelation (mutate) は呼ばれないこと
+        expect(getDataMock).toHaveBeenCalledWith('text/plain')
+        expect(mockAssignRelationMutate).not.toHaveBeenCalled()
+      })
     })
     describe('ドロップ領域外へのドロップ（操作のキャンセル）', () => {
-      it('関連付け領域以外の場所（画面の余白や別の要素など）にドロップされた場合、assignRelation が呼び出されないこと', async () => {})
-      it('外へドロップしてキャンセルされた後、ドロップ領域にハイライトが残っていないこと', async () => {})
+      it('関連付け領域以外の場所（画面の余白や別の要素など）にドロップされた場合、assignRelation が呼び出されないこと', () => {
+        render(<KeywordPage keyword={testKeyword} />)
+
+        // ドロップ領域外の要素（例: 画面のヘッダーや body など）
+        const outsideElement = document.body
+
+        // 領域外の要素に対して drop イベントを発火
+        fireEvent.drop(outsideElement, {
+          dataTransfer: {
+            getData: vi.fn().mockReturnValue(TestBookmarkWithKeywords[1].id),
+          },
+        })
+
+        // assignRelation (mutate) が実行されないこと
+        expect(mockAssignRelationMutate).not.toHaveBeenCalled()
+      })
+      it('外へドロップしてキャンセルされた後、ドロップ領域にハイライトが残っていないこと', () => {
+        render(<KeywordPage keyword={testKeyword} />)
+
+        const dropTarget = screen.getByText(UI_LABELS.FIELDS.ASSIGNED_BOOKMARK)
+          .nextElementSibling as HTMLElement
+        const outsideElement = document.body
+
+        // 1. ドロップ領域内に進入してハイライト状態にする (dragenter)
+        fireEvent.dragEnter(dropTarget)
+        expect(dropTarget).toHaveClass('border-indigo-500')
+
+        // 2. ドロップ領域外へ移動する (dragleave)
+        fireEvent.dragLeave(dropTarget)
+
+        // 3. 領域外の要素上でドロップ（またはドラッグ終了）
+        fireEvent.drop(outsideElement)
+
+        // 4. ドロップ領域のハイライトが解除され、デフォルトに戻っていることを検証
+        expect(dropTarget).not.toHaveClass('border-indigo-500')
+        expect(dropTarget).not.toHaveClass('bg-indigo-50/50')
+        expect(dropTarget).toHaveClass('border-slate-500')
+      })
     })
     describe('API エラー発生時の表示（エラーハンドリング）', () => {
       it('assignRelation が失敗（400 / 409 / 500 など）を返した場合でも、コンポーネントがクラッシュせず、エラーメッセージ表示処理（showErrorMessage など）が実行されること', async () => {})
