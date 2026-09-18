@@ -39,6 +39,10 @@ vi.mock('../bookmark/useBookmarks', () => ({
   },
 }))
 
+vi.mock('../relations/useAssignRelation', () => ({
+  useAssignRelation: () => ({ isPending: false, mutate: vi.fn() }),
+}))
+
 describe('削除ボタンの動作', () => {
   const testKeyword = TestKeywords[0]
 
