@@ -31,7 +31,11 @@ import {
   KeywordWithBookmarkIdsSchema,
   UpdateKeywordSchema,
 } from '../schemas/keyword'
-import { BKRelation } from '../schemas/relations'
+import {
+  AssignKeywordSchema,
+  AssignParamSchema,
+  BKRelation,
+} from '../schemas/relations'
 
 type Env = {
   Bindings: {
@@ -274,6 +278,35 @@ const routes = app
       }
     },
   )
+  .delete(
+    API_PATH.DELETE_KEYWORD,
+    zValidator('param', KeywordIdParamSchema, (result, c) => {
+      return !result.success
+        ? c.json({ error: result.error.issues[0].message, success: false }, 400)
+        : undefined
+    }),
+    async (c) => {
+      // 💡 バリデーション済みの安全なパラメータを取得
+      const { id } = c.req.valid('param')
+
+      try {
+        const db = c.env.BOOKMARK_PAGE_DB
+        if (!db) {
+          throw new Error(ERROR_MESSAGE.DB_BINDING_ERROR(DATABASE_NAME))
+        }
+
+        const { success } = await db.prepare(KEYWORDS.DELETE).bind(id).run()
+
+        if (!success) {
+          throw new Error(ERROR_MESSAGE.FAILED_DELETE_KEYWORD)
+        }
+
+        return c.body(null, 204)
+      } catch (error) {
+        return handleDbError(error, c)
+      }
+    },
+  )
   .patch(
     API_PATH.UPDATE_BOOKMARK,
     zValidator('param', BookmarkIdParamSchema, (result, c) => {
@@ -357,6 +390,76 @@ const routes = app
           data: updatedKeyword,
           success: true,
         } as const)
+      } catch (error) {
+        return handleDbError(error, c)
+      }
+    },
+  )
+  .post(
+    API_PATH.ASSIGN_KEYWORD,
+    zValidator('param', AssignParamSchema, (result, c) => {
+      return !result.success
+        ? c.json({ error: result.error.issues[0].message, success: false }, 400)
+        : undefined
+    }),
+    zValidator('json', AssignKeywordSchema, (result, c) => {
+      return !result.success
+        ? c.json({ error: result.error.issues[0].message, success: false }, 400)
+        : undefined
+    }),
+    async (c) => {
+      const { bookmark_id } = c.req.valid('param')
+      const { keyword_id } = c.req.valid('json')
+
+      try {
+        const db = c.env.BOOKMARK_PAGE_DB
+        if (!db) {
+          throw new Error(ERROR_MESSAGE.DB_BINDING_ERROR(DATABASE_NAME))
+        }
+
+        const b_id = await db
+          .prepare(BOOKMARKS.SELECT_ID)
+          .bind(bookmark_id)
+          .first<Bookmark>()
+        if (!b_id) {
+          return c.json(
+            {
+              error: UI_MESSAGES.API.NOT_FOUND_BOOKMARK,
+              success: false,
+            } as const,
+            404,
+          )
+        }
+        const k_id = await db
+          .prepare(KEYWORDS.SELECT_ID)
+          .bind(keyword_id)
+          .first<Keyword>()
+        if (!k_id) {
+          return c.json(
+            {
+              error: UI_MESSAGES.API.NOT_FOUND_KEYWORD,
+              success: false,
+            } as const,
+            404,
+          )
+        }
+        const id = uuidv7()
+        const assigned = await db
+          .prepare(BOOKMARKS_KEYWORDS.INSERT)
+          .bind(id, bookmark_id, keyword_id)
+          .first<BKRelation>()
+
+        if (!assigned) {
+          throw new Error(ERROR_MESSAGE.INSERT_BKRELATION_ERROR)
+        }
+
+        return c.json(
+          {
+            data: assigned,
+            success: true,
+          } as const,
+          201,
+        )
       } catch (error) {
         return handleDbError(error, c)
       }

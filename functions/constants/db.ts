@@ -24,6 +24,7 @@ export const BOOKMARKS = {
 } as const
 
 export const KEYWORDS = {
+  DELETE: 'DELETE FROM keywords WHERE id = ?',
   INSERT: 'INSERT INTO keywords (id, name) VALUES (?, ?) RETURNING id, name',
   SELECT_ALL_WITH_BOOKMARKS: `SELECT
       k.id,
@@ -36,6 +37,7 @@ export const KEYWORDS = {
     LEFT JOIN bookmarks_keywords bk ON k.id = bk.keyword_id
     GROUP BY k.id
     ORDER BY k.created_at DESC;`,
+  SELECT_ID: 'SELECT id FROM keywords WHERE id = ?',
   UPDATE: 'UPDATE keywords SET name = ? WHERE id = ? RETURNING id, name',
 } as const
 

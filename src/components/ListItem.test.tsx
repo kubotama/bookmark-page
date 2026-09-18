@@ -39,7 +39,7 @@ describe('ListItem', () => {
 
     await expectText({
       link: `/bookmark/${TestBookmarks[0].id}`,
-      text: TestBookmarks[0].title,
+      text: UI_LABELS.ACTIONS.DETAIL,
     })
   })
 
@@ -56,11 +56,11 @@ describe('ListItem', () => {
 
     await expectText({
       link: `/bookmark/${TestBookmarks[0].id}`,
-      text: TestBookmarks[0].title,
+      text: UI_LABELS.ACTIONS.DETAIL,
     })
     await expectText({
       link: TestBookmarks[0].url,
-      text: UI_LABELS.ACTIONS.OPEN,
+      text: TestBookmarks[0].title,
     })
   })
 })

@@ -11,6 +11,7 @@ import { Button } from '../../../shared/components/Button'
 import { FormInput } from '../../../shared/components/FormInput'
 import { UI_LABELS, UI_MESSAGES } from '../../../shared/constants/uiMessages'
 import { ListItem } from '../../components/ListItem'
+import { isRegisteredKeyword } from '../../lib/keywords'
 import { useAddKeyword } from '../keyword/useAddKeyword'
 import { useKeywords } from '../keyword/useKeywords'
 import { useDeleteBookmark } from './useDeleteBookmark'
@@ -86,9 +87,7 @@ export const BookmarkForm = ({ bookmark }: BookmarkFormProps) => {
     )
   }
 
-  const isDuplicateKeyword = keywords.some(
-    (k) => k.name.trim() === keywordName.trim(),
-  )
+  const isDuplicateKeyword = isRegisteredKeyword(keywords, keywordName)
 
   const addKeywordButtonLabel = isDuplicateKeyword
     ? UI_LABELS.ACTIONS.KEYWORD_REGISTERED

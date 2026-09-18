@@ -11,6 +11,9 @@ export const ERROR_MESSAGE = {
   INSERT_KEYWORD_ERROR: 'キーワードの追加に失敗しました',
   INSERT_BKRELATION_ERROR: 'ブックマークとキーワードの関連付けに失敗しました',
   FAILED_ADD_KEYWORD: 'キーワードの登録に失敗しました',
+  FAILED_UPDATE_KEYWORD: 'キーワードの更新に失敗しました',
+  FAILED_DELETE_KEYWORD: 'キーワードの削除に失敗しました',
+  FAILED_ASSIGN_RELATION: 'ブックマークとキーワードの関連付けに失敗しました',
 } as const
 
 export const UI_LABELS = {
@@ -26,6 +29,7 @@ export const UI_LABELS = {
     VERIFY_API_URL: 'APIのURLを検証',
     ADD_KEYWORD: '登録',
     KEYWORD_REGISTERED: '登録済',
+    DETAIL: '詳細',
   },
   FIELDS: {
     TITLE: 'タイトル',
@@ -34,6 +38,8 @@ export const UI_LABELS = {
     LINK_TEXT: 'リンク',
     ASSIGNED_KEYWORD: '関連付けられているキーワード',
     UNASSIGNED_KEYWORD: '関連付けられていないキーワード',
+    ASSIGNED_BOOKMARK: '関連付けられているブックマーク',
+    UNASSIGNED_BOOKMARK: '関連付けられていないブックマーク',
     ADD_KEYWORD: '登録するキーワード',
     KEYWORD_NAME: 'キーワード名',
   },
@@ -58,7 +64,11 @@ export const UI_MESSAGES = {
     REGISTERED_BOOKMARKS: (count: number) =>
       `${count}件のブックマークが登録されています。`,
     CONFIRM_DELETE: (title: string) =>
-      `「${title}」を削除してもよろしいですか？`,
+      `ブックマーク「${title}」を削除してもよろしいですか？`,
+  },
+  KEYWORDS: {
+    CONFIRM_DELETE: (title: string) =>
+      `キーワード「${title}」を削除してもよろしいですか？`,
   },
   API: {
     DB_ERROR: 'データベースにエラーが発生しました',

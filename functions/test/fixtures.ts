@@ -72,7 +72,10 @@ export const getExpectedText = (
 export const REQUEST_API_PATH = {
   ADD_BOOKMARK: '/api/bookmarks',
   ADD_KEYWORD: '/api/keywords',
+  ASSIGN_KEYWORD: (bookmark_id: string) =>
+    `/api/bookmarks/${bookmark_id}/keywords`,
   DELETE_BOOKMARK: (id: string) => `/api/bookmarks/${id}`,
+  DELETE_KEYWORD: (id: string) => `/api/keywords/${id}`,
   GET_BOOKMARKS: '/api/bookmarks',
   GET_KEYWORDS: '/api/keywords',
   UPDATE_BOOKMARK: (id: string) => `/api/bookmarks/${id}`,
@@ -135,9 +138,7 @@ export const TestBookmarkWKWTableData = [
 export const TestBookmarkWithKeywords: BookmarkWithKeywords[] = [
   {
     id: '018ed000-0001-7000-8000-000000000001',
-    keywords: [
-      { id: '018ed000-0001-7000-8000-000000000001', name: 'キーワード1' },
-    ],
+    keywords: [{ id: TestKeywords[0].id, name: TestKeywords[0].name }],
     title: 'Hono',
     url: 'https://hono.dev/',
   },
