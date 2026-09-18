@@ -7,7 +7,7 @@ import {
   TestBookmarkWithKeywords,
   TestKeywords,
 } from '../../../functions/test/fixtures'
-import { UI_LABELS } from '../../../shared/constants/uiMessages'
+import { ERROR_MESSAGE, UI_LABELS } from '../../../shared/constants/uiMessages'
 import { KeywordPage } from './KeywordPage'
 
 const mockBack = vi.fn()
@@ -281,9 +281,36 @@ describe('ブックマークとキーワードの関連付け', () => {
         expect(dropTarget).toHaveClass('border-slate-500')
       })
     })
+
     describe('API エラー発生時の表示（エラーハンドリング）', () => {
-      it('assignRelation が失敗（400 / 409 / 500 など）を返した場合でも、コンポーネントがクラッシュせず、エラーメッセージ表示処理（showErrorMessage など）が実行されること', async () => {})
+      it('assignRelation が失敗した場合でも、コンポーネントがクラッシュせず描画が維持されること', () => {
+        // 1. API 呼出失敗（onError の発火）をシミュレート
+        mockAssignRelationMutate.mockImplementationOnce((_, options) => {
+          options?.onError?.(new Error(ERROR_MESSAGE.FAILED_ASSIGN_RELATION))
+        })
+
+        render(<KeywordPage keyword={testKeyword} />)
+
+        const dropTarget = screen.getByText(UI_LABELS.FIELDS.ASSIGNED_BOOKMARK)
+          .nextElementSibling as HTMLElement
+
+        // 2. ドロップイベントを発火
+        fireEvent.drop(dropTarget, {
+          dataTransfer: {
+            getData: vi.fn().mockReturnValue(TestBookmarkWithKeywords[1].id),
+          },
+        })
+
+        // 3. API 呼び出し（mutate）自体は試みられたことを検証
+        expect(mockAssignRelationMutate).toHaveBeenCalled()
+
+        // 4. エラー発生後もコンポーネントがクラッシュせずに画面が正常に維持されていることを検証
+        expect(
+          screen.getByText(UI_LABELS.FIELDS.ASSIGNED_BOOKMARK),
+        ).toBeInTheDocument()
+      })
     })
+
     describe('処理中（Pending）の多重操作制御（※実装する場合）', () => {
       it('関連付け処理が完了するまでの間（isPending 時）、二重ドロップや意図しない連続リクエストが防止されていること', async () => {})
     })
