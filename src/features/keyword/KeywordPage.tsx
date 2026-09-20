@@ -11,6 +11,9 @@ import { UI_LABELS, UI_MESSAGES } from '../../../shared/constants/uiMessages'
 import { ListItem } from '../../components/ListItem'
 import { isRegisteredKeyword } from '../../lib/keywords'
 import { useBookmarks } from '../bookmark/useBookmarks'
+import { useAssignRelation } from '../relations/useAssignRelation'
+import { useDragItem } from '../relations/useDragItem'
+import { useDropTarget } from '../relations/useDropTarget'
 import { useDeleteKeyword } from './useDeleteKeyword'
 import { useKeywords } from './useKeywords'
 import { useUpdateKeyword } from './useUpdateKeyword'
@@ -28,6 +31,15 @@ export const KeywordPage = ({ keyword }: KeywordPageProps) => {
     useUpdateKeyword()
   const { isPending: isDeletePending, mutate: deleteKeyword } =
     useDeleteKeyword()
+  const { handleDragStart } = useDragItem()
+  const {
+    handleDragEnter,
+    handleDragLeave,
+    handleDragOver,
+    handleDrop,
+    isOverAssigned,
+  } = useDropTarget()
+  const { mutate: assignRelation } = useAssignRelation()
   const { data: bookmarkData } = useBookmarks()
   const bookmarks = bookmarkData?.data ?? []
 
@@ -114,31 +126,45 @@ export const KeywordPage = ({ keyword }: KeywordPageProps) => {
 
       <div className="mt-5">
         <div className="text-sm">{UI_LABELS.FIELDS.ASSIGNED_BOOKMARK}</div>
-        <div className="border-2 border-slate-500 min-h-10 rounded">
-          <div className="w-full transition">
-            <div className="flex flex-col items-start">
-              {assignedBookmarks.map((b) => (
-                <ListItem id={b.id} key={b.id} to={`/bookmark/${b.id}`}>
-                  {b.title}
-                </ListItem>
-              ))}
-            </div>
-          </div>
+        <div
+          className={`flex flex-col items-start border-2 border-slate-500 min-h-10 rounded transition ${
+            // 💡 ドラッグ要素が重なったときに枠線と背景をハイライト
+            isOverAssigned
+              ? 'border-indigo-500 bg-indigo-50/50'
+              : 'border-slate-500'
+          }`}
+          onDragEnter={handleDragEnter}
+          onDragLeave={handleDragLeave}
+          onDragOver={handleDragOver}
+          onDrop={(e) =>
+            handleDrop(e, (bookmark_id) =>
+              assignRelation({ bookmark_id, keyword_id: keyword.id }),
+            )
+          }
+        >
+          {assignedBookmarks.map((b) => (
+            <ListItem id={b.id} key={b.id} to={`/bookmark/${b.id}`}>
+              {b.title}
+            </ListItem>
+          ))}
         </div>
       </div>
 
       <div className="mt-5">
         <div className="text-sm">{UI_LABELS.FIELDS.UNASSIGNED_BOOKMARK}</div>
-        <div className="border-2 border-slate-500 min-h-10 rounded">
-          <div className="w-full transition">
-            <div className="flex flex-col items-start">
-              {unassignedBookmarks.map((b) => (
-                <ListItem id={b.id} key={b.id} to={`/bookmark/${b.id}`}>
-                  {b.title}
-                </ListItem>
-              ))}
-            </div>
-          </div>
+        <div className="flex flex-col items-start min-h-10 border-2 border-slate-500 rounded transition">
+          {unassignedBookmarks.map((b) => (
+            <ListItem
+              data-testid="unassigned-bookmark-item"
+              draggable
+              id={b.id}
+              key={b.id}
+              onDragStart={(e) => handleDragStart(e, b.id)}
+              to={`/bookmark/${b.id}`}
+            >
+              {b.title}
+            </ListItem>
+          ))}
         </div>
       </div>
     </>

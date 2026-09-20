@@ -3,7 +3,7 @@ import { ReactNode } from 'react'
 
 import { UI_LABELS } from '../../shared/constants/uiMessages'
 
-type ListItemProps = {
+type ListItemProps = React.HTMLAttributes<HTMLDivElement> & {
   children: ReactNode
   detailLabel?: string
   id: string
@@ -17,11 +17,12 @@ export const ListItem = ({
   id,
   openHref,
   to,
+  ...props
 }: ListItemProps) => {
   return (
     <div
       className="w-full p-2 text-slate-700 bg-slate-200 border border-slate-300 hover:bg-indigo-200 flex justify-between items-center"
-      key={id}
+      {...props}
     >
       {openHref ? (
         <a
