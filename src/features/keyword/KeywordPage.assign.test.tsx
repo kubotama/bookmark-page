@@ -48,10 +48,11 @@ vi.mock('../bookmark/useBookmarks', () => ({
   },
 }))
 
+let mockIsPending: boolean = false
 const mockAssignRelationMutate = vi.fn()
 vi.mock('../relations/useAssignRelation', () => ({
   useAssignRelation: () => ({
-    isPending: false,
+    isPending: mockIsPending,
     mutate: mockAssignRelationMutate,
   }),
 }))
@@ -312,7 +313,24 @@ describe('ブックマークとキーワードの関連付け', () => {
     })
 
     describe('処理中（Pending）の多重操作制御（※実装する場合）', () => {
-      it('関連付け処理が完了するまでの間（isPending 時）、二重ドロップや意図しない連続リクエストが防止されていること', async () => {})
+      it('関連付け処理が完了するまでの間（isPending 時）、二重ドロップや意図しない連続リクエストが防止されていること', () => {
+        mockIsPending = true
+
+        render(<KeywordPage keyword={testKeyword} />)
+
+        const dropTarget = screen.getByText(UI_LABELS.FIELDS.ASSIGNED_BOOKMARK)
+          .nextElementSibling as HTMLElement
+
+        // 2. 処理中の状態のままドロップイベントを発火
+        fireEvent.drop(dropTarget, {
+          dataTransfer: {
+            getData: vi.fn().mockReturnValue(TestBookmarkWithKeywords[1].id),
+          },
+        })
+
+        // 3. isPending のため、mutate が呼び出されないことを検証
+        expect(mockAssignRelationMutate).not.toHaveBeenCalled()
+      })
     })
   })
 })

@@ -39,7 +39,8 @@ export const KeywordPage = ({ keyword }: KeywordPageProps) => {
     handleDrop,
     isOverAssigned,
   } = useDropTarget()
-  const { mutate: assignRelation } = useAssignRelation()
+  const { isPending: isAssignRelationPending, mutate: assignRelation } =
+    useAssignRelation()
   const { data: bookmarkData } = useBookmarks()
   const bookmarks = bookmarkData?.data ?? []
 
@@ -137,9 +138,10 @@ export const KeywordPage = ({ keyword }: KeywordPageProps) => {
           onDragLeave={handleDragLeave}
           onDragOver={handleDragOver}
           onDrop={(e) =>
-            handleDrop(e, (bookmark_id) =>
-              assignRelation({ bookmark_id, keyword_id: keyword.id }),
-            )
+            handleDrop(e, (bookmark_id) => {
+              if (!isAssignRelationPending)
+                assignRelation({ bookmark_id, keyword_id: keyword.id })
+            })
           }
         >
           {assignedBookmarks.map((b) => (
