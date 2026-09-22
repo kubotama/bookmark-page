@@ -7,6 +7,7 @@ import {
 } from '../../../functions/schemas/keyword'
 import { Button } from '../../../shared/components/Button'
 import { FormInput } from '../../../shared/components/FormInput'
+import { DND_DATA_TYPES } from '../../../shared/constants/dnd'
 import { UI_LABELS, UI_MESSAGES } from '../../../shared/constants/uiMessages'
 import { ListItem } from '../../components/ListItem'
 import { isRegisteredKeyword } from '../../lib/keywords'
@@ -38,7 +39,7 @@ export const KeywordPage = ({ keyword }: KeywordPageProps) => {
     handleDragOver,
     handleDrop,
     isOverAssigned,
-  } = useDropTarget()
+  } = useDropTarget({ allowedType: DND_DATA_TYPES.ASSIGN })
   const { isPending: isAssignRelationPending, mutate: assignRelation } =
     useAssignRelation()
   const { data: bookmarkData } = useBookmarks()
@@ -128,7 +129,7 @@ export const KeywordPage = ({ keyword }: KeywordPageProps) => {
       <div className="mt-5">
         <div className="text-sm">{UI_LABELS.FIELDS.ASSIGNED_BOOKMARK}</div>
         <div
-          className={`flex flex-col items-start border-2 border-slate-500 min-h-10 rounded transition ${
+          className={`flex flex-col items-start border-2 min-h-10 rounded transition drop-area ${
             // 💡 ドラッグ要素が重なったときに枠線と背景をハイライト
             isOverAssigned
               ? 'border-indigo-500 bg-indigo-50/50'
@@ -161,7 +162,9 @@ export const KeywordPage = ({ keyword }: KeywordPageProps) => {
               draggable
               id={b.id}
               key={b.id}
-              onDragStart={(e) => handleDragStart(e, b.id)}
+              onDragStart={(e) =>
+                handleDragStart(e, b.id, DND_DATA_TYPES.ASSIGN)
+              }
               to={`/bookmark/${b.id}`}
             >
               {b.title}
