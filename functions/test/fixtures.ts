@@ -72,6 +72,8 @@ export const getExpectedText = (
 export const REQUEST_API_PATH = {
   ADD_BOOKMARK: '/api/bookmarks',
   ADD_KEYWORD: '/api/keywords',
+  ASSIGN_KEYWORD: (bookmark_id: string) =>
+    `/api/bookmarks/${bookmark_id}/keywords`,
   DELETE_BOOKMARK: (id: string) => `/api/bookmarks/${id}`,
   DELETE_KEYWORD: (id: string) => `/api/keywords/${id}`,
   GET_BOOKMARKS: '/api/bookmarks',

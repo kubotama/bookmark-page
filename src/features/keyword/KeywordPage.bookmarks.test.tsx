@@ -38,6 +38,10 @@ vi.mock('./useKeywords', () => ({
   useKeywords: () => ({ data: { data: [] } }),
 }))
 
+vi.mock('../relations/useAssignRelation', () => ({
+  useAssignRelation: () => ({ isPending: false, mutate: vi.fn() }),
+}))
+
 const mockUseBookmarks = vi.fn()
 vi.mock('../bookmark/useBookmarks', () => ({
   useBookmarks: () => mockUseBookmarks(),
