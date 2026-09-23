@@ -7,6 +7,7 @@ import {
   TestBookmarkWithKeywords,
   TestKeywords,
 } from '../../../functions/test/fixtures'
+import { DND_DATA_TYPES } from '../../../shared/constants/dnd'
 import { ERROR_MESSAGE, UI_LABELS } from '../../../shared/constants/uiMessages'
 import { KeywordPage } from './KeywordPage'
 
@@ -111,7 +112,7 @@ describe('ブックマークとキーワードの関連付け', () => {
         })
 
         expect(setDataMock).toHaveBeenCalledWith(
-          'text/plain',
+          DND_DATA_TYPES.ASSIGN,
           TestBookmarkWithKeywords[1].id,
         )
       })
@@ -129,7 +130,11 @@ describe('ブックマークとキーワードの関連付け', () => {
         expect(dropTarget).not.toHaveClass('border-indigo-500')
 
         // dragenter 発火
-        fireEvent.dragEnter(dropTarget)
+        fireEvent.dragEnter(dropTarget, {
+          dataTransfer: {
+            types: [DND_DATA_TYPES.ASSIGN],
+          },
+        })
 
         // ハイライト用クラスが適用されること
         expect(dropTarget).toHaveClass('border-indigo-500')
@@ -143,11 +148,19 @@ describe('ブックマークとキーワードの関連付け', () => {
           .nextElementSibling as HTMLElement
 
         // 1. 一度進入してハイライト状態にする
-        fireEvent.dragEnter(dropTarget)
+        fireEvent.dragEnter(dropTarget, {
+          dataTransfer: {
+            types: [DND_DATA_TYPES.ASSIGN],
+          },
+        })
         expect(dropTarget).toHaveClass('border-indigo-500')
 
         // 2. 離脱する（dragleave 発火）
-        fireEvent.dragLeave(dropTarget)
+        fireEvent.dragLeave(dropTarget, {
+          dataTransfer: {
+            types: [DND_DATA_TYPES.ASSIGN],
+          },
+        })
 
         // ハイライト用クラスが解除され、デフォルトに戻ること
         expect(dropTarget).not.toHaveClass('border-indigo-500')
@@ -161,8 +174,29 @@ describe('ブックマークとキーワードの関連付け', () => {
         const dropTarget = screen.getByText(UI_LABELS.FIELDS.ASSIGNED_BOOKMARK)
           .nextElementSibling as HTMLElement
 
-        const isDefaultPrevented = !fireEvent.dragOver(dropTarget)
+        const isDefaultPrevented = !fireEvent.dragOver(dropTarget, {
+          dataTransfer: {
+            types: [DND_DATA_TYPES.ASSIGN],
+          },
+        })
         expect(isDefaultPrevented).toBe(true)
+      })
+
+      it('ドロップ領域上で dragover が発生した際、dropEffect が "move" に設定されること', () => {
+        render(<KeywordPage keyword={testKeyword} />)
+
+        const dropTarget = screen.getByText(UI_LABELS.FIELDS.ASSIGNED_BOOKMARK)
+          .nextElementSibling as HTMLElement
+
+        const dataTransfer = {
+          dropEffect: '',
+          types: [DND_DATA_TYPES.ASSIGN],
+        }
+
+        fireEvent.dragOver(dropTarget, { dataTransfer })
+
+        // 💡 dropEffect が 'move' になっていることを検証
+        expect(dataTransfer.dropEffect).toBe('move')
       })
     })
 
@@ -182,11 +216,12 @@ describe('ブックマークとキーワードの関連付け', () => {
         fireEvent.drop(dropTarget, {
           dataTransfer: {
             getData: getDataMock,
+            types: [DND_DATA_TYPES.ASSIGN],
           },
         })
 
         // dataTransfer.getData('text/plain') が呼ばれたこと
-        expect(getDataMock).toHaveBeenCalledWith('text/plain')
+        expect(getDataMock).toHaveBeenCalledWith(DND_DATA_TYPES.ASSIGN)
 
         // assignRelation (mutate) が正しい引数で呼び出されたことを検証
         expect(mockAssignRelationMutate).toHaveBeenCalledWith({
@@ -202,13 +237,18 @@ describe('ブックマークとキーワードの関連付け', () => {
           .nextElementSibling as HTMLElement
 
         // 1. ドラッグ要素が進入してハイライト状態にする
-        fireEvent.dragEnter(dropTarget)
+        fireEvent.dragEnter(dropTarget, {
+          dataTransfer: {
+            types: [DND_DATA_TYPES.ASSIGN],
+          },
+        })
         expect(dropTarget).toHaveClass('border-indigo-500')
 
         // 2. ドロップを実行
         fireEvent.drop(dropTarget, {
           dataTransfer: {
             getData: vi.fn().mockReturnValue(TestBookmarkWithKeywords[1].id),
+            types: [DND_DATA_TYPES.ASSIGN],
           },
         })
 
@@ -234,11 +274,12 @@ describe('ブックマークとキーワードの関連付け', () => {
         fireEvent.drop(dropTarget, {
           dataTransfer: {
             getData: getDataMock,
+            types: [DND_DATA_TYPES.ASSIGN],
           },
         })
 
         // getData は呼ばれるが、ID が空のため assignRelation (mutate) は呼ばれないこと
-        expect(getDataMock).toHaveBeenCalledWith('text/plain')
+        expect(getDataMock).toHaveBeenCalledWith(DND_DATA_TYPES.ASSIGN)
         expect(mockAssignRelationMutate).not.toHaveBeenCalled()
       })
     })
@@ -253,6 +294,7 @@ describe('ブックマークとキーワードの関連付け', () => {
         fireEvent.drop(outsideElement, {
           dataTransfer: {
             getData: vi.fn().mockReturnValue(TestBookmarkWithKeywords[1].id),
+            types: [DND_DATA_TYPES.ASSIGN],
           },
         })
 
@@ -267,14 +309,24 @@ describe('ブックマークとキーワードの関連付け', () => {
         const outsideElement = document.body
 
         // 1. ドロップ領域内に進入してハイライト状態にする (dragenter)
-        fireEvent.dragEnter(dropTarget)
+        fireEvent.dragEnter(dropTarget, {
+          dataTransfer: {
+            types: [DND_DATA_TYPES.ASSIGN],
+          },
+        })
         expect(dropTarget).toHaveClass('border-indigo-500')
 
         // 2. ドロップ領域外へ移動する (dragleave)
-        fireEvent.dragLeave(dropTarget)
+        fireEvent.dragLeave(dropTarget, {
+          dataTransfer: {
+            types: [DND_DATA_TYPES.ASSIGN],
+          },
+        })
 
         // 3. 領域外の要素上でドロップ（またはドラッグ終了）
-        fireEvent.drop(outsideElement)
+        fireEvent.drop(outsideElement, {
+          dataTransfer: {},
+        })
 
         // 4. ドロップ領域のハイライトが解除され、デフォルトに戻っていることを検証
         expect(dropTarget).not.toHaveClass('border-indigo-500')
@@ -299,6 +351,7 @@ describe('ブックマークとキーワードの関連付け', () => {
         fireEvent.drop(dropTarget, {
           dataTransfer: {
             getData: vi.fn().mockReturnValue(TestBookmarkWithKeywords[1].id),
+            types: [DND_DATA_TYPES.ASSIGN],
           },
         })
 
@@ -325,6 +378,7 @@ describe('ブックマークとキーワードの関連付け', () => {
         fireEvent.drop(dropTarget, {
           dataTransfer: {
             getData: vi.fn().mockReturnValue(TestBookmarkWithKeywords[1].id),
+            types: [DND_DATA_TYPES.ASSIGN],
           },
         })
 
