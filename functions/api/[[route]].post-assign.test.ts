@@ -1,0 +1,266 @@
+import { D1Database } from '@cloudflare/workers-types'
+import { uuidv7 } from 'uuidv7'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+import { ERROR_MESSAGE, UI_MESSAGES } from '../../shared/constants/uiMessages'
+import { SCHEMA_MESSAGE } from '../../shared/constants/validation'
+import {
+  BOOKMARKS,
+  BOOKMARKS_KEYWORDS,
+  DATABASE_NAME,
+  KEYWORDS,
+} from '../constants/db'
+import { LOG_MESSAGE } from '../constants/logMessage'
+import { Uuid } from '../schemas/common'
+import {
+  INVALID_STRING,
+  REQUEST_API_PATH,
+  TEST_ERROR_MESSAGE,
+  TestBookmarkWithKeywords,
+  TestKeywords,
+} from '../test/fixtures'
+import { app } from './[[route]]'
+
+const firstSpy = vi.fn()
+const bindSpy = vi.fn()
+const prepareSpy = vi.fn()
+const b1 = TestBookmarkWithKeywords[0]
+const k1 = TestKeywords[0]
+
+const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+type ApiAssignParam = {
+  bookmark_id?: string
+  id?: string
+  keyword_id?: string
+  omitDatabaseBinding?: boolean
+  omitKeywordId?: boolean
+}
+
+const helperApiAssign = async (param?: ApiAssignParam) => {
+  const id = param?.id ?? uuidv7()
+  const bookmark_id = param?.bookmark_id ?? TestBookmarkWithKeywords[0].id
+
+  const body = param?.omitKeywordId
+    ? {}
+    : { keyword_id: param?.keyword_id ?? TestKeywords[0].id }
+
+  const mockD1Database: Partial<D1Database> = {
+    prepare: prepareSpy as D1Database['prepare'],
+  }
+  const databaseBinding = param?.omitDatabaseBinding
+    ? {}
+    : { [DATABASE_NAME]: mockD1Database as D1Database } // DATABASE_NAME 定数を使用
+
+  const res = await app.request(
+    REQUEST_API_PATH.ASSIGN_KEYWORD(bookmark_id),
+    {
+      body: JSON.stringify(body),
+      headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+    },
+    databaseBinding,
+  )
+  return { expectedData: { bookmark_id, id, keyword_id: body.keyword_id }, res }
+}
+
+type ApiAssignErrorParam = {
+  consoleCalledWith?: string[]
+  message: string
+  prepareCalledCount?: number
+  status: number
+}
+
+const expectApiAssignError = async (
+  res: Response,
+  param: ApiAssignErrorParam,
+) => {
+  expect(res.status).toBe(param.status)
+
+  const json = await res.json()
+  expect(json.success).toBe(false)
+  expect(json.error).toBe(param.message)
+
+  const prepareCalled = param.prepareCalledCount ?? 0
+
+  expect(prepareSpy).toHaveBeenCalledTimes(prepareCalled)
+
+  const expectedConsoleCount = param.consoleCalledWith?.length ?? 0
+  expect(consoleSpy).toHaveBeenCalledTimes(expectedConsoleCount)
+
+  param.consoleCalledWith?.forEach((errorText, index) =>
+    expect(consoleSpy).toHaveBeenNthCalledWith(
+      index + 1,
+      expect.stringContaining(errorText),
+    ),
+  )
+}
+
+describe('Hono API - POST /api/bookmarks/:bookmark_id/keywords', () => {
+  let validId: Uuid
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    prepareSpy.mockReturnValue({ bind: bindSpy })
+    bindSpy.mockReturnValue({
+      first: firstSpy,
+    })
+    validId = uuidv7()
+  })
+
+  it('キーワードをブックマークに紐付けられること', async () => {
+    firstSpy
+      .mockResolvedValueOnce({ id: b1.id })
+      .mockResolvedValueOnce({ id: k1.id })
+      .mockResolvedValue({ bookmark_id: b1.id, id: validId, keyword_id: k1.id })
+
+    const { expectedData, res } = await helperApiAssign({
+      bookmark_id: b1.id,
+      id: validId,
+      keyword_id: k1.id,
+    })
+
+    expect(res.status).toBe(201)
+
+    const json = await res.json()
+    expect(json.success).toBe(true)
+    expect(json.data).toEqual(expectedData)
+
+    expect(prepareSpy).toHaveBeenNthCalledWith(1, BOOKMARKS.SELECT_ID)
+    expect(prepareSpy).toHaveBeenNthCalledWith(2, KEYWORDS.SELECT_ID)
+    expect(prepareSpy).toHaveBeenNthCalledWith(3, BOOKMARKS_KEYWORDS.INSERT)
+
+    expect(consoleSpy).toHaveBeenCalledTimes(0)
+  })
+
+  it('IDを指定せずにキーワードの関連付けを呼び出した場合、Hono標準の404を返すこと', async () => {
+    const { res } = await helperApiAssign({ bookmark_id: '' })
+
+    expect(res.status).toBe(404)
+
+    const text = await res.text()
+    expect(text).toBe('404 Not Found')
+    expect(prepareSpy).toHaveBeenCalledTimes(0)
+    expect(consoleSpy).toHaveBeenCalledTimes(0)
+  })
+
+  type TestCase = {
+    bookmark_id?: string
+    errorName: string
+    keyword_id?: string
+  }
+
+  const testCases: TestCase[] = [
+    {
+      bookmark_id: INVALID_STRING.ID,
+      errorName: 'ブックマークidが不正な場合',
+    },
+    {
+      errorName: 'キーワードidが不正な場合',
+      keyword_id: INVALID_STRING.ID,
+    },
+  ]
+
+  it.each(testCases)(`$errorName`, async ({ bookmark_id, keyword_id }) => {
+    const { res } = await helperApiAssign({ bookmark_id, keyword_id })
+
+    await expectApiAssignError(res, {
+      message: SCHEMA_MESSAGE.INVALID_ID_FORMAT,
+      status: 400,
+    })
+  })
+
+  it('指定されたidのブックマークが存在しない場合', async () => {
+    firstSpy.mockResolvedValueOnce(null)
+
+    const { res } = await helperApiAssign()
+
+    await expectApiAssignError(res, {
+      message: UI_MESSAGES.API.NOT_FOUND_BOOKMARK,
+      prepareCalledCount: 1,
+      status: 404,
+    })
+  })
+
+  it('指定されたidのキーワードが存在しない場合', async () => {
+    firstSpy.mockResolvedValueOnce({ id: b1.id }).mockResolvedValueOnce(null)
+
+    const { res } = await helperApiAssign()
+
+    await expectApiAssignError(res, {
+      message: UI_MESSAGES.API.NOT_FOUND_KEYWORD,
+      prepareCalledCount: 2,
+      status: 404,
+    })
+  })
+
+  it('リクエストボディに keyword_id が含まれていない場合、400エラーを返すこと', async () => {
+    const { res } = await helperApiAssign({ omitKeywordId: true })
+
+    await expectApiAssignError(res, {
+      message: SCHEMA_MESSAGE.INVALID_ID_FORMAT,
+      status: 400,
+    })
+  })
+
+  it('異常系: データベースへのインサート（または再取得）で例外が発生したとき、ステータス500を返すこと', async () => {
+    const dbError = new Error(TEST_ERROR_MESSAGE.DB_ERROR)
+
+    firstSpy
+      .mockResolvedValueOnce({ id: b1.id })
+      .mockResolvedValueOnce({ id: k1.id })
+      .mockRejectedValue(dbError)
+
+    const { res } = await helperApiAssign()
+
+    await expectApiAssignError(res, {
+      consoleCalledWith: [LOG_MESSAGE.DB_ERROR(dbError)],
+      message: TEST_ERROR_MESSAGE.DB_ERROR,
+      prepareCalledCount: 3,
+      status: 500,
+    })
+  })
+
+  it('異常系: 既に割り当て済みのキーワードを登録しようとしたとき、ステータス409を返すこと', async () => {
+    const dbError = new Error(TEST_ERROR_MESSAGE.CONSTRAINT_BKRELATION_ERROR)
+
+    firstSpy
+      .mockResolvedValueOnce({ id: b1.id })
+      .mockResolvedValueOnce({ id: k1.id })
+      .mockRejectedValue(dbError)
+
+    const { res } = await helperApiAssign()
+
+    await expectApiAssignError(res, {
+      message: UI_MESSAGES.API.DUPLICATE_BKRELATION,
+      prepareCalledCount: 3,
+      status: 409,
+    })
+  })
+
+  it('異常系: データベースへのインサート（または再取得）に失敗したとき、ステータス500を返すこと', async () => {
+    firstSpy
+      .mockResolvedValueOnce({ id: b1.id })
+      .mockResolvedValueOnce({ id: k1.id })
+      .mockResolvedValue(null)
+
+    const { res } = await helperApiAssign()
+
+    await expectApiAssignError(res, {
+      consoleCalledWith: [ERROR_MESSAGE.INSERT_BKRELATION_ERROR],
+      message: UI_MESSAGES.API.DB_ERROR,
+      prepareCalledCount: 3,
+      status: 500,
+    })
+  })
+
+  it('データベースのバインディング（BOOKMARK_PAGE_DB）が未設定の場合、500を返すこと', async () => {
+    const { res } = await helperApiAssign({ omitDatabaseBinding: true })
+
+    await expectApiAssignError(res, {
+      consoleCalledWith: [ERROR_MESSAGE.DB_BINDING_ERROR(DATABASE_NAME)],
+      message: UI_MESSAGES.API.DB_ERROR,
+      status: 500,
+    })
+  })
+})

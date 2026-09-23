@@ -2,7 +2,7 @@
   "name": "bookmark-page",
   "type": "module",
   "private": true,
-  "version": "0.20.0",
+  "version": "0.22.0",
   "license": "MIT",
   "scripts": {
     "dev:frontend": "vite",
@@ -34,7 +34,7 @@
     "zod": "4.4.3"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20260621.1",
+    "@cloudflare/workers-types": "^5.20260906.1",
     "@hono/vite-build": "^1.2.0",
     "@tailwindcss/vite": "^4.3.2",
     "@tanstack/router-plugin": "^1.168.19",
@@ -58,6 +58,6 @@
     "typescript": "6.0.3",
     "vite": "8.0.16",
     "vitest": "4.1.9",
-    "wrangler": "^4.114.0"
+    "wrangler": "^4.129.0"
   }
 }
