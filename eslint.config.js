@@ -10,6 +10,7 @@ export default [
       '.wrangler/**',
       'coverage/**',
       'extension/dist-extension/',
+      'extension/dist/',
     ],
   },
   {

@@ -11,18 +11,18 @@ export default defineConfig({
   },
   plugins: [
     tanstackRouter({
-      generatedRouteTree: resolve(__dirname, './src/routeTree.gen.ts'),
+      generatedRouteTree: resolve(import.meta.dirname, './src/routeTree.gen.ts'),
       routeFileIgnorePattern: '((\\.|/)(test|spec))|\\.stories\\.',
-      // 💡 2. __dirname（このファイルがある場所）を基準に、絶対パスに変換する
-      routesDirectory: resolve(__dirname, './src/routes'),
+      // 💡 2. import.meta.dirname（このファイルがある場所）を基準に、絶対パスに変換する
+      routesDirectory: resolve(import.meta.dirname, './src/routes'),
     }),
     react(),
     tailwindcss(),
   ],
   resolve: {
     alias: {
-      '@': resolve(__dirname, './src'),
-      '@functions': resolve(__dirname, './functions'),
+      '@': resolve(import.meta.dirname, './src'),
+      '@functions': resolve(import.meta.dirname, './functions'),
     },
   },
   root: './src', // Reactのソースコードの場所
@@ -69,7 +69,7 @@ export default defineConfig({
       'shared/components/**/*.test.{ts,tsx}',
     ],
 
-    root: resolve(__dirname, '.'),
+    root: resolve(import.meta.dirname, '.'),
 
     setupFiles: ['src/test/setup.ts', 'extension/src/test/setup.ts'],
   },

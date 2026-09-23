@@ -9,15 +9,18 @@ const copyManifest = () => {
     name: 'copy-manifest',
     closeBundle() {
       try {
-        mkdirSync(resolve(__dirname, 'extension/dist-extension'), {
+        mkdirSync(resolve(import.meta.dirname, 'extension/dist-extension'), {
           recursive: true,
         })
         const manifest = readFileSync(
-          resolve(__dirname, 'extension/manifest.json'),
+          resolve(import.meta.dirname, 'extension/manifest.json'),
           'utf-8',
         )
         writeFileSync(
-          resolve(__dirname, 'extension/dist-extension/manifest.json'),
+          resolve(
+            import.meta.dirname,
+            'extension/dist-extension/manifest.json',
+          ),
           manifest,
         )
       } catch (e) {
@@ -29,13 +32,13 @@ const copyManifest = () => {
 
 export default defineConfig({
   plugins: [react(), tailwindcss(), copyManifest()],
-  root: resolve(__dirname, 'extension'), // 💡 ルートからの相対パスに指定
+  root: resolve(import.meta.dirname, 'extension'), // 💡 ルートからの相対パスに指定
   build: {
-    outDir: resolve(__dirname, 'extension/dist-extension'), // 出力先
+    outDir: resolve(import.meta.dirname, 'extension/dist-extension'), // 出力先
     emptyOutDir: true,
     rollupOptions: {
       input: {
-        popup: resolve(__dirname, 'extension/index.html'),
+        popup: resolve(import.meta.dirname, 'extension/index.html'),
       },
     },
   },
