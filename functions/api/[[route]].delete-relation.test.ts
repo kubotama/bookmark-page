@@ -20,8 +20,12 @@ const mockDb = {
 }
 
 describe('DELETE /bookmarks/:bookmark_id/keywords/:keyword_id', () => {
-  let bookmark_id: string
-  let keyword_id: string
+  const prepareIds = (ids?: { bookmark_id?: string; keyword_id?: string }) => {
+    return {
+      bookmark_id: ids?.bookmark_id ?? uuidv7(),
+      keyword_id: ids?.keyword_id ?? uuidv7(),
+    }
+  }
 
   beforeEach(() => {
     vi.clearAllMocks()
@@ -29,8 +33,6 @@ describe('DELETE /bookmarks/:bookmark_id/keywords/:keyword_id', () => {
     mockBind.mockReturnValue({
       run: mockRun,
     })
-    bookmark_id = uuidv7()
-    keyword_id = uuidv7()
   })
 
   describe('正常系', () => {
@@ -47,6 +49,7 @@ describe('DELETE /bookmarks/:bookmark_id/keywords/:keyword_id', () => {
     ]
     it.each(testCases)(`$testName`, async ({ changes }) => {
       mockRun.mockResolvedValueOnce({ meta: { changes }, success: true })
+      const { bookmark_id, keyword_id } = prepareIds()
 
       const res = await app.request(
         REQUEST_API_PATH.UNASSIGN_RELATION(bookmark_id, keyword_id),
@@ -70,7 +73,7 @@ describe('DELETE /bookmarks/:bookmark_id/keywords/:keyword_id', () => {
       expectedBody?: { error: string; success: boolean }
       expectedConsole?: string
       expectedText?: string
-      getParams?: () => { bookmark_id: string; keyword_id: string }
+      params?: { bookmark_id?: string; keyword_id?: string }
       setup?: () => void
       status: number
     }
@@ -86,7 +89,7 @@ describe('DELETE /bookmarks/:bookmark_id/keywords/:keyword_id', () => {
           error: SCHEMA_MESSAGE.INVALID_ID_FORMAT,
           success: false,
         },
-        getParams: () => ({ bookmark_id: INVALID_STRING.ID, keyword_id }),
+        params: { bookmark_id: INVALID_STRING.ID },
         status: 400,
       },
       {
@@ -95,7 +98,7 @@ describe('DELETE /bookmarks/:bookmark_id/keywords/:keyword_id', () => {
           error: SCHEMA_MESSAGE.INVALID_ID_FORMAT,
           success: false,
         },
-        getParams: () => ({ bookmark_id, keyword_id: INVALID_STRING.ID }),
+        params: { keyword_id: INVALID_STRING.ID },
         status: 400,
       },
       // -------------------------------------------------------------
@@ -104,13 +107,13 @@ describe('DELETE /bookmarks/:bookmark_id/keywords/:keyword_id', () => {
       {
         errorName: 'bookmark_idを指定しない',
         expectedText: '404 Not Found',
-        getParams: () => ({ bookmark_id: '', keyword_id }),
+        params: { bookmark_id: '' },
         status: 404,
       },
       {
         errorName: 'keyword_idを指定しない',
         expectedText: '404 Not Found',
-        getParams: () => ({ bookmark_id, keyword_id: '' }),
+        params: { keyword_id: '' },
         status: 404,
       },
       // -------------------------------------------------------------
@@ -168,19 +171,16 @@ describe('DELETE /bookmarks/:bookmark_id/keywords/:keyword_id', () => {
         expectedBody,
         expectedConsole,
         expectedText,
-        getParams,
+        params,
         setup,
         status,
       }) => {
         if (setup) setup()
 
-        const params = getParams?.() ?? { bookmark_id, keyword_id }
+        const { bookmark_id, keyword_id } = prepareIds(params)
 
         const res = await app.request(
-          REQUEST_API_PATH.UNASSIGN_RELATION(
-            params.bookmark_id,
-            params.keyword_id,
-          ),
+          REQUEST_API_PATH.UNASSIGN_RELATION(bookmark_id, keyword_id),
           { method: 'DELETE' },
           dbBinding ?? { BOOKMARK_PAGE_DB: mockDb as unknown as D1Database },
         )
