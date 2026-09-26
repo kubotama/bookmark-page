@@ -131,6 +131,23 @@ describe('DELETE /bookmarks/:bookmark_id/keywords/:keyword_id', () => {
         status: 500,
       },
       // -------------------------------------------------------------
+      // データベースの削除処理結果が失敗（success: false）を返した場合 (500)
+      // -------------------------------------------------------------
+      {
+        errorName: 'データベースの削除処理結果が失敗（success: false）を返した',
+        expectedBody: {
+          error: UI_MESSAGES.API.DB_ERROR,
+          success: false,
+        },
+        expectedConsole: expect.stringContaining(
+          ERROR_MESSAGE.FAILED_DELETE_KEYWORD,
+        ),
+        setup: () => {
+          mockRun.mockResolvedValueOnce({ success: false })
+        },
+        status: 500,
+      },
+      // -------------------------------------------------------------
       // データベースのバインディング（BOOKMARK_PAGE_DB）が未設定の場合 (500)
       // -------------------------------------------------------------
       {
