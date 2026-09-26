@@ -10,13 +10,18 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BookmarkIdRouteImport } from './routes/bookmark.$id'
 import { Route as KeywordIndexRouteImport } from './routes/keyword.index'
 import { Route as KeywordIdRouteImport } from './routes/keyword.$id'
-import { Route as BookmarkIdRouteImport } from './routes/bookmark.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BookmarkIdRoute = BookmarkIdRouteImport.update({
+  id: '/bookmark/$id',
+  path: '/bookmark/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const KeywordIndexRoute = KeywordIndexRouteImport.update({
@@ -27,11 +32,6 @@ const KeywordIndexRoute = KeywordIndexRouteImport.update({
 const KeywordIdRoute = KeywordIdRouteImport.update({
   id: '/keyword/$id',
   path: '/keyword/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BookmarkIdRoute = BookmarkIdRouteImport.update({
-  id: '/bookmark/$id',
-  path: '/bookmark/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -78,6 +78,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/bookmark/$id': {
+      id: '/bookmark/$id'
+      path: '/bookmark/$id'
+      fullPath: '/bookmark/$id'
+      preLoaderRoute: typeof BookmarkIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/keyword/': {
       id: '/keyword/'
       path: '/keyword'
@@ -90,13 +97,6 @@ declare module '@tanstack/react-router' {
       path: '/keyword/$id'
       fullPath: '/keyword/$id'
       preLoaderRoute: typeof KeywordIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/bookmark/$id': {
-      id: '/bookmark/$id'
-      path: '/bookmark/$id'
-      fullPath: '/bookmark/$id'
-      preLoaderRoute: typeof BookmarkIdRouteImport
       parentRoute: typeof rootRouteImport
     }
   }

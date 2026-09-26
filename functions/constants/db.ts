@@ -42,6 +42,8 @@ export const KEYWORDS = {
 } as const
 
 export const BOOKMARKS_KEYWORDS = {
+  DELETE:
+    'DELETE FROM bookmarks_keywords WHERE bookmark_id = ? AND keyword_id = ?',
   INSERT:
     'INSERT INTO bookmarks_keywords (id, bookmark_id, keyword_id) VALUES (?, ?, ?) RETURNING id, bookmark_id, keyword_id',
 } as const

@@ -78,6 +78,8 @@ export const REQUEST_API_PATH = {
   DELETE_KEYWORD: (id: string) => `/api/keywords/${id}`,
   GET_BOOKMARKS: '/api/bookmarks',
   GET_KEYWORDS: '/api/keywords',
+  UNASSIGN_RELATION: (bookmark_id: string, keyword_id: string) =>
+    `/api/bookmarks/${bookmark_id}/keywords/${keyword_id}`,
   UPDATE_BOOKMARK: (id: string) => `/api/bookmarks/${id}`,
   UPDATE_KEYWORD: (id: string) => `/api/keywords/${id}`,
 } as const

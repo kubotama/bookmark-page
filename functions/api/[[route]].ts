@@ -35,6 +35,7 @@ import {
   AssignKeywordSchema,
   AssignParamSchema,
   BKRelation,
+  UnassignParamSchema,
 } from '../schemas/relations'
 
 type Env = {
@@ -296,6 +297,38 @@ const routes = app
         }
 
         const { success } = await db.prepare(KEYWORDS.DELETE).bind(id).run()
+
+        if (!success) {
+          throw new Error(ERROR_MESSAGE.FAILED_DELETE_KEYWORD)
+        }
+
+        return c.body(null, 204)
+      } catch (error) {
+        return handleDbError(error, c)
+      }
+    },
+  )
+  .delete(
+    API_PATH.UNASSIGN_RELATION,
+    zValidator('param', UnassignParamSchema, (result, c) => {
+      return !result.success
+        ? c.json({ error: result.error.issues[0].message, success: false }, 400)
+        : undefined
+    }),
+    async (c) => {
+      // 💡 バリデーション済みの安全なパラメータを取得
+      const { bookmark_id, keyword_id } = c.req.valid('param')
+
+      try {
+        const db = c.env.BOOKMARK_PAGE_DB
+        if (!db) {
+          throw new Error(ERROR_MESSAGE.DB_BINDING_ERROR(DATABASE_NAME))
+        }
+
+        const { success } = await db
+          .prepare(BOOKMARKS_KEYWORDS.DELETE)
+          .bind(bookmark_id, keyword_id)
+          .run()
 
         if (!success) {
           throw new Error(ERROR_MESSAGE.FAILED_DELETE_KEYWORD)
