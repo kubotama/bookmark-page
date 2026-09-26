@@ -34,8 +34,19 @@ describe('DELETE /bookmarks/:bookmark_id/keywords/:keyword_id', () => {
   })
 
   describe('正常系', () => {
-    it('正常なIDが指定された場合、削除に成功して204を返すこと', async () => {
-      mockRun.mockResolvedValueOnce({ meta: { changes: 1 }, success: true })
+    const testCases = [
+      {
+        changes: 1,
+        testName: '正常なIDが指定された場合、削除に成功して204を返すこと',
+      },
+      {
+        changes: 0,
+        testName:
+          '対象の関連付けが存在しない場合（changes: 0）でも、冪等性によりエラーにならず204を返すこと',
+      },
+    ]
+    it.each(testCases)(`$testName`, async ({ changes }) => {
+      mockRun.mockResolvedValueOnce({ meta: { changes }, success: true })
 
       const res = await app.request(
         REQUEST_API_PATH.UNASSIGN_RELATION(bookmark_id, keyword_id),
@@ -50,19 +61,6 @@ describe('DELETE /bookmarks/:bookmark_id/keywords/:keyword_id', () => {
       expect(mockBind).toHaveBeenCalledWith(bookmark_id, keyword_id)
       expect(mockRun).toHaveBeenCalledWith()
       expect(consoleSpy).toHaveBeenCalledTimes(0)
-    })
-
-    it('対象の関連付けが存在しない場合（changes: 0）でも、冪等性によりエラーにならず204を返すこと', async () => {
-      mockRun.mockResolvedValueOnce({ meta: { changes: 0 }, success: true })
-
-      const res = await app.request(
-        REQUEST_API_PATH.UNASSIGN_RELATION(bookmark_id, keyword_id),
-        { method: 'DELETE' },
-        { BOOKMARK_PAGE_DB: mockDb as unknown as D1Database },
-      )
-
-      expect(res.status).toBe(204)
-      expect(res.body).toBeNull()
     })
   })
   describe('異常系', () => {
