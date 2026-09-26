@@ -2,9 +2,9 @@ import { D1Database } from '@cloudflare/workers-types'
 import { uuidv7 } from 'uuidv7'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { UI_MESSAGES } from '../../shared/constants/uiMessages'
+import { ERROR_MESSAGE, UI_MESSAGES } from '../../shared/constants/uiMessages'
 import { SCHEMA_MESSAGE } from '../../shared/constants/validation'
-import { BOOKMARKS_KEYWORDS } from '../constants/db'
+import { BOOKMARKS_KEYWORDS, DATABASE_NAME } from '../constants/db'
 import { LOG_MESSAGE } from '../constants/logMessage'
 import { INVALID_STRING, REQUEST_API_PATH } from '../test/fixtures'
 import { app } from './[[route]]'
@@ -67,11 +67,12 @@ describe('DELETE /bookmarks/:bookmark_id/keywords/:keyword_id', () => {
   })
   describe('異常系', () => {
     type TestCase = {
+      dbBinding?: unknown
       errorName: string
       expectedBody?: { error: string; success: boolean }
       expectedConsole?: string
       expectedText?: string
-      getParams: () => { bookmark_id: string; keyword_id: string }
+      getParams?: () => { bookmark_id: string; keyword_id: string }
       setup?: () => void
       status: number
     }
@@ -124,16 +125,31 @@ describe('DELETE /bookmarks/:bookmark_id/keywords/:keyword_id', () => {
           success: false,
         },
         expectedConsole: LOG_MESSAGE.DB_ERROR(dbError),
-        getParams: () => ({ bookmark_id, keyword_id }),
         setup: () => {
           mockRun.mockRejectedValueOnce(dbError)
         },
+        status: 500,
+      },
+      // -------------------------------------------------------------
+      // データベースのバインディング（BOOKMARK_PAGE_DB）が未設定の場合 (500)
+      // -------------------------------------------------------------
+      {
+        dbBinding: {},
+        errorName: 'データベースのバインディング（BOOKMARK_PAGE_DB）が未設定の',
+        expectedBody: {
+          error: UI_MESSAGES.API.DB_ERROR,
+          success: false,
+        },
+        expectedConsole: expect.stringContaining(
+          ERROR_MESSAGE.DB_BINDING_ERROR(DATABASE_NAME),
+        ),
         status: 500,
       },
     ]
     it.each(testCases)(
       '$errorName 場合、$status を返すこと',
       async ({
+        dbBinding,
         expectedBody,
         expectedConsole,
         expectedText,
@@ -143,7 +159,7 @@ describe('DELETE /bookmarks/:bookmark_id/keywords/:keyword_id', () => {
       }) => {
         if (setup) setup()
 
-        const params = getParams()
+        const params = getParams?.() ?? { bookmark_id, keyword_id }
 
         const res = await app.request(
           REQUEST_API_PATH.UNASSIGN_RELATION(
@@ -151,7 +167,7 @@ describe('DELETE /bookmarks/:bookmark_id/keywords/:keyword_id', () => {
             params.keyword_id,
           ),
           { method: 'DELETE' },
-          { BOOKMARK_PAGE_DB: mockDb as unknown as D1Database },
+          dbBinding ?? { BOOKMARK_PAGE_DB: mockDb as unknown as D1Database },
         )
 
         expect(res.status).toBe(status)
