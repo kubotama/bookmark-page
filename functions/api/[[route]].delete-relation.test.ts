@@ -66,25 +66,53 @@ describe('DELETE /bookmarks/:bookmark_id/keywords/:keyword_id', () => {
   describe('異常系', () => {
     type TestCase = {
       errorName: string
+      expectedBody?: { error: string; success: boolean }
+      expectedText?: string
       params: { bookmark_id: string; keyword_id: string }
+      status: number
     }
 
-    // -------------------------------------------------------------
-    // 指定されたIDの形式が無効な場合 (400)
-    // -------------------------------------------------------------
     const testCases: TestCase[] = [
+      // -------------------------------------------------------------
+      // 指定されたIDの形式が無効な場合 (400)
+      // -------------------------------------------------------------
       {
-        errorName: '無効な keyword_id（非UUID）',
+        errorName: '無効な keyword_id（非UUID）が指定された',
+        expectedBody: {
+          error: SCHEMA_MESSAGE.INVALID_ID_FORMAT,
+          success: false,
+        },
         params: { bookmark_id: INVALID_STRING.ID, keyword_id },
+        status: 400,
       },
       {
-        errorName: '無効な bookmark_id（非UUID）',
+        errorName: '無効な bookmark_id（非UUID）が指定された',
+        expectedBody: {
+          error: SCHEMA_MESSAGE.INVALID_ID_FORMAT,
+          success: false,
+        },
         params: { bookmark_id, keyword_id: INVALID_STRING.ID },
+        status: 400,
+      },
+      // -------------------------------------------------------------
+      // IDが未指定の場合 (404)
+      // -------------------------------------------------------------
+      {
+        errorName: 'bookmark_idを指定しない',
+        expectedText: '404 Not Found',
+        params: { bookmark_id: '', keyword_id },
+        status: 404,
+      },
+      {
+        errorName: 'keyword_idを指定しない',
+        expectedText: '404 Not Found',
+        params: { bookmark_id, keyword_id: '' },
+        status: 404,
       },
     ]
     it.each(testCases)(
-      '$errorName が指定された場合、400を返すこと',
-      async ({ params }) => {
+      '$errorName 場合、$status を返すこと',
+      async ({ expectedBody, expectedText, params, status }) => {
         const res = await app.request(
           REQUEST_API_PATH.UNASSIGN_RELATION(
             params.bookmark_id,
@@ -94,12 +122,15 @@ describe('DELETE /bookmarks/:bookmark_id/keywords/:keyword_id', () => {
           { BOOKMARK_PAGE_DB: mockDb as unknown as D1Database },
         )
 
-        expect(res.status).toBe(400)
-        const body = await res.json()
-        expect(body).toEqual({
-          error: SCHEMA_MESSAGE.INVALID_ID_FORMAT,
-          success: false,
-        })
+        expect(res.status).toBe(status)
+        if (expectedBody) {
+          const resBody = await res.json()
+          expect(resBody).toEqual(expectedBody)
+        }
+        if (expectedText) {
+          const resText = await res.text()
+          expect(resText).toEqual('404 Not Found')
+        }
         expect(consoleSpy).toHaveBeenCalledTimes(0)
       },
     )
