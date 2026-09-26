@@ -69,10 +69,13 @@ describe('DELETE /bookmarks/:bookmark_id/keywords/:keyword_id', () => {
     type TestCase = {
       errorName: string
       expectedBody?: { error: string; success: boolean }
+      expectedConsole?: string
       expectedText?: string
-      params: { bookmark_id: string; keyword_id: string }
+      getParams: () => { bookmark_id: string; keyword_id: string }
+      setup?: () => void
       status: number
     }
+    const dbError = new Error(UI_MESSAGES.API.DB_ERROR)
 
     const testCases: TestCase[] = [
       // -------------------------------------------------------------
@@ -84,7 +87,7 @@ describe('DELETE /bookmarks/:bookmark_id/keywords/:keyword_id', () => {
           error: SCHEMA_MESSAGE.INVALID_ID_FORMAT,
           success: false,
         },
-        params: { bookmark_id: INVALID_STRING.ID, keyword_id },
+        getParams: () => ({ bookmark_id: INVALID_STRING.ID, keyword_id }),
         status: 400,
       },
       {
@@ -93,7 +96,7 @@ describe('DELETE /bookmarks/:bookmark_id/keywords/:keyword_id', () => {
           error: SCHEMA_MESSAGE.INVALID_ID_FORMAT,
           success: false,
         },
-        params: { bookmark_id, keyword_id: INVALID_STRING.ID },
+        getParams: () => ({ bookmark_id, keyword_id: INVALID_STRING.ID }),
         status: 400,
       },
       // -------------------------------------------------------------
@@ -102,19 +105,46 @@ describe('DELETE /bookmarks/:bookmark_id/keywords/:keyword_id', () => {
       {
         errorName: 'bookmark_idを指定しない',
         expectedText: '404 Not Found',
-        params: { bookmark_id: '', keyword_id },
+        getParams: () => ({ bookmark_id: '', keyword_id }),
         status: 404,
       },
       {
         errorName: 'keyword_idを指定しない',
         expectedText: '404 Not Found',
-        params: { bookmark_id, keyword_id: '' },
+        getParams: () => ({ bookmark_id, keyword_id: '' }),
         status: 404,
+      },
+      // -------------------------------------------------------------
+      // データベースの削除処理中に例外が発生した場合 (500)
+      // -------------------------------------------------------------
+      {
+        errorName: 'データベースの削除処理中に例外が発生した',
+        expectedBody: {
+          error: UI_MESSAGES.API.DB_ERROR,
+          success: false,
+        },
+        expectedConsole: LOG_MESSAGE.DB_ERROR(dbError),
+        getParams: () => ({ bookmark_id, keyword_id }),
+        setup: () => {
+          mockRun.mockRejectedValueOnce(dbError)
+        },
+        status: 500,
       },
     ]
     it.each(testCases)(
       '$errorName 場合、$status を返すこと',
-      async ({ expectedBody, expectedText, params, status }) => {
+      async ({
+        expectedBody,
+        expectedConsole,
+        expectedText,
+        getParams,
+        setup,
+        status,
+      }) => {
+        if (setup) setup()
+
+        const params = getParams()
+
         const res = await app.request(
           REQUEST_API_PATH.UNASSIGN_RELATION(
             params.bookmark_id,
@@ -131,34 +161,14 @@ describe('DELETE /bookmarks/:bookmark_id/keywords/:keyword_id', () => {
         }
         if (expectedText) {
           const resText = await res.text()
-          expect(resText).toEqual('404 Not Found')
+          expect(resText).toEqual(expectedText)
         }
-        expect(consoleSpy).toHaveBeenCalledTimes(0)
+        if (expectedConsole) {
+          expect(consoleSpy).toHaveBeenCalledWith(expectedConsole)
+        } else {
+          expect(consoleSpy).toHaveBeenCalledTimes(0)
+        }
       },
     )
-
-    // -------------------------------------------------------------
-    // データベースの削除処理中に例外が発生した場合 (500)
-    // -------------------------------------------------------------
-    it('データベースの削除処理中に例外が発生した場合、500を返すこと', async () => {
-      // 削除処理の段階で例外エラーをスローさせる
-      const dbError = new Error(UI_MESSAGES.API.DB_ERROR)
-
-      mockRun.mockRejectedValueOnce(dbError)
-
-      const res = await app.request(
-        REQUEST_API_PATH.UNASSIGN_RELATION(bookmark_id, keyword_id),
-        { method: 'DELETE' },
-        { BOOKMARK_PAGE_DB: mockDb as unknown as D1Database },
-      )
-
-      expect(res.status).toBe(500)
-      const body = await res.json()
-      expect(body).toEqual({
-        error: UI_MESSAGES.API.DB_ERROR,
-        success: false,
-      })
-      expect(consoleSpy).toHaveBeenCalledWith(LOG_MESSAGE.DB_ERROR(dbError))
-    })
   })
 })
