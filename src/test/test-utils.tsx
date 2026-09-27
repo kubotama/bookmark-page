@@ -5,16 +5,18 @@ import { expect, Mock, vi } from 'vitest'
 
 interface ExpectMutationSuccessOptions {
   back?: Mock
+  mockConsole?: Mock
   mockInvalidateQueries?: Mock
   mockMutation: Mock
   mockShowErrorMessage?: Mock
   navigate?: { mockNavigate: Mock; path: string }
   payload: {
     json?:
-      | { keyword_id: string }
-      | { name: string }
-      | { title: string; url: string }
-    param?: { bookmark_id: string } | { id: string }
+      { keyword_id: string } | { name: string } | { title: string; url: string }
+    param?:
+      | { bookmark_id: string; keyword_id: string }
+      | { bookmark_id: string }
+      | { id: string }
   }
   queryKey: string[]
   result: ResultType
@@ -29,6 +31,7 @@ type ResultType = {
 
 export const expectMutationSuccess = ({
   back,
+  mockConsole,
   mockInvalidateQueries,
   mockMutation,
   mockShowErrorMessage,
@@ -57,6 +60,9 @@ export const expectMutationSuccess = ({
   }
   if (mockShowErrorMessage) {
     expect(mockShowErrorMessage).not.toHaveBeenCalled()
+  }
+  if (mockConsole) {
+    expect(mockConsole).not.toHaveBeenCalled()
   }
 }
 

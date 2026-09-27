@@ -29,3 +29,5 @@ export const UnassignParamSchema = z.object({
   bookmark_id: UuidSchema,
   keyword_id: UuidSchema,
 })
+
+export type UnassignRelationParam = z.infer<typeof UnassignParamSchema>
