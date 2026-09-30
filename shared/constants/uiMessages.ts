@@ -14,6 +14,7 @@ export const ERROR_MESSAGE = {
   FAILED_UPDATE_KEYWORD: 'キーワードの更新に失敗しました',
   FAILED_DELETE_KEYWORD: 'キーワードの削除に失敗しました',
   FAILED_ASSIGN_RELATION: 'ブックマークとキーワードの関連付けに失敗しました',
+  FAILED_UNASSIGN_RELATION: 'ブックマークとキーワードの関連解除に失敗しました',
 } as const
 
 export const UI_LABELS = {

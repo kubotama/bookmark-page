@@ -11,10 +11,11 @@ interface ExpectMutationSuccessOptions {
   navigate?: { mockNavigate: Mock; path: string }
   payload: {
     json?:
-      | { keyword_id: string }
-      | { name: string }
-      | { title: string; url: string }
-    param?: { bookmark_id: string } | { id: string }
+      { keyword_id: string } | { name: string } | { title: string; url: string }
+    param?:
+      | { bookmark_id: string; keyword_id: string }
+      | { bookmark_id: string }
+      | { id: string }
   }
   queryKey: string[]
   result: ResultType
