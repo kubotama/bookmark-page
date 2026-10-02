@@ -7,14 +7,11 @@ import {
 } from '../../../functions/schemas/keyword'
 import { Button } from '../../../shared/components/Button'
 import { FormInput } from '../../../shared/components/FormInput'
-import { DND_DATA_TYPES } from '../../../shared/constants/dnd'
 import { UI_LABELS, UI_MESSAGES } from '../../../shared/constants/uiMessages'
 import { ListItem } from '../../components/ListItem'
 import { isRegisteredKeyword } from '../../lib/keywords'
 import { useBookmarks } from '../bookmark/useBookmarks'
 import { useAssignRelation } from '../relations/useAssignRelation'
-import { useDragItem } from '../relations/useDragItem'
-import { useDropTarget } from '../relations/useDropTarget'
 import { useDeleteKeyword } from './useDeleteKeyword'
 import { useKeywords } from './useKeywords'
 import { useUpdateKeyword } from './useUpdateKeyword'
@@ -32,14 +29,6 @@ export const KeywordPage = ({ keyword }: KeywordPageProps) => {
     useUpdateKeyword()
   const { isPending: isDeletePending, mutate: deleteKeyword } =
     useDeleteKeyword()
-  const { handleDragStart } = useDragItem()
-  const {
-    handleDragEnter,
-    handleDragLeave,
-    handleDragOver,
-    handleDrop,
-    isOverAssigned,
-  } = useDropTarget({ allowedType: DND_DATA_TYPES.ASSIGN })
   const { isPending: isAssignRelationPending, mutate: assignRelation } =
     useAssignRelation()
   const { data: bookmarkData } = useBookmarks()
@@ -128,23 +117,7 @@ export const KeywordPage = ({ keyword }: KeywordPageProps) => {
 
       <div className="mt-5">
         <div className="text-sm">{UI_LABELS.FIELDS.ASSIGNED_BOOKMARK}</div>
-        <div
-          className={`flex flex-col items-start border-2 min-h-10 rounded transition drop-area ${
-            // 💡 ドラッグ要素が重なったときに枠線と背景をハイライト
-            isOverAssigned
-              ? 'border-indigo-500 bg-indigo-50/50'
-              : 'border-slate-500'
-          }`}
-          onDragEnter={handleDragEnter}
-          onDragLeave={handleDragLeave}
-          onDragOver={handleDragOver}
-          onDrop={(e) =>
-            handleDrop(e, (bookmark_id) => {
-              if (!isAssignRelationPending)
-                assignRelation({ bookmark_id, keyword_id: keyword.id })
-            })
-          }
-        >
+        <div className="flex flex-col items-start border-2 min-h-10 rounded transition border-slate-500">
           {assignedBookmarks.map((b) => (
             <ListItem id={b.id} key={b.id} to={`/bookmark/${b.id}`}>
               {b.title}
@@ -165,7 +138,6 @@ export const KeywordPage = ({ keyword }: KeywordPageProps) => {
                   : 'cursor-pointer'
               }
               data-testid="unassigned-bookmark-item"
-              draggable
               id={b.id}
               key={b.id}
               onClick={() => {
@@ -173,9 +145,6 @@ export const KeywordPage = ({ keyword }: KeywordPageProps) => {
                   assignRelation({ bookmark_id: b.id, keyword_id: keyword.id })
                 }
               }}
-              onDragStart={(e) =>
-                handleDragStart(e, b.id, DND_DATA_TYPES.ASSIGN)
-              }
               to={`/bookmark/${b.id}`}
             >
               {b.title}
