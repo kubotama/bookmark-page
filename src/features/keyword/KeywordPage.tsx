@@ -158,10 +158,21 @@ export const KeywordPage = ({ keyword }: KeywordPageProps) => {
         <div className="flex flex-col items-start min-h-10 border-2 border-slate-500 rounded transition">
           {unassignedBookmarks.map((b) => (
             <ListItem
+              aria-disabled={isAssignRelationPending}
+              className={
+                isAssignRelationPending
+                  ? 'pointer-events-none opacity-50'
+                  : 'cursor-pointer'
+              }
               data-testid="unassigned-bookmark-item"
               draggable
               id={b.id}
               key={b.id}
+              onClick={() => {
+                if (!isAssignRelationPending) {
+                  assignRelation({ bookmark_id: b.id, keyword_id: keyword.id })
+                }
+              }}
               onDragStart={(e) =>
                 handleDragStart(e, b.id, DND_DATA_TYPES.ASSIGN)
               }

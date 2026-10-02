@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
-// import userEvent, { UserEvent } from '@testing-library/user-event'
+import userEvent from '@testing-library/user-event'
 import { uuidv7 } from 'uuidv7'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -72,7 +72,7 @@ describe('ブックマークとキーワードの関連付け', () => {
         success: true,
       },
     })
-    // user = userEvent.setup()
+    mockIsPending = false
   })
 
   describe('正常系', () => {
@@ -256,6 +256,55 @@ describe('ブックマークとキーワードの関連付け', () => {
         expect(dropTarget).not.toHaveClass('border-indigo-500')
         expect(dropTarget).not.toHaveClass('bg-indigo-50/50')
         expect(dropTarget).toHaveClass('border-slate-500')
+      })
+    })
+
+    describe('クリックでブックマークを関連付け', () => {
+      it('関連付けられていないブックマークをクリック', async () => {
+        const user = userEvent.setup()
+
+        render(<KeywordPage keyword={testKeyword} />)
+
+        const unassignedBookmark = screen.getByText(
+          TestBookmarkWithKeywords[1].title,
+        )
+
+        await user.click(unassignedBookmark)
+
+        expect(mockAssignRelationMutate).toHaveBeenCalledWith({
+          bookmark_id: TestBookmarkWithKeywords[1].id,
+          keyword_id: testKeyword.id,
+        })
+      })
+
+      it('関連付け処理中（isAssignRelationPending: true）のときは、クリックしても API が呼び出されないこと', async () => {
+        mockIsPending = true
+
+        const user = userEvent.setup()
+        render(<KeywordPage keyword={testKeyword} />)
+
+        const unassignedBookmark = screen.getByText(
+          TestBookmarkWithKeywords[1].title,
+        )
+
+        await user.click(unassignedBookmark)
+
+        // API 呼び出し関数が実行されていないことを検証
+        expect(mockAssignRelationMutate).not.toHaveBeenCalled()
+      })
+
+      it('関連付け処理中は要素に aria-disabled や非活性クラスが付与されていること', () => {
+        mockIsPending = true
+
+        render(<KeywordPage keyword={testKeyword} />)
+
+        const unassignedBookmarkItems = screen.getAllByTestId(
+          'unassigned-bookmark-item',
+        )
+        const targetItem = unassignedBookmarkItems[1]
+
+        expect(targetItem).toHaveAttribute('aria-disabled', 'true')
+        expect(targetItem).toHaveClass('pointer-events-none', 'opacity-50')
       })
     })
   })
