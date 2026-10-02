@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
-// import userEvent, { UserEvent } from '@testing-library/user-event'
+import userEvent from '@testing-library/user-event'
 import { uuidv7 } from 'uuidv7'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -256,6 +256,25 @@ describe('ブックマークとキーワードの関連付け', () => {
         expect(dropTarget).not.toHaveClass('border-indigo-500')
         expect(dropTarget).not.toHaveClass('bg-indigo-50/50')
         expect(dropTarget).toHaveClass('border-slate-500')
+      })
+    })
+
+    describe('クリックでブックマークを関連付け', () => {
+      it('関連付けられていないブックマークをクリック', async () => {
+        const user = userEvent.setup()
+
+        render(<KeywordPage keyword={testKeyword} />)
+
+        const unassignedBookmark = screen.getByText(
+          TestBookmarkWithKeywords[1].title,
+        )
+
+        await user.click(unassignedBookmark)
+
+        expect(mockAssignRelationMutate).toHaveBeenCalledWith({
+          bookmark_id: TestBookmarkWithKeywords[1].id,
+          keyword_id: testKeyword.id,
+        })
       })
     })
   })
