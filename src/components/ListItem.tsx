@@ -2,9 +2,11 @@ import { Link } from '@tanstack/react-router'
 import { ReactNode } from 'react'
 
 import { UI_LABELS } from '../../shared/constants/uiMessages'
+import { cn } from '../../shared/lib/utils'
 
 type ListItemProps = React.HTMLAttributes<HTMLDivElement> & {
   children: ReactNode
+  className?: string
   detailLabel?: string
   id: string
   openHref?: string
@@ -13,6 +15,7 @@ type ListItemProps = React.HTMLAttributes<HTMLDivElement> & {
 
 export const ListItem = ({
   children,
+  className,
   detailLabel = UI_LABELS.ACTIONS.DETAIL,
   id,
   openHref,
@@ -21,7 +24,10 @@ export const ListItem = ({
 }: ListItemProps) => {
   return (
     <div
-      className="w-full p-2 text-slate-700 bg-slate-200 border border-slate-300 hover:bg-indigo-200 flex justify-between items-center"
+      className={cn(
+        'w-full p-2 text-slate-700 bg-slate-200 border border-slate-300 hover:bg-indigo-200 flex justify-between items-center',
+        className,
+      )}
       {...props}
     >
       {openHref ? (
