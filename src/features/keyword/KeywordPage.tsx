@@ -1,6 +1,7 @@
 import { useRouter } from '@tanstack/react-router'
 import { useState } from 'react'
 
+import { BookmarkUrlSchema } from '../../../functions/schemas/bookmark'
 import {
   KeywordNameSchema,
   KeywordWithBookmarkIds,
@@ -84,6 +85,19 @@ export const KeywordPage = ({ keyword }: KeywordPageProps) => {
     { assignedBookmarks: [], unassignedBookmarks: [] },
   )
 
+  const handleOpen = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault() // フォーム送信の防止
+
+    assignedBookmarks.forEach((b) => {
+      const result = BookmarkUrlSchema.safeParse(b.url)
+      if (result.success) {
+        window.open(b.url, '_blank', 'noopener,noreferrer')
+      } else {
+        console.error(`${b.title}: ${result.error.message}`)
+      }
+    })
+  }
+
   return (
     <>
       <form>
@@ -95,7 +109,11 @@ export const KeywordPage = ({ keyword }: KeywordPageProps) => {
           />
         </div>
         <div className="mt-2 grid grid-cols-4 gap-2">
-          <Button disabled type="submit">
+          <Button
+            disabled={assignedBookmarks.length === 0}
+            onClick={handleOpen}
+            type="button"
+          >
             {UI_LABELS.ACTIONS.OPEN}
           </Button>
           <Button
