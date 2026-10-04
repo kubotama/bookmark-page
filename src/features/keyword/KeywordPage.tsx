@@ -93,7 +93,7 @@ export const KeywordPage = ({ keyword }: KeywordPageProps) => {
       if (result.success) {
         window.open(b.url, '_blank', 'noopener,noreferrer')
       } else {
-        console.error(`${b.title}: ${result.error.message}`)
+        console.error(`${b.title}: ${result.error.issues[0].message}`)
       }
     })
   }

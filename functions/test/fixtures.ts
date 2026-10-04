@@ -39,6 +39,7 @@ export const TEST_STRING = {
 export const INVALID_STRING = {
   FTP: 'ftp://ftp.com',
   ID: 'not-found-id',
+  NAME: 'invalid-name',
   URL: 'not-a-valid-url',
 } as const
 
