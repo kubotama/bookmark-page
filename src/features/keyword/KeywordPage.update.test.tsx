@@ -58,6 +58,10 @@ vi.mock('../relations/useAssignRelation', () => ({
   useAssignRelation: () => ({ isPending: false, mutate: vi.fn() }),
 }))
 
+vi.mock('../relations/useUnassignRelation', () => ({
+  useUnassignRelation: () => ({ isPending: false, mutate: vi.fn() }),
+}))
+
 describe('キーワードの更新', () => {
   const testKeyword = TestKeywords[0]
   let user: UserEvent
