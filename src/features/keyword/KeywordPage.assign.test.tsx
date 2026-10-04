@@ -48,6 +48,10 @@ vi.mock('../bookmark/useBookmarks', () => ({
   },
 }))
 
+vi.mock('../relations/useUnassignRelation', () => ({
+  useUnassignRelation: () => ({ isPending: false, mutate: vi.fn() }),
+}))
+
 let mockIsPending: boolean = false
 const mockAssignRelationMutate = vi.fn()
 vi.mock('../relations/useAssignRelation', () => ({

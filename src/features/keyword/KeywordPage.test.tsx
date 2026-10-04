@@ -53,6 +53,10 @@ vi.mock('../relations/useAssignRelation', () => ({
   useAssignRelation: () => ({ isPending: false, mutate: vi.fn() }),
 }))
 
+vi.mock('../relations/useUnassignRelation', () => ({
+  useUnassignRelation: () => ({ isPending: false, mutate: vi.fn() }),
+}))
+
 describe('KeywordPage', () => {
   it('キーワードの名前が正しく表示されていること', async () => {
     // arrange

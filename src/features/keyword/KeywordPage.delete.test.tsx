@@ -43,6 +43,10 @@ vi.mock('../relations/useAssignRelation', () => ({
   useAssignRelation: () => ({ isPending: false, mutate: vi.fn() }),
 }))
 
+vi.mock('../relations/useUnassignRelation', () => ({
+  useUnassignRelation: () => ({ isPending: false, mutate: vi.fn() }),
+}))
+
 describe('削除ボタンの動作', () => {
   const testKeyword = TestKeywords[0]
 

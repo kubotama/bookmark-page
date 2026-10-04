@@ -12,6 +12,7 @@ import { ListItem } from '../../components/ListItem'
 import { isRegisteredKeyword } from '../../lib/keywords'
 import { useBookmarks } from '../bookmark/useBookmarks'
 import { useAssignRelation } from '../relations/useAssignRelation'
+import { useUnassignRelation } from '../relations/useUnassignRelation'
 import { useDeleteKeyword } from './useDeleteKeyword'
 import { useKeywords } from './useKeywords'
 import { useUpdateKeyword } from './useUpdateKeyword'
@@ -31,6 +32,8 @@ export const KeywordPage = ({ keyword }: KeywordPageProps) => {
     useDeleteKeyword()
   const { isPending: isAssignRelationPending, mutate: assignRelation } =
     useAssignRelation()
+  const { isPending: isUnassignRelationPending, mutate: unassignRelation } =
+    useUnassignRelation()
   const { data: bookmarkData } = useBookmarks()
   const bookmarks = bookmarkData?.data ?? []
 
@@ -119,7 +122,26 @@ export const KeywordPage = ({ keyword }: KeywordPageProps) => {
         <div className="text-sm">{UI_LABELS.FIELDS.ASSIGNED_BOOKMARK}</div>
         <div className="flex flex-col items-start border-2 min-h-10 rounded transition border-slate-500">
           {assignedBookmarks.map((b) => (
-            <ListItem id={b.id} key={b.id} to={`/bookmark/${b.id}`}>
+            <ListItem
+              aria-disabled={isUnassignRelationPending}
+              className={
+                isUnassignRelationPending
+                  ? 'pointer-events-none opacity-50'
+                  : 'cursor-pointer'
+              }
+              data-testid="assigned-bookmark-item"
+              id={b.id}
+              key={b.id}
+              onClick={() => {
+                if (!isUnassignRelationPending) {
+                  unassignRelation({
+                    bookmark_id: b.id,
+                    keyword_id: keyword.id,
+                  })
+                }
+              }}
+              to={`/bookmark/${b.id}`}
+            >
               {b.title}
             </ListItem>
           ))}
