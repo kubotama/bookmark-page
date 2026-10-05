@@ -10,6 +10,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { TestBookmarkWithKeywords } from '../../functions/test/fixtures'
 import { UI_LABELS } from '../../shared/constants/uiMessages'
 import { routeTree } from '../routeTree.gen'
+import { expectText } from '../test/test-utils'
 
 window.scrollTo = vi.fn()
 
@@ -66,5 +67,26 @@ describe('Bookmark Page', () => {
 
     // UI_LABELS から読み込み中の文言が表示されているか検証
     expect(screen.getByText(UI_LABELS.ACTIONS.LOADING)).toBeInTheDocument()
+  })
+
+  it('APIから取得したブックマーク一覧が正常にレンダリングされること', async () => {
+    // 正常系データを返すレスポンスをモック
+    mockUseBookmarks.mockReturnValue({
+      data: { data: TestBookmarkWithKeywords, success: true },
+    })
+
+    await act(async () => {
+      await renderBookmarkPage()
+    })
+
+    await expectText({
+      link: TestBookmarkWithKeywords[0].url,
+      text: TestBookmarkWithKeywords[0].title,
+    })
+
+    await expectText({
+      link: TestBookmarkWithKeywords[1].url,
+      text: TestBookmarkWithKeywords[1].title,
+    })
   })
 })
