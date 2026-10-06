@@ -83,6 +83,12 @@ describe('Bookmark Page', () => {
       mockData: { data: { data: TestBookmarkWithKeywords, success: true } },
       testName: 'APIから取得したブックマーク一覧が正常にレンダリングされること',
     },
+    {
+      expectedTexts: [{ text: UI_LABELS.HEADER.NO_BOOKMARKS }],
+      mockData: { data: { data: [], success: true } },
+      testName:
+        'ブックマークが空の場合に「データなし」のメッセージが表示されること',
+    },
   ]
 
   it.each(testCases)(`$testName`, async ({ expectedTexts, mockData }) => {
