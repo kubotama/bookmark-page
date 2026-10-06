@@ -142,7 +142,7 @@ export const inputText = async (
   }
 }
 
-type TextTestType = {
+export type TextTestType = {
   disabled?: boolean
   link?: string
   text: string

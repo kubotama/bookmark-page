@@ -4,13 +4,13 @@ import {
   createRouter,
   RouterProvider,
 } from '@tanstack/react-router'
-import { act, render, screen } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { act, render } from '@testing-library/react'
+import { beforeEach, describe, it, vi } from 'vitest'
 
 import { TestBookmarkWithKeywords } from '../../functions/test/fixtures'
 import { UI_LABELS } from '../../shared/constants/uiMessages'
 import { routeTree } from '../routeTree.gen'
-import { expectText } from '../test/test-utils'
+import { expectText, TextTestType } from '../test/test-utils'
 
 window.scrollTo = vi.fn()
 
@@ -57,36 +57,44 @@ describe('Bookmark Page', () => {
     vi.clearAllMocks()
   })
 
-  it('データ取得中はローディング画面が表示されること', async () => {
-    // レンスポンスを意図的に保留状態（Promiseが解決しない）にしてローディングを維持
-    mockUseBookmarks.mockReturnValue({ isLoading: true })
+  type TestCase = {
+    expectedTexts: TextTestType[]
+    mockData: {
+      data?: { data: typeof TestBookmarkWithKeywords; success: boolean }
+      error?: Error | null
+      isLoading?: boolean
+    }
+    testName: string
+  }
 
-    await act(async () => {
-      await renderBookmarkPage()
-    })
+  const testTexts = TestBookmarkWithKeywords.map((bookmark) => ({
+    link: bookmark.url,
+    text: bookmark.title,
+  }))
 
-    // UI_LABELS から読み込み中の文言が表示されているか検証
-    expect(screen.getByText(UI_LABELS.ACTIONS.LOADING)).toBeInTheDocument()
-  })
+  const testCases: TestCase[] = [
+    {
+      expectedTexts: [{ text: UI_LABELS.ACTIONS.LOADING }],
+      mockData: { isLoading: true },
+      testName: 'データ取得中はローディング画面が表示されること',
+    },
+    {
+      expectedTexts: testTexts,
+      mockData: { data: { data: TestBookmarkWithKeywords, success: true } },
+      testName: 'APIから取得したブックマーク一覧が正常にレンダリングされること',
+    },
+  ]
 
-  it('APIから取得したブックマーク一覧が正常にレンダリングされること', async () => {
+  it.each(testCases)(`$testName`, async ({ expectedTexts, mockData }) => {
     // 正常系データを返すレスポンスをモック
-    mockUseBookmarks.mockReturnValue({
-      data: { data: TestBookmarkWithKeywords, success: true },
-    })
+    mockUseBookmarks.mockReturnValue(mockData)
 
     await act(async () => {
       await renderBookmarkPage()
     })
 
-    await expectText({
-      link: TestBookmarkWithKeywords[0].url,
-      text: TestBookmarkWithKeywords[0].title,
-    })
-
-    await expectText({
-      link: TestBookmarkWithKeywords[1].url,
-      text: TestBookmarkWithKeywords[1].title,
-    })
+    for (const expected of expectedTexts) {
+      await expectText(expected)
+    }
   })
 })
