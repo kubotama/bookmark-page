@@ -8,7 +8,7 @@ import { act, render } from '@testing-library/react'
 import { beforeEach, describe, it, vi } from 'vitest'
 
 import { TestBookmarkWithKeywords } from '../../functions/test/fixtures'
-import { UI_LABELS } from '../../shared/constants/uiMessages'
+import { ERROR_MESSAGE, UI_LABELS } from '../../shared/constants/uiMessages'
 import { routeTree } from '../routeTree.gen'
 import { expectText, TextTestType } from '../test/test-utils'
 
@@ -88,6 +88,11 @@ describe('Bookmark Page', () => {
       mockData: { data: { data: [], success: true } },
       testName:
         'ブックマークが空の場合に「データなし」のメッセージが表示されること',
+    },
+    {
+      expectedTexts: [{ text: ERROR_MESSAGE.SERVER_ERROR }],
+      mockData: { error: new Error(ERROR_MESSAGE.SERVER_ERROR) },
+      testName: 'サーバーエラーが発生した際にエラーメッセージが表示されること',
     },
   ]
 
