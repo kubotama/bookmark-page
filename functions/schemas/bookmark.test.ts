@@ -3,11 +3,21 @@ import { describe, expect, it } from 'vitest'
 
 import { TEST_STRING, TestKeywords } from '../test/fixtures'
 import { BookmarkWithKeywordsSchema } from './bookmark'
+import { Keyword } from './keyword'
 
 describe('BookmarkWithKeywordsSchema', () => {
-  it('正常なkeywords', () => {
+  type TestCase = {
+    keywords: Keyword[]
+    testName: string
+  }
+
+  const testCases: TestCase[] = [
+    { keywords: TestKeywords, testName: '正常なkeywords' },
+    { keywords: [], testName: 'キーワードなし' },
+  ]
+
+  it.each(testCases)(`$testName`, ({ keywords }) => {
     const bookmarkId = uuidv7()
-    const keywords = TestKeywords
 
     const testBookmark = {
       id: bookmarkId,
@@ -23,7 +33,7 @@ describe('BookmarkWithKeywordsSchema', () => {
     if (schemaResult.success) {
       expect(schemaResult.data).toMatchObject({
         id: testBookmark.id,
-        keywords: TestKeywords.map(({ id, name }) => ({ id, name })),
+        keywords: keywords.map(({ id, name }) => ({ id, name })),
         title: testBookmark.title,
         url: testBookmark.url,
       })
