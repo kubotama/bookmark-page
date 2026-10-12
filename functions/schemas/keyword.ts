@@ -25,14 +25,22 @@ export type Keyword = z.infer<typeof KeywordSchema>
 
 // 2. 基本スキーマを継承・拡張して bookmark_ids を追加
 export const KeywordWithBookmarkIdsSchema = KeywordSchema.extend({
-  bookmark_ids: z.string().transform((val) => {
-    try {
-      return JSON.parse(val) as string[]
-    } catch {
-      return []
-    }
-  }),
+  bookmark_ids: z
+    .string()
+    .transform((val, ctx) => {
+      try {
+        return JSON.parse(val) as unknown
+      } catch {
+        ctx.addIssue({
+          code: 'custom',
+          message: SCHEMA_MESSAGE.INVALID_BOOKMARK_IDS,
+        })
+        return z.NEVER
+      }
+    })
+    .pipe(z.array(z.string())),
 })
+
 export type KeywordWithBookmarkIds = z.infer<
   typeof KeywordWithBookmarkIdsSchema
 >

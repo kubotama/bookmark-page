@@ -33,7 +33,9 @@ export const BookmarksTableData = {
 
 export const TEST_STRING = {
   BUTTON_LABEL: 'ボタン',
+  NEW_BOOKMARK: '新しいブックマーク',
   NEW_KEYWORD: '新しいキーワード',
+  URL: 'https://example.com',
 } as const
 
 export const INVALID_STRING = {
