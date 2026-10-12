@@ -16,4 +16,6 @@ export const SCHEMA_MESSAGE = {
   INVALID_URL: '不正なURL形式です',
   INVALID_ID_FORMAT: '無効なID形式です',
   PROTOCOL_CONSTRAINT: 'http または https で始まるURLを入力してください',
+  INVALID_BOOKMARK_IDS: 'bookmark_idsは不正なJSON形式を含んでいます',
+  INVALID_KEYWORDS: 'keywordsは不正なJSON形式を含んでいます',
 } as const

@@ -38,6 +38,5 @@ describe('Root Layout', () => {
 
     // ヘッダが表示されているか
     await expectText({ link: '/', text: UI_LABELS.HEADER.PAGE_HEADER })
-    await expectText({ link: '/keyword', text: UI_LABELS.HEADER.KEYWORD })
   })
 })

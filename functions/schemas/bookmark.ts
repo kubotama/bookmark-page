@@ -43,14 +43,20 @@ export type Bookmark = z.infer<typeof BookmarkSchema>
  * D1 から取得した JSON 文字列（'[{"id":"...","name":"..."}]'）をパースして Keyword[] に変換します
  */
 export const BookmarkWithKeywordsSchema = BookmarkSchema.extend({
-  keywords: z.string().transform((val) => {
-    try {
-      const parsed = JSON.parse(val)
-      return z.array(KeywordSchema).parse(parsed)
-    } catch {
-      return []
-    }
-  }),
+  keywords: z
+    .string()
+    .transform((val, ctx) => {
+      try {
+        return JSON.parse(val) as unknown
+      } catch {
+        ctx.addIssue({
+          code: 'custom',
+          message: SCHEMA_MESSAGE.INVALID_KEYWORDS,
+        })
+        return z.NEVER
+      }
+    })
+    .pipe(z.array(KeywordSchema)),
 })
 
 /**
