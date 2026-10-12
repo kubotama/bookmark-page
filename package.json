@@ -48,7 +48,7 @@
     "@vitejs/plugin-react": "6.1.1",
     "@vitest/coverage-v8": "^5.0.2",
     "chrome-types": "^0.1.450",
-    "concurrently": "^10.0.5",
+    "concurrently": "^10.0.6",
     "eslint": "^10.11.0",
     "eslint-plugin-perfectionist": "^5.12.1",
     "happy-dom": "20.14.5",
