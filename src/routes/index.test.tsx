@@ -1,10 +1,12 @@
 import { createRouter, RouterProvider } from '@tanstack/react-router'
 import { act, render } from '@testing-library/react'
-import { describe, it } from 'vitest'
+import { describe, it, vi } from 'vitest'
 
 import { UI_LABELS } from '../../shared/constants/uiMessages'
 import { routeTree } from '../routeTree.gen'
 import { expectText } from '../test/test-utils'
+
+window.scrollTo = vi.fn()
 
 async function renderIndexPage() {
   // 本物の routeTree を渡してルーターを初期化
