@@ -147,7 +147,7 @@ export const KeywordPage = ({ keyword }: KeywordPageProps) => {
                   ? 'pointer-events-none opacity-50'
                   : 'cursor-pointer'
               }
-              data-testid="assigned-bookmark-item"
+              data-testid={`assigned-bookmark-item-${b.id}`}
               id={b.id}
               key={b.id}
               onClick={() => {
@@ -158,6 +158,7 @@ export const KeywordPage = ({ keyword }: KeywordPageProps) => {
                   })
                 }
               }}
+              openHref={b.url}
               to={`/bookmark/${b.id}`}
             >
               {b.title}
@@ -177,7 +178,7 @@ export const KeywordPage = ({ keyword }: KeywordPageProps) => {
                   ? 'pointer-events-none opacity-50'
                   : 'cursor-pointer'
               }
-              data-testid="unassigned-bookmark-item"
+              data-testid={`unassigned-bookmark-item-${b.id}`}
               id={b.id}
               key={b.id}
               onClick={() => {
@@ -185,6 +186,7 @@ export const KeywordPage = ({ keyword }: KeywordPageProps) => {
                   assignRelation({ bookmark_id: b.id, keyword_id: keyword.id })
                 }
               }}
+              openHref={b.url}
               to={`/bookmark/${b.id}`}
             >
               {b.title}

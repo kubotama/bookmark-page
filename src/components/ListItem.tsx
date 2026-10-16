@@ -32,8 +32,9 @@ export const ListItem = ({
     >
       {openHref ? (
         <a
-          className="hover:font-semibold hover:underline text-left"
+          className="text-shadow-xs text-indigo-400 hover:font-semibold hover:underline text-left"
           href={openHref}
+          onClick={(e) => e.stopPropagation()}
           rel="noreferrer"
           target="_blank"
         >

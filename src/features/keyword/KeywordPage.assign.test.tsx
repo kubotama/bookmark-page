@@ -85,8 +85,8 @@ describe('ブックマークとキーワードの関連付け', () => {
 
         render(<KeywordPage keyword={testKeyword} />)
 
-        const unassignedBookmark = screen.getByText(
-          TestBookmarkWithKeywords[1].title,
+        const unassignedBookmark = screen.getByTestId(
+          `unassigned-bookmark-item-${TestBookmarkWithKeywords[1].id}`,
         )
 
         await user.click(unassignedBookmark)
@@ -97,17 +97,31 @@ describe('ブックマークとキーワードの関連付け', () => {
         })
       })
 
+      it('ブックマークのリンクをクリックしても関連付けられない', async () => {
+        const user = userEvent.setup()
+
+        render(<KeywordPage keyword={testKeyword} />)
+
+        const bookmarkLink = screen.getByRole('link', {
+          name: TestBookmarkWithKeywords[1].title,
+        })
+
+        await user.click(bookmarkLink)
+
+        expect(mockAssignRelationMutate).toHaveBeenCalledTimes(0)
+      })
+
       it('関連付け処理中（isAssignRelationPending: true）のときは、クリックしても API が呼び出されないこと', async () => {
         mockIsPending = true
 
         const user = userEvent.setup()
         render(<KeywordPage keyword={testKeyword} />)
 
-        const unassignedBookmark = screen.getByText(
-          TestBookmarkWithKeywords[1].title,
+        const unassignedBookmarks = screen.getByTestId(
+          `unassigned-bookmark-item-${TestBookmarkWithKeywords[1].id}`,
         )
 
-        await user.click(unassignedBookmark)
+        await user.click(unassignedBookmarks)
 
         // API 呼び出し関数が実行されていないことを検証
         expect(mockAssignRelationMutate).not.toHaveBeenCalled()
@@ -118,13 +132,15 @@ describe('ブックマークとキーワードの関連付け', () => {
 
         render(<KeywordPage keyword={testKeyword} />)
 
-        const unassignedBookmarkItems = screen.getAllByTestId(
-          'unassigned-bookmark-item',
+        const unassignedBookmark = screen.getByTestId(
+          `unassigned-bookmark-item-${TestBookmarkWithKeywords[1].id}`,
         )
-        const targetItem = unassignedBookmarkItems[1]
 
-        expect(targetItem).toHaveAttribute('aria-disabled', 'true')
-        expect(targetItem).toHaveClass('pointer-events-none', 'opacity-50')
+        expect(unassignedBookmark).toHaveAttribute('aria-disabled', 'true')
+        expect(unassignedBookmark).toHaveClass(
+          'pointer-events-none',
+          'opacity-50',
+        )
       })
     })
   })
@@ -140,8 +156,8 @@ describe('ブックマークとキーワードの関連付け', () => {
 
         render(<KeywordPage keyword={testKeyword} />)
 
-        const unassignedBookmark = screen.getByText(
-          TestBookmarkWithKeywords[1].title,
+        const unassignedBookmark = screen.getByTestId(
+          `unassigned-bookmark-item-${TestBookmarkWithKeywords[1].id}`,
         )
 
         await user.click(unassignedBookmark)
