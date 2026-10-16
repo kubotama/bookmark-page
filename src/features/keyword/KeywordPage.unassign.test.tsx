@@ -68,24 +68,36 @@ describe('ブックマークとキーワードの関連付けの解除', () => {
 
   const testKeyword = TestKeywords[0]
 
-  describe('正常系', () => {
-    describe('クリックでブックマークとの関連付けを解除', () => {
-      it('関連付けられているブックマークをクリック', async () => {
-        const user = userEvent.setup()
+  describe('クリックでブックマークとの関連付けを解除', () => {
+    it('関連付けられているブックマークをクリック', async () => {
+      const user = userEvent.setup()
 
-        render(<KeywordPage keyword={testKeyword} />)
+      render(<KeywordPage keyword={testKeyword} />)
 
-        const assignedBookmark = screen.getByText(
-          TestBookmarkWithKeywords[0].title,
-        )
+      const assignedBookmark = screen.getByTestId(
+        `assigned-bookmark-item-${TestBookmarkWithKeywords[0].id}`,
+      )
 
-        await user.click(assignedBookmark)
+      await user.click(assignedBookmark)
 
-        expect(mockUnassignRelationMutate).toHaveBeenCalledWith({
-          bookmark_id: TestBookmarkWithKeywords[0].id,
-          keyword_id: testKeyword.id,
-        })
+      expect(mockUnassignRelationMutate).toHaveBeenCalledWith({
+        bookmark_id: TestBookmarkWithKeywords[0].id,
+        keyword_id: testKeyword.id,
       })
+    })
+
+    it('ブックマークのリンクをクリックしても関連付けが解除されない', async () => {
+      const user = userEvent.setup()
+
+      render(<KeywordPage keyword={testKeyword} />)
+
+      const bookmarkLink = screen.getByRole('link', {
+        name: TestBookmarkWithKeywords[0].title,
+      })
+
+      await user.click(bookmarkLink)
+
+      expect(mockUnassignRelationMutate).toHaveBeenCalledTimes(0)
     })
 
     it('関連付けの解除処理中（isUnassignRelationPending: true）のときは、クリックしても API が呼び出されないこと', async () => {
@@ -94,8 +106,8 @@ describe('ブックマークとキーワードの関連付けの解除', () => {
       const user = userEvent.setup()
       render(<KeywordPage keyword={testKeyword} />)
 
-      const assignedBookmark = screen.getByText(
-        TestBookmarkWithKeywords[0].title,
+      const assignedBookmark = screen.getByTestId(
+        `assigned-bookmark-item-${TestBookmarkWithKeywords[0].id}`,
       )
 
       await user.click(assignedBookmark)
@@ -109,13 +121,12 @@ describe('ブックマークとキーワードの関連付けの解除', () => {
 
       render(<KeywordPage keyword={testKeyword} />)
 
-      const assignedBookmarkItems = screen.getAllByTestId(
-        'assigned-bookmark-item',
+      const assignedBookmark = screen.getByTestId(
+        `assigned-bookmark-item-${TestBookmarkWithKeywords[0].id}`,
       )
-      const targetItem = assignedBookmarkItems[0]
 
-      expect(targetItem).toHaveAttribute('aria-disabled', 'true')
-      expect(targetItem).toHaveClass('pointer-events-none', 'opacity-50')
+      expect(assignedBookmark).toHaveAttribute('aria-disabled', 'true')
+      expect(assignedBookmark).toHaveClass('pointer-events-none', 'opacity-50')
     })
   })
 })
