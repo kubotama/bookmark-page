@@ -75,24 +75,38 @@ describe('KeywordPages - ブックマーク表示', () => {
 
     // 💡 2. 「関連付けられているキーワード」エリアの検証
     // -> 「キーワード1」は存在し、「キーワード2」は存在しないこと
+    // キーワードごとにリンクが2つ (ブックマーク名と詳細)
     const assignedLinks = within(assignedSection).getAllByRole('link')
-    expect(assignedLinks).toHaveLength(1)
+    expect(assignedLinks).toHaveLength(2)
     expect(
       within(assignedSection).getByText(TestBookmarkWithKeywords[0].title),
     ).toBeInTheDocument()
+    expect(
+      within(assignedSection).getByRole('link', {
+        name: TestBookmarkWithKeywords[0].title,
+      }),
+    ).toHaveAttribute('href', TestBookmarkWithKeywords[0].url)
+
     expect(
       within(assignedSection).queryByText(TestBookmarkWithKeywords[1].title),
     ).not.toBeInTheDocument()
 
     // 💡 3. 「関連付けられていないキーワード」エリアの検証
     // -> 「キーワード2」は存在し、「キーワード1」は存在しないこと
+    // キーワードごとにリンクが2つ (ブックマーク名と詳細)
     const unassignedLinks = within(unassignedSection).getAllByRole('link')
-    expect(unassignedLinks).toHaveLength(2)
+    expect(unassignedLinks).toHaveLength(4)
     expect(
       within(unassignedSection).queryByText(TestBookmarkWithKeywords[0].title),
     ).not.toBeInTheDocument()
+
     expect(
       within(unassignedSection).getByText(TestBookmarkWithKeywords[1].title),
     ).toBeInTheDocument()
+    expect(
+      within(unassignedSection).getByRole('link', {
+        name: TestBookmarkWithKeywords[1].title,
+      }),
+    ).toHaveAttribute('href', TestBookmarkWithKeywords[1].url)
   })
 })
