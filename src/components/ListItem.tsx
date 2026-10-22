@@ -25,7 +25,7 @@ export const ListItem = ({
   return (
     <div
       className={cn(
-        'w-full p-2 text-slate-700 bg-slate-200 border border-slate-300 hover:bg-indigo-200 flex justify-between items-center',
+        'w-full px-2 py-0.5 text-slate-700 bg-slate-200 border border-slate-300 hover:bg-indigo-200 flex justify-between items-center',
         className,
       )}
       {...props}
