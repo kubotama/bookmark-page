@@ -138,7 +138,7 @@ export const KeywordPage = ({ keyword }: KeywordPageProps) => {
 
       <div className="mt-5">
         <div className="text-sm">{UI_LABELS.FIELDS.ASSIGNED_BOOKMARK}</div>
-        <div className="flex flex-col items-start border-2 min-h-10 rounded transition border-slate-500">
+        <div className="flex flex-col items-start border-2 min-h-2 rounded transition border-slate-500">
           {assignedBookmarks.map((b) => (
             <ListItem
               aria-disabled={isUnassignRelationPending}
@@ -169,7 +169,7 @@ export const KeywordPage = ({ keyword }: KeywordPageProps) => {
 
       <div className="mt-5">
         <div className="text-sm">{UI_LABELS.FIELDS.UNASSIGNED_BOOKMARK}</div>
-        <div className="flex flex-col items-start min-h-10 border-2 border-slate-500 rounded transition">
+        <div className="flex flex-col items-start min-h-2 border-2 border-slate-500 rounded transition">
           {unassignedBookmarks.map((b) => (
             <ListItem
               aria-disabled={isAssignRelationPending}
