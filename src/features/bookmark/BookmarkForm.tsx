@@ -149,7 +149,7 @@ export const BookmarkForm = ({ bookmark }: BookmarkFormProps) => {
 
       <div className="mt-5">
         <div className="text-sm">{UI_LABELS.FIELDS.ASSIGNED_KEYWORD}</div>
-        <div className="border-2 border-slate-500 min-h-10 rounded">
+        <div className="border-2 border-slate-500 min-h-2 rounded">
           <div className="w-full transition">
             <div className="flex flex-col items-start">
               {bookmark.keywords.map((keyword) => (
@@ -168,7 +168,7 @@ export const BookmarkForm = ({ bookmark }: BookmarkFormProps) => {
 
       <div className="mt-5">
         <div className="text-sm">{UI_LABELS.FIELDS.UNASSIGNED_KEYWORD}</div>
-        <div className="border-2 border-slate-500 min-h-10 rounded">
+        <div className="border-2 border-slate-500 min-h-2 rounded">
           <div className="w-full transition">
             <div className="flex flex-col items-start">
               {unassignedKeywords.map((keyword) => (
